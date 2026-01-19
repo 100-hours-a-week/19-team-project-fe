@@ -43,7 +43,7 @@ fi
 
 # 4. 프로젝트 클론
 echo "[4/5] 프로젝트 설정..."
-FE_DIR=~/app/frontend
+FE_DIR=~/refit/app/frontend
 if [ ! -d "$FE_DIR" ]; then
     mkdir -p ~/app
     echo "프로젝트 디렉토리 생성: $FE_DIR"
