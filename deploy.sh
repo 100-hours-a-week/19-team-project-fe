@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-FE_DIR=~refit/app/frontend
-LOG_DIR=~refit/logs/frontend       
-BACKUP_DIR=~refit/backups/frontend
+FE_DIR=~/refit/app/frontend
+LOG_DIR=~/refit/logs/frontend       
+BACKUP_DIR=~/refit/backups/frontend
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 APP_NAME="frontend"
 
