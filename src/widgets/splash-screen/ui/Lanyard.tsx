@@ -16,8 +16,8 @@ import {
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 
-import cardGLB from '@/shared/asset/lanyard/card.glb';
-import lanyard from '@/shared/asset/lanyard/lanyard.png';
+const cardGLB = '/assets/lanyard/card.glb';
+const lanyard = '/assets/lanyard/lanyard.png';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -95,7 +95,7 @@ interface BandProps {
   isMobile?: boolean;
 }
 
-function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
+function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
   const band = useRef<any>(null);
   const fixed = useRef<any>(null);
   const j1 = useRef<any>(null);
@@ -112,8 +112,8 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
     type: 'dynamic' as RigidBodyProps['type'],
     canSleep: true,
     colliders: false,
-    angularDamping: 4,
-    linearDamping: 4
+    angularDamping: 1.6,
+    linearDamping: 1.4
   };
 
   const { nodes, materials } = useGLTF(cardGLB) as any;
@@ -182,13 +182,13 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
       <group position={[0, 4, 0]}>
         <RigidBody ref={fixed} {...segmentProps} type={'fixed' as RigidBodyProps['type']} />
         <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
-          <BallCollider args={[0.1]} />
+          <BallCollider args={[0.1]} restitution={0.6} />
         </RigidBody>
         <RigidBody position={[1, 0, 0]} ref={j2} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
-          <BallCollider args={[0.1]} />
+          <BallCollider args={[0.1]} restitution={0.6} />
         </RigidBody>
         <RigidBody position={[1.5, 0, 0]} ref={j3} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
-          <BallCollider args={[0.1]} />
+          <BallCollider args={[0.1]} restitution={0.6} />
         </RigidBody>
         <RigidBody
           position={[2, 0, 0]}
@@ -196,7 +196,7 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
           {...segmentProps}
           type={dragged ? ('kinematicPosition' as RigidBodyProps['type']) : ('dynamic' as RigidBodyProps['type'])}
         >
-          <CuboidCollider args={[0.8, 1.125, 0.01]} />
+          <CuboidCollider args={[0.8, 1.125, 0.01]} restitution={0.5} />
           <group
             scale={2.25}
             position={[0, -1.2, -0.05]}

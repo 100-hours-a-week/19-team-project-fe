@@ -1,5 +1,10 @@
-import { SplashScreen } from "@/widgets/splash-screen";
+import { HomeContent } from '@/widgets/home';
+import { SplashGate } from '@/widgets/splash-screen';
 
 export default function Home() {
-  return <SplashScreen />;
+  return (
+    <SplashGate durationMs={5000}>
+      <HomeContent />
+    </SplashGate>
+  );
 }
