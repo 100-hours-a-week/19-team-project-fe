@@ -1,22 +1,15 @@
-import type { ButtonHTMLAttributes } from 'react';
+import Image from 'next/image';
 
-export type KakaoLoginButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
-
-export default function KakaoLoginButton({
-  className = '',
-  type = 'button',
-  ...props
-}: KakaoLoginButtonProps) {
+export default function KakaoLoginButton() {
   return (
-    <button
-      type={type}
-      className={`relative flex w-full items-center justify-center gap-3 rounded-md bg-[#fee500] px-5 py-3 text-sm font-semibold text-[#1a1a1a] shadow-[0_12px_24px_rgba(254,229,0,0.35)] transition active:scale-[0.98] ${className}`}
-      {...props}
-    >
-      <span className="absolute left-5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1a1a] text-[11px] font-bold text-[#fee500]">
-        K
-      </span>
-      카카오로 계속하기
+    <button type="button" className="w-full transition active:scale-[0.98]">
+      <Image
+        src="/icons/kakao_login_large_wide.png"
+        alt="카카오로 로그인"
+        width={320}
+        height={48}
+        className="h-auto w-full"
+      />
     </button>
   );
 }
