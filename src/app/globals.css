@@ -1,5 +1,42 @@
 @import "tailwindcss";
 
+@layer base {
+  :root {
+    /* ========== Primary ========== */
+    --color-primary-main: #35558b;
+    --color-primary-sub: #65778c;
+    --color-primary-active: #d2deea;
+    --color-primary-disabled: #d2deea;
+
+    /* ========== Text ========== */
+    --color-text-title: #000000;
+    --color-text-body: #2c2c2c;
+    --color-text-caption-strong: #555555;
+    --color-text-caption: #808080;
+    --color-text-hint-main: #aeaeae;
+    --color-text-hint-sub: #bcbcbc;
+
+    /* ========== Background ========== */
+    --color-bg-normal: #f7f7f7;
+    --color-bg-sub: #e5e5e5;
+    --color-bg-toast: #9d9d9d;
+    --color-bg-bottom-sheet: #e0e0e0;
+
+    /* ========== Radius ========== */
+    --radius-light: 10px;
+    --radius-sm: 12px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 24px;
+    --radius-round: 9999px;
+
+    /* ========== Shadow / Effect ========== */
+    --shadow-light: 0 0 30px rgba(212, 212, 212, 1);
+    --shadow-blur-strong: 0 0 14px rgba(255, 255, 255, 1);
+    --shadow-blur-basic: 0 0 4px rgba(255, 255, 255, 1);
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
