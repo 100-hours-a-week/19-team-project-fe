@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
+import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
+import { signup } from '@/features/auth/signup/api';
 import { getCareerLevels, getJobs, getSkills } from '@/features/onboarding/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
@@ -22,29 +25,33 @@ const roleTitle: Record<RoleId, string> = {
 };
 
 export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingProfileFormProps) {
+  const router = useRouter();
   const isExpert = role === 'expert';
   const displayRole = roleTitle[role] ?? roleTitle.seeker;
   const [activeSheet, setActiveSheet] = useState<SheetId>(null);
-  const [selectedJob, setSelectedJob] = useState<string>('');
-  const [selectedCareer, setSelectedCareer] = useState<string>('');
-  const [selectedTech, setSelectedTech] = useState<string[]>([]);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [selectedCareer, setSelectedCareer] = useState<CareerLevel | null>(null);
+  const [selectedTech, setSelectedTech] = useState<Skill[]>([]);
   const [techQuery, setTechQuery] = useState('');
-  const [skills, setSkills] = useState<string[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
   const [skillsError, setSkillsError] = useState<string | null>(null);
-  const [jobs, setJobs] = useState<string[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [jobsLoading, setJobsLoading] = useState(true);
   const [jobsError, setJobsError] = useState<string | null>(null);
-  const [careerLevels, setCareerLevels] = useState<string[]>([]);
+  const [careerLevels, setCareerLevels] = useState<CareerLevel[]>([]);
   const [careerLoading, setCareerLoading] = useState(true);
   const [careerError, setCareerError] = useState<string | null>(null);
+  const [nickname, setNickname] = useState('');
+  const [introduction, setIntroduction] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
     getSkills()
       .then((data) => {
         if (!isMounted) return;
-        setSkills(data.skills.map((item) => item.name));
+        setSkills(data.skills);
       })
       .catch((error: unknown) => {
         if (!isMounted) return;
@@ -65,7 +72,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
     getJobs()
       .then((data) => {
         if (!isMounted) return;
-        setJobs(data.jobs.map((item) => item.name));
+        setJobs(data.jobs);
       })
       .catch((error: unknown) => {
         if (!isMounted) return;
@@ -86,7 +93,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
     getCareerLevels()
       .then((data) => {
         if (!isMounted) return;
-        setCareerLevels(data.career_levels.map((item) => item.level));
+        setCareerLevels(data.career_levels);
       })
       .catch((error: unknown) => {
         if (!isMounted) return;
@@ -105,16 +112,80 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
   const filteredTech = useMemo(() => {
     const query = techQuery.trim().toLowerCase();
     if (!query) return skills;
-    return skills.filter((item) => item.toLowerCase().includes(query));
+    return skills.filter((item) => item.name.toLowerCase().includes(query));
   }, [skills, techQuery]);
 
-  const toggleTech = (value: string) => {
+  const toggleTech = (value: Skill) => {
     setSelectedTech((prev) => {
-      if (prev.includes(value)) return prev.filter((item) => item !== value);
+      if (prev.some((item) => item.id === value.id)) {
+        return prev.filter((item) => item.id !== value.id);
+      }
       if (prev.length >= 5) return prev;
       return [...prev, value];
     });
   };
+
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+    if (!selectedJob || !selectedCareer || selectedTech.length === 0) return;
+
+    const raw = sessionStorage.getItem('kakaoLoginResult');
+    if (!raw) return;
+
+    let oauthId = '';
+    let email = '';
+    let fallbackNickname = '';
+
+    try {
+      const parsed = JSON.parse(raw) as {
+        signupRequired?: {
+          provider?: string;
+          providerUserId?: string;
+          email?: string | null;
+          nickname?: string | null;
+        };
+      };
+      const signupRequired = parsed.signupRequired;
+      if (signupRequired) {
+        oauthId = signupRequired.providerUserId ?? '';
+        email = signupRequired.email ?? '';
+        fallbackNickname = signupRequired.nickname ?? '';
+      }
+    } catch {
+      return;
+    }
+
+    const resolvedNickname = nickname.trim() || fallbackNickname;
+    if (!oauthId || !resolvedNickname) return;
+
+    setIsSubmitting(true);
+    try {
+      await signup({
+        oauth_provider: 'KAKAO',
+        oauth_id: oauthId,
+        email,
+        nickname: resolvedNickname,
+        user_type: 'JOB_SEEKER',
+        career_level_id: selectedCareer.id,
+        job_ids: [selectedJob.id],
+        skills: selectedTech.map((skill, index) => ({
+          skill_id: skill.id,
+          display_order: index + 1,
+        })),
+        introduction: introduction.trim(),
+      });
+      router.replace('/');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isSubmitDisabled =
+    isSubmitting ||
+    !selectedJob ||
+    !selectedCareer ||
+    selectedTech.length === 0 ||
+    !nickname.trim();
 
   return (
     <main className="flex min-h-screen flex-col bg-white px-6 pb-10 pt-12 text-text-body">
@@ -160,7 +231,11 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             <span>0 / 15</span>
           </div>
           <Input.Root className="mt-2">
-            <Input.Field placeholder="닉네임을 입력해 주세요" />
+            <Input.Field
+              placeholder="닉네임을 입력해 주세요"
+              value={nickname}
+              onChange={(event) => setNickname(event.target.value)}
+            />
           </Input.Root>
           <div className="mt-2 flex items-center justify-between text-xs text-red-500">
             <span>이미 사용중인 닉네임입니다</span>
@@ -181,14 +256,14 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
               <div className="text-left">
                 <span className="text-base font-semibold text-text-body">직무</span>
                 <p className="mt-1 text-xs text-text-caption">
-                  {selectedJob || '직무를 선택해 주세요'}
+                  {selectedJob?.name || '직무를 선택해 주세요'}
                 </p>
               </div>
             </div>
             <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
               {selectedJob ? (
                 <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
-                  {selectedJob}
+                  {selectedJob.name}
                 </span>
               ) : null}
               <span className="text-xl text-gray-300">›</span>
@@ -204,14 +279,14 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
               <div className="text-left">
                 <span className="text-base font-semibold text-text-body">경력</span>
                 <p className="mt-1 text-xs text-text-caption">
-                  {selectedCareer || '경력을 선택해 주세요'}
+                  {selectedCareer?.level || '경력을 선택해 주세요'}
                 </p>
               </div>
             </div>
             <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
               {selectedCareer ? (
                 <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
-                  {selectedCareer}
+                  {selectedCareer.level}
                 </span>
               ) : null}
               <span className="text-xl text-gray-300">›</span>
@@ -232,10 +307,10 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
               {selectedTech.map((tech) => (
                 <span
-                  key={tech}
+                  key={tech.id}
                   className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]"
                 >
-                  {tech}
+                  {tech.name}
                 </span>
               ))}
               <span className="text-xl text-gray-300">›</span>
@@ -249,6 +324,8 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             <textarea
               className="h-28 w-full resize-none text-sm text-text-body placeholder:text-gray-400 focus:outline-none"
               placeholder="Tell us everything..."
+              value={introduction}
+              onChange={(event) => setIntroduction(event.target.value)}
             />
             <p className="mt-2 text-right text-xs text-text-caption">0/300</p>
           </div>
@@ -256,7 +333,13 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
       </section>
 
       <div className="pt-6">
-        <Button icon={<Image src={iconMark} alt="" width={20} height={20} />}>가입 완료</Button>
+        <Button
+          icon={<Image src={iconMark} alt="" width={20} height={20} />}
+          onClick={handleSubmit}
+          disabled={isSubmitDisabled}
+        >
+          가입 완료
+        </Button>
       </div>
 
       <BottomSheet
@@ -280,12 +363,12 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             <div className="mt-4 flex flex-wrap gap-2">
               {selectedTech.map((tech) => (
                 <button
-                  key={tech}
+                  key={tech.id}
                   type="button"
                   onClick={() => toggleTech(tech)}
                   className="rounded-full border border-[#bcd1f5] bg-[#edf4ff] px-3 py-1 text-xs text-[#2b4b7e]"
                 >
-                  {tech} ×
+                  {tech.name} ×
                 </button>
               ))}
             </div>
@@ -294,15 +377,15 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
               {skillsError ? <p className="text-sm text-red-500">{skillsError}</p> : null}
               {!skillsLoading && !skillsError
                 ? filteredTech.map((item) => {
-                    const isSelected = selectedTech.includes(item);
+                    const isSelected = selectedTech.some((tech) => tech.id === item.id);
                     return (
                       <button
-                        key={item}
+                        key={item.id}
                         type="button"
                         onClick={() => toggleTech(item)}
                         className="flex items-center justify-between border-b border-gray-100 pb-3 text-left"
                       >
-                        <span className="text-sm font-medium text-text-body">{item}</span>
+                        <span className="text-sm font-medium text-text-body">{item.name}</span>
                         <span
                           className={`h-5 w-5 rounded-full border ${
                             isSelected ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
@@ -323,15 +406,17 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             {!jobsLoading && !jobsError
               ? jobs.map((item) => (
                   <button
-                    key={item}
+                    key={item.id}
                     type="button"
                     onClick={() => setSelectedJob(item)}
                     className="flex items-center justify-between text-left"
                   >
-                    <span className="text-sm font-medium text-text-body">{item}</span>
+                    <span className="text-sm font-medium text-text-body">{item.name}</span>
                     <span
                       className={`h-5 w-5 rounded-md border ${
-                        selectedJob === item ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
+                        selectedJob?.id === item.id
+                          ? 'border-[#2b4b7e] bg-[#2b4b7e]'
+                          : 'border-gray-300'
                       }`}
                     />
                   </button>
@@ -347,15 +432,15 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             {!careerLoading && !careerError
               ? careerLevels.map((item) => (
                   <button
-                    key={item}
+                    key={item.id}
                     type="button"
                     onClick={() => setSelectedCareer(item)}
                     className="flex items-center justify-between text-left"
                   >
-                    <span className="text-sm font-medium text-text-body">{item}</span>
+                    <span className="text-sm font-medium text-text-body">{item.level}</span>
                     <span
                       className={`h-5 w-5 rounded-md border ${
-                        selectedCareer === item
+                        selectedCareer?.id === item.id
                           ? 'border-[#2b4b7e] bg-[#2b4b7e]'
                           : 'border-gray-300'
                       }`}
