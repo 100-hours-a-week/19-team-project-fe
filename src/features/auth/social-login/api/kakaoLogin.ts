@@ -7,7 +7,7 @@ export async function kakaoLogin(code: string): Promise<KakaoOAuthLoginData> {
   const url = buildApiUrl(KAKAO_LOGIN_PATH);
 
   return apiFetch<KakaoOAuthLoginData>(url, {
-    method: 'GET',
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
