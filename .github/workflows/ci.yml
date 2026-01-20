@@ -6,6 +6,17 @@ on:
     types: [opened, synchronize, reopened]
   push:
     branches: [develop, main]
+  workflow_dispatch:
+    inputs:
+      job_to_run:
+        description: 'Which job to run'
+        required: true
+        type: choice
+        options:
+          - lint-and-test
+          - integration
+          - release
+          - all
 
 env:
   NODE_VERSION: 22
@@ -14,7 +25,9 @@ env:
 jobs:
   # 1. PR 검증 단계
   lint-and-test:
-    if: github.event_name == 'pull_request'
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'lint-and-test' || github.event.inputs.job_to_run == 'all'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +71,9 @@ jobs:
 
   # 2. 통합 검증 단계
   integration:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'integration' || github.event.inputs.job_to_run == 'all'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -98,7 +113,9 @@ jobs:
 
   # 3. 릴리즈 확정 단계
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release' || github.event.inputs.job_to_run == 'all'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
