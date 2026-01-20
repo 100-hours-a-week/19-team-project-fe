@@ -174,9 +174,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: next-build-artifact-${{ github.sha }}
-          path: |
-            .next/**/*
+          path: .next/
           retention-days: 7
+          include-hidden-files: true
 
       - name: Create Release Tag
         run: |
