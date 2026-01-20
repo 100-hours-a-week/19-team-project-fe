@@ -74,9 +74,11 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
   }, [skills, techQuery]);
 
   const toggleTech = (value: string) => {
-    setSelectedTech((prev) =>
-      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value],
-    );
+    setSelectedTech((prev) => {
+      if (prev.includes(value)) return prev.filter((item) => item !== value);
+      if (prev.length >= 5) return prev;
+      return [...prev, value];
+    });
   };
 
   return (
@@ -175,12 +177,20 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
               <div className="h-10 w-10 rounded-lg bg-gray-200" aria-hidden="true" />
               <div className="text-left">
                 <span className="text-base font-semibold text-text-body">기술스택</span>
-                <p className="mt-1 text-xs text-text-caption">
-                  {selectedTech.length ? selectedTech.join(', ') : '기술을 선택해 주세요'}
-                </p>
+                <p className="mt-1 text-xs text-text-caption">기술을 선택해 주세요</p>
               </div>
             </div>
-            <span className="text-xl text-gray-300">›</span>
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+              {selectedTech.map((tech) => (
+                <span
+                  key={tech}
+                  className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]"
+                >
+                  {tech}
+                </span>
+              ))}
+              <span className="text-xl text-gray-300">›</span>
+            </div>
           </button>
         </div>
 
