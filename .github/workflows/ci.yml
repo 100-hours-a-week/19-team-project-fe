@@ -121,6 +121,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.PAT }}
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -156,17 +157,29 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Verify Build Output
+        run: |
+          echo "Current directory: $(pwd)"
+          if [ -d ".next" ]; then
+            echo "✅ .next directory exists"
+            ls -la .next/
+            echo "Absolute path: $(pwd)/.next"
+          else
+            echo "❌ .next directory not found"
+            exit 1
+          fi
+
       - name: Archive Build Artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: next-build-artifact
+          name: next-build-artifact-${{ github.sha }}
           path: .next/
           retention-days: 7
+          include-hidden-files: true
 
       - name: Create Release Tag
         run: |
           TAG_NAME="v$(date +'%Y.%m.%d')-${GITHUB_SHA::7}"
           git tag $TAG_NAME
           git push origin $TAG_NAME
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
