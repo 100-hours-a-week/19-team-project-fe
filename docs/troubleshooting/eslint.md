@@ -16,12 +16,7 @@
 
 ## TODO: lint 이슈 기록
 
-- `react-hooks/set-state-in-effect` (예: `KakaoCallbackPage`, `BottomSheet`)
-  - effect 내부에서 즉시 `setState` 호출
-  - 해결 방향: 상태 전이를 이벤트 핸들러/콜백으로 분리
-- `react-hooks/exhaustive-deps` (예: `OnboardingProfileForm`)
-  - `useMemo` 의존성 누락
-  - 해결 방향: 의존성 추가 또는 `useMemo` 제거
+- 현재 없음
 
 ## Lint Log
 
@@ -96,6 +91,45 @@ const curve = useMemo(() => {
 ### 해결
 
 - 해당 `eslint-disable` 주석 제거
+
+## Effect 내부 setState 경고 (2026-01-20)
+
+### 증상
+
+- `react-hooks/set-state-in-effect` 에러 발생
+
+### 발생 위치
+
+- `src/shared/ui/bottom-sheet/BottomSheet.tsx`
+- `src/widgets/auth/social-login/ui/KakaoCallbackClient.tsx`
+
+### 원인
+
+- `useEffect` 본문에서 즉시 `setState`를 호출함
+
+### 해결
+
+- `BottomSheet`는 닫기 핸들러에서 상태를 리셋하도록 이동
+- `KakaoCallbackClient`는 렌더 상태를 제거하고 리다이렉트만 수행
+
+## Hook 의존성 누락 경고 (2026-01-20)
+
+### 증상
+
+- `react-hooks/exhaustive-deps` 경고 발생
+
+### 발생 위치
+
+- `src/widgets/onboarding/ui/OnboardingProfileForm.tsx`
+
+### 원인
+
+- `useMemo`에서 참조하는 리스트가 컴포넌트 내부에서 매 렌더마다 새로 생성됨
+
+### 해결
+
+- 리스트를 모듈 상수로 분리해 참조 안정화
+- `useMemo`는 `techQuery`만 의존하도록 정리
 
 ### 2026-01-20
 
@@ -248,6 +282,60 @@ Calling setState synchronously within an effect body causes cascading renders th
   32 |       setIsDragging(false);
   33 |     }
   34 |   }, [open]);  react-hooks/set-state-in-effect
+
+/Users/junseopark/re-fit/src/widgets/onboarding/ui/OnboardingProfileForm.tsx
+  65:6  warning  React Hook useMemo has a missing dependency: 'techStack'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (2 errors, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-01-20 Raw Log
+
+- Logged at: 2026-01-20 11:12:59Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/shared/ui/bottom-sheet/BottomSheet.tsx
+  31:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/junseopark/re-fit/src/shared/ui/bottom-sheet/BottomSheet.tsx:31:7
+  29 |   useEffect(() => {
+  30 |     if (!open) {
+> 31 |       setDragOffset(0);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  32 |       setIsDragging(false);
+  33 |     }
+  34 |   }, [open]);  react-hooks/set-state-in-effect
+
+/Users/junseopark/re-fit/src/widgets/auth/social-login/ui/KakaoCallbackClient.tsx
+  23:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/junseopark/re-fit/src/widgets/auth/social-login/ui/KakaoCallbackClient.tsx:23:7
+  21 |     if (error) {
+  22 |       sessionStorage.setItem('kakaoLoginError', errorDescription ?? error);
+> 23 |       setStatus('error');
+     |       ^^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |       router.replace('/');
+  25 |       return;
+  26 |     }  react-hooks/set-state-in-effect
 
 /Users/junseopark/re-fit/src/widgets/onboarding/ui/OnboardingProfileForm.tsx
   65:6  warning  React Hook useMemo has a missing dependency: 'techStack'. Either include it or remove the dependency array  react-hooks/exhaustive-deps

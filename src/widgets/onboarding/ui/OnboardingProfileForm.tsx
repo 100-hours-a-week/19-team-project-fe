@@ -20,6 +20,35 @@ const roleTitle: Record<RoleId, string> = {
   expert: '현직자',
 };
 
+const JOBS = [
+  '소프트웨어 엔지니어',
+  '서버 개발자',
+  '웹 개발자',
+  '프론트엔드 개발자',
+  '자바 개발자',
+  '머신러닝 엔지니어',
+  '파이썬 개발자',
+  'DevOps / 시스템 관리자',
+];
+
+const CAREERS = ['신입', '1~3년', '4~6년', '7~9년', '10년 이상', '리드/매니저'];
+
+const TECH_STACK = [
+  'JavaScript',
+  'TypeScript',
+  'React',
+  'Next.js',
+  'Node.js',
+  'Python',
+  'Java',
+  'Spring',
+  'Kotlin',
+  'Swift',
+  'AWS',
+  'Docker',
+  'Kubernetes',
+];
+
 export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingProfileFormProps) {
   const isExpert = role === 'expert';
   const displayRole = roleTitle[role] ?? roleTitle.seeker;
@@ -29,39 +58,10 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
   const [selectedTech, setSelectedTech] = useState<string[]>([]);
   const [techQuery, setTechQuery] = useState('');
 
-  const jobs = [
-    '소프트웨어 엔지니어',
-    '서버 개발자',
-    '웹 개발자',
-    '프론트엔드 개발자',
-    '자바 개발자',
-    '머신러닝 엔지니어',
-    '파이썬 개발자',
-    'DevOps / 시스템 관리자',
-  ];
-
-  const careers = ['신입', '1~3년', '4~6년', '7~9년', '10년 이상', '리드/매니저'];
-
-  const techStack = [
-    'JavaScript',
-    'TypeScript',
-    'React',
-    'Next.js',
-    'Node.js',
-    'Python',
-    'Java',
-    'Spring',
-    'Kotlin',
-    'Swift',
-    'AWS',
-    'Docker',
-    'Kubernetes',
-  ];
-
   const filteredTech = useMemo(() => {
     const query = techQuery.trim().toLowerCase();
-    if (!query) return techStack;
-    return techStack.filter((item) => item.toLowerCase().includes(query));
+    if (!query) return TECH_STACK;
+    return TECH_STACK.filter((item) => item.toLowerCase().includes(query));
   }, [techQuery]);
 
   const toggleTech = (value: string) => {
@@ -246,7 +246,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
 
         {activeSheet === 'job' ? (
           <div className="flex max-h-[46vh] flex-col gap-4 overflow-y-auto pr-1">
-            {jobs.map((item) => (
+            {JOBS.map((item) => (
               <button
                 key={item}
                 type="button"
@@ -266,7 +266,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
 
         {activeSheet === 'career' ? (
           <div className="flex max-h-[46vh] flex-col gap-4 overflow-y-auto pr-1">
-            {careers.map((item) => (
+            {CAREERS.map((item) => (
               <button
                 key={item}
                 type="button"

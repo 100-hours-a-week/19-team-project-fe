@@ -26,14 +26,16 @@ export default function BottomSheet({ open, title, onClose, children }: BottomSh
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open) {
-      setDragOffset(0);
-      setIsDragging(false);
-    }
-  }, [open]);
-
   if (typeof document === 'undefined') return null;
+
+  const effectiveDragOffset = open ? dragOffset : 0;
+  const effectiveDragging = open && isDragging;
+
+  const handleClose = () => {
+    setDragOffset(0);
+    setIsDragging(false);
+    onClose();
+  };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     setIsDragging(true);
@@ -52,8 +54,7 @@ export default function BottomSheet({ open, title, onClose, children }: BottomSh
     if (!isDragging) return;
     setIsDragging(false);
     if (dragOffset > 120) {
-      onClose();
-      setDragOffset(0);
+      handleClose();
       return;
     }
     setDragOffset(0);
@@ -69,14 +70,14 @@ export default function BottomSheet({ open, title, onClose, children }: BottomSh
         className={`absolute inset-0 bg-black/40 transition-opacity ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
       />
       <div
         className={`absolute inset-x-0 bottom-0 z-50 max-h-[70vh] rounded-t-3xl bg-white px-6 pb-8 pt-3 shadow-[0_-20px_60px_rgba(0,0,0,0.1)] transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
-        } ${isDragging ? 'transition-none' : ''}`}
-        style={{ transform: open ? `translateY(${dragOffset}px)` : 'translateY(100%)' }}
+        } ${effectiveDragging ? 'transition-none' : ''}`}
+        style={{ transform: open ? `translateY(${effectiveDragOffset}px)` : 'translateY(100%)' }}
         role="dialog"
         aria-modal="true"
       >
@@ -92,7 +93,7 @@ export default function BottomSheet({ open, title, onClose, children }: BottomSh
           />
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-text-title">{title}</h2>
-            <button type="button" className="text-xl text-text-caption" onClick={onClose}>
+            <button type="button" className="text-xl text-text-caption" onClick={handleClose}>
               ×
             </button>
           </div>
