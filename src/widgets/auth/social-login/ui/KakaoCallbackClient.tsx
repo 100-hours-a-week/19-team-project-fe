@@ -34,7 +34,12 @@ export default function KakaoCallbackClient() {
           router.replace('/');
           return;
         }
-        router.replace('/onboarding');
+        if (data.status === 'SIGNUP_REQUIRED') {
+          router.replace('/onboarding');
+          return;
+        }
+        sessionStorage.setItem('kakaoLoginError', '알 수 없는 로그인 응답입니다.');
+        router.replace('/');
       })
       .catch(() => {
         if (!active) return;
