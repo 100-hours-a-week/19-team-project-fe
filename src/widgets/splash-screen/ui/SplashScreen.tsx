@@ -11,7 +11,7 @@ export default function SplashScreen() {
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(180deg, rgba(53, 85, 139, 0.35) 0%, rgba(53, 85, 139, 0.12) 45%, rgba(53, 85, 139, 0.32) 100%)'
+              'linear-gradient(180deg, rgba(53, 85, 139, 0.35) 0%, rgba(53, 85, 139, 0.12) 45%, rgba(53, 85, 139, 0.32) 100%)',
           }}
         />
         <div className="absolute left-6 top-8 flex flex-col gap-3 text-white md:left-10 md:top-10">

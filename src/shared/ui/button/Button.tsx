@@ -1,6 +1,6 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type ButtonVariant = "primary" | "secondary" | "ghost";
+type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   icon?: ReactNode;
@@ -11,12 +11,12 @@ export default function Button({
   children,
   disabled,
   icon,
-  variant = "primary",
-  className = "",
+  variant = 'primary',
+  className = '',
   ...props
 }: ButtonProps) {
   const base =
-    "relative inline-flex w-full items-center justify-center gap-3 rounded-md py-3 mt-3 font-medium transition active:scale-[0.98]";
+    'relative inline-flex w-full items-center justify-center gap-3 rounded-md py-3 mt-3 font-medium transition active:scale-[0.98]';
 
   const variants: Record<ButtonVariant, string> = {
     primary: `
@@ -41,15 +41,9 @@ export default function Button({
   };
 
   return (
-    <button
-      className={`${base} ${variants[variant]} ${className}`}
-      disabled={disabled}
-      {...props}
-    >
+    <button className={`${base} ${variants[variant]} ${className}`} disabled={disabled} {...props}>
       {icon ? (
-        <span className="absolute left-[20px] top-1/2 shrink-0 -translate-y-1/2">
-          {icon}
-        </span>
+        <span className="absolute left-[20px] top-1/2 shrink-0 -translate-y-1/2">{icon}</span>
       ) : null}
       {children}
     </button>
