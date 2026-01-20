@@ -1,0 +1,181 @@
+name: Re-Fit Frontend CD
+
+on:
+  workflow_run:
+    workflows: ['Re-Fit Frontend CI']
+    types: [completed]
+    branches: [main]
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10
+
+jobs:
+  deploy:
+    # CI가 성공했을 때만 실행
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: next-build-artifact-${{ github.event.workflow_run.head_sha }}
+          path: build-output/.next
+          github-token: ${{ secrets.PAT }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download Deployment Files
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-files-${{ github.event.workflow_run.head_sha }}
+          path: build-output
+          github-token: ${{ secrets.PAT }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Verify Downloaded Files
+        run: |
+          echo "=== Verifying downloaded files ==="
+          ls -la build-output/
+          if [ -d "build-output/.next" ]; then
+            echo "✅ .next directory found"
+          else
+            echo "❌ .next directory not found"
+            exit 1
+          fi
+          if [ -f "build-output/package.json" ]; then
+            echo "✅ package.json found"
+          else
+            echo "❌ package.json not found"
+            exit 1
+          fi
+
+      - name: Transfer Files to Server (SCP)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: 'build-output/*'
+          target: '/home/ubuntu/refit/app/frontend_deploy_temp'
+          strip_components: 1
+
+      - name: Execute Remote Deployment Script (SSH)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+
+            # 경로 정의
+            FE_DIR=/home/ubuntu/refit/app/frontend
+            BACKUP_DIR=/home/ubuntu/refit/backups/frontend
+            LOG_DIR=/home/ubuntu/refit/logs/frontend
+            TEMP_DIR=/home/ubuntu/refit/app/frontend_deploy_temp
+            PM2_CONFIG=/home/ubuntu/refit/infra/pm2/ecosystem.config.js
+            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            APP_NAME="frontend"
+
+            echo "============================================"
+            echo "Re-Fit FE 배포 시작: $(date)"
+            echo "============================================"
+
+            # 1. 디렉토리 준비
+            mkdir -p $BACKUP_DIR $LOG_DIR
+
+            # 2. .env.production 체크
+            if [ ! -f "$FE_DIR/.env.production" ]; then
+              echo "❌ 에러: .env.production 파일이 없습니다. 배포를 중단합니다."
+              rm -rf $TEMP_DIR
+              exit 1
+            fi
+
+            # 3. 백업 (기존 .next, node_modules)
+            if [ -d "$FE_DIR/.next" ]; then
+              echo "기존 .next 백업 중..."
+              cp -r $FE_DIR/.next $BACKUP_DIR/next_$TIMESTAMP
+              echo "✅ 백업 완료: $BACKUP_DIR/next_$TIMESTAMP"
+            fi
+
+            # 4. 전송된 파일 검증
+            if [ ! -d "$TEMP_DIR/.next" ]; then
+              echo "❌ 에러: 빌드 아티팩트(.next)가 전송되지 않았습니다."
+              rm -rf $TEMP_DIR
+              exit 1
+            fi
+
+            if [ ! -f "$TEMP_DIR/package.json" ]; then
+              echo "❌ 에러: package.json이 전송되지 않았습니다."
+              rm -rf $TEMP_DIR
+              exit 1
+            fi
+
+            # 5. 새 빌드로 교체 (Atomic Switch)
+            echo "새 빌드 파일 교체 중..."
+            rm -rf $FE_DIR/.next
+            mv $TEMP_DIR/.next $FE_DIR/.next
+
+            # 6. 필수 파일 업데이트
+            cp $TEMP_DIR/package.json $FE_DIR/package.json
+            cp $TEMP_DIR/pnpm-lock.yaml $FE_DIR/pnpm-lock.yaml 2>/dev/null || true
+            cp $TEMP_DIR/next.config.ts $FE_DIR/next.config.ts 2>/dev/null || true
+
+            # public 폴더 업데이트
+            if [ -d "$TEMP_DIR/public" ]; then
+              rm -rf $FE_DIR/public
+              mv $TEMP_DIR/public $FE_DIR/public
+            fi
+
+            # 임시 디렉토리 정리
+            rm -rf $TEMP_DIR
+
+            # 7. 의존성 설치 (프로덕션 환경)
+            echo "프로덕션 의존성 설치 중..."
+            cd $FE_DIR
+
+            # NVM 환경 로드
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            # prepare 스크립트 무시하고 프로덕션 의존성만 설치
+            pnpm install --prod --frozen-lockfile --ignore-scripts
+
+            # 8. PM2를 이용한 무중단 재시작
+            if pm2 describe $APP_NAME > /dev/null 2>&1; then
+              echo "기존 프로세스 재시작 (Reload)..."
+              pm2 reload $APP_NAME --update-env
+            else
+              echo "신규 프로세스 시작..."
+              pm2 start $PM2_CONFIG --only $APP_NAME --env production
+            fi
+
+            # 9. Caddy 리로드
+            if systemctl is-active --quiet caddy; then
+              echo "Caddy 웹서버 리로드 중..."
+              sudo systemctl reload caddy
+            fi
+
+            # 10. 배포 검증
+            echo "배포 검증 중 (5초 대기)..."
+            sleep 5
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null || echo "000")
+
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ 배포 성공! (HTTP $HTTP_STATUS)"
+              pm2 save
+
+              # 오래된 백업 삭제 (7일 이상)
+              find $BACKUP_DIR -name "next_*" -type d -mtime +7 -exec rm -rf {} + 2>/dev/null || true
+            else
+              echo "⚠️  배포 이상 감지! (HTTP $HTTP_STATUS)"
+              echo "로그 확인: pm2 logs $APP_NAME"
+              echo "롤백이 필요한 경우: mv $BACKUP_DIR/next_$TIMESTAMP $FE_DIR/.next && pm2 reload $APP_NAME"
+              exit 1
+            fi
+
+            echo "============================================"
+            echo "✅ Re-Fit FE 배포 완료: $(date)"
+            echo "============================================"
