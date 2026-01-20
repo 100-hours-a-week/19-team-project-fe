@@ -64,6 +64,7 @@
   }
 }
 
+
 body.app-shell {
   margin: 0;
   min-height: 100dvh;
@@ -75,4 +76,5 @@ body.app-shell {
   min-height: 100dvh;
   width: min(100%, 600px);
   background: #ffffff;
+  position: relative;
 }

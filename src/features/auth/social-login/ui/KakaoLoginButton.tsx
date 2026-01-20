@@ -1,8 +1,11 @@
 import Image from 'next/image';
+import { getKakaoAuthorizeUrl } from '../api/kakaoAuthorize';
 
 export default function KakaoLoginButton() {
+  const kakaoAuthUrl = getKakaoAuthorizeUrl();
+
   return (
-    <button type="button" className="w-full transition active:scale-[0.98]">
+    <a href={kakaoAuthUrl} className="block w-full transition active:scale-[0.100]">
       <Image
         src="/icons/kakao_login_large_wide.png"
         alt="카카오로 로그인"
@@ -10,6 +13,6 @@ export default function KakaoLoginButton() {
         height={48}
         className="h-auto w-full"
       />
-    </button>
+    </a>
   );
 }
