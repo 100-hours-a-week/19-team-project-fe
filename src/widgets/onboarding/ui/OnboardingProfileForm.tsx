@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
-import { getCareerLevels, getSkills } from '@/features/onboarding/api';
+import { getCareerLevels, getJobs, getSkills } from '@/features/onboarding/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Button } from '@/shared/ui/button';
@@ -21,17 +21,6 @@ const roleTitle: Record<RoleId, string> = {
   expert: '현직자',
 };
 
-const JOBS = [
-  '소프트웨어 엔지니어',
-  '서버 개발자',
-  '웹 개발자',
-  '프론트엔드 개발자',
-  '자바 개발자',
-  '머신러닝 엔지니어',
-  '파이썬 개발자',
-  'DevOps / 시스템 관리자',
-];
-
 export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingProfileFormProps) {
   const isExpert = role === 'expert';
   const displayRole = roleTitle[role] ?? roleTitle.seeker;
@@ -43,6 +32,9 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
   const [skills, setSkills] = useState<string[]>([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
   const [skillsError, setSkillsError] = useState<string | null>(null);
+  const [jobs, setJobs] = useState<string[]>([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [jobsError, setJobsError] = useState<string | null>(null);
   const [careerLevels, setCareerLevels] = useState<string[]>([]);
   const [careerLoading, setCareerLoading] = useState(true);
   const [careerError, setCareerError] = useState<string | null>(null);
@@ -61,6 +53,27 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
       .finally(() => {
         if (!isMounted) return;
         setSkillsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    getJobs()
+      .then((data) => {
+        if (!isMounted) return;
+        setJobs(data.jobs.map((item) => item.name));
+      })
+      .catch((error: unknown) => {
+        if (!isMounted) return;
+        setJobsError(error instanceof Error ? error.message : '직무 목록을 불러오지 못했습니다.');
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setJobsLoading(false);
       });
 
     return () => {
@@ -298,21 +311,25 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
 
         {activeSheet === 'job' ? (
           <div className="flex max-h-[46vh] flex-col gap-4 overflow-y-auto pr-1">
-            {JOBS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setSelectedJob(item)}
-                className="flex items-center justify-between text-left"
-              >
-                <span className="text-sm font-medium text-text-body">{item}</span>
-                <span
-                  className={`h-5 w-5 rounded-md border ${
-                    selectedJob === item ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
-                  }`}
-                />
-              </button>
-            ))}
+            {jobsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+            {jobsError ? <p className="text-sm text-red-500">{jobsError}</p> : null}
+            {!jobsLoading && !jobsError
+              ? jobs.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setSelectedJob(item)}
+                    className="flex items-center justify-between text-left"
+                  >
+                    <span className="text-sm font-medium text-text-body">{item}</span>
+                    <span
+                      className={`h-5 w-5 rounded-md border ${
+                        selectedJob === item ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
+                      }`}
+                    />
+                  </button>
+                ))
+              : null}
           </div>
         ) : null}
 
