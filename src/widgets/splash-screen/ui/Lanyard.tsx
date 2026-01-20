@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, extend, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer, useGLTF, useTexture } from '@react-three/drei';
 import {
@@ -10,7 +10,7 @@ import {
   RigidBody,
   useRopeJoint,
   useSphericalJoint,
-  RigidBodyProps
+  RigidBodyProps,
 } from '@react-three/rapier';
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
@@ -31,9 +31,11 @@ export default function Lanyard({
   position = [0, 0, 30],
   gravity = [0, -40, 0],
   fov = 20,
-  transparent = true
+  transparent = true,
 }: LanyardProps) {
-  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState<boolean>(
+    () => typeof window !== 'undefined' && window.innerWidth < 768,
+  );
 
   useEffect(() => {
     const handleResize = (): void => setIsMobile(window.innerWidth < 768);
@@ -112,15 +114,28 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
     canSleep: true,
     colliders: false,
     angularDamping: 1.6,
-    linearDamping: 1.4
+    linearDamping: 1.4,
   };
 
   const { nodes, materials } = useGLTF(cardGLB) as any;
   const texture = useTexture(lanyard);
-  const [curve] = useState(
-    () =>
-      new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()])
-  );
+  const lanyardTexture = useMemo(() => {
+    const cloned = texture.clone();
+    cloned.wrapS = THREE.RepeatWrapping;
+    cloned.wrapT = THREE.RepeatWrapping;
+    cloned.needsUpdate = true;
+    return cloned;
+  }, [texture]);
+  const curve = useMemo(() => {
+    const nextCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(),
+      new THREE.Vector3(),
+      new THREE.Vector3(),
+      new THREE.Vector3(),
+    ]);
+    nextCurve.curveType = 'chordal';
+    return nextCurve;
+  }, []);
   const [dragged, drag] = useState<false | THREE.Vector3>(false);
   const [hovered, hover] = useState(false);
 
@@ -129,7 +144,7 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
   useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1]);
   useSphericalJoint(j3, card, [
     [0, 0, 0],
-    [0, 1.45, 0]
+    [0, 1.45, 0],
   ]);
 
   useEffect(() => {
@@ -146,20 +161,24 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
       vec.set(state.pointer.x, state.pointer.y, 0.5).unproject(state.camera);
       dir.copy(vec).sub(state.camera.position).normalize();
       vec.add(dir.multiplyScalar(state.camera.position.length()));
-      [card, j1, j2, j3, fixed].forEach(ref => ref.current?.wakeUp());
+      [card, j1, j2, j3, fixed].forEach((ref) => ref.current?.wakeUp());
       card.current?.setNextKinematicTranslation({
         x: vec.x - dragged.x,
         y: vec.y - dragged.y,
-        z: vec.z - dragged.z
+        z: vec.z - dragged.z,
       });
     }
     if (fixed.current) {
-      [j1, j2].forEach(ref => {
-        if (!ref.current.lerped) ref.current.lerped = new THREE.Vector3().copy(ref.current.translation());
-        const clampedDistance = Math.max(0.1, Math.min(1, ref.current.lerped.distanceTo(ref.current.translation())));
+      [j1, j2].forEach((ref) => {
+        if (!ref.current.lerped)
+          ref.current.lerped = new THREE.Vector3().copy(ref.current.translation());
+        const clampedDistance = Math.max(
+          0.1,
+          Math.min(1, ref.current.lerped.distanceTo(ref.current.translation())),
+        );
         ref.current.lerped.lerp(
           ref.current.translation(),
-          delta * (minSpeed + clampedDistance * (maxSpeed - minSpeed))
+          delta * (minSpeed + clampedDistance * (maxSpeed - minSpeed)),
         );
       });
       curve.points[0].copy(j3.current.translation());
@@ -173,27 +192,43 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
     }
   });
 
-  curve.curveType = 'chordal';
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-
   return (
     <>
       <group position={[0, 4, 0]}>
         <RigidBody ref={fixed} {...segmentProps} type={'fixed' as RigidBodyProps['type']} />
-        <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
+        <RigidBody
+          position={[0.5, 0, 0]}
+          ref={j1}
+          {...segmentProps}
+          type={'dynamic' as RigidBodyProps['type']}
+        >
           <BallCollider args={[0.1]} restitution={0.6} />
         </RigidBody>
-        <RigidBody position={[1, 0, 0]} ref={j2} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
+        <RigidBody
+          position={[1, 0, 0]}
+          ref={j2}
+          {...segmentProps}
+          type={'dynamic' as RigidBodyProps['type']}
+        >
           <BallCollider args={[0.1]} restitution={0.6} />
         </RigidBody>
-        <RigidBody position={[1.5, 0, 0]} ref={j3} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
+        <RigidBody
+          position={[1.5, 0, 0]}
+          ref={j3}
+          {...segmentProps}
+          type={'dynamic' as RigidBodyProps['type']}
+        >
           <BallCollider args={[0.1]} restitution={0.6} />
         </RigidBody>
         <RigidBody
           position={[2, 0, 0]}
           ref={card}
           {...segmentProps}
-          type={dragged ? ('kinematicPosition' as RigidBodyProps['type']) : ('dynamic' as RigidBodyProps['type'])}
+          type={
+            dragged
+              ? ('kinematicPosition' as RigidBodyProps['type'])
+              : ('dynamic' as RigidBodyProps['type'])
+          }
         >
           <CuboidCollider args={[0.8, 1.125, 0.01]} restitution={0.5} />
           <group
@@ -220,7 +255,11 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
                 metalness={0.8}
               />
             </mesh>
-            <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
+            <mesh
+              geometry={nodes.clip.geometry}
+              material={materials.metal}
+              material-roughness={0.3}
+            />
             <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
           </group>
         </RigidBody>
@@ -232,7 +271,7 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
           depthTest={false}
           resolution={isMobile ? [1000, 2000] : [1000, 1000]}
           useMap
-          map={texture}
+          map={lanyardTexture}
           repeat={[-4, 1]}
           lineWidth={1}
         />
