@@ -77,9 +77,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
       })
       .catch((error: unknown) => {
         if (!isMounted) return;
-        setCareerError(
-          error instanceof Error ? error.message : '경력 목록을 불러오지 못했습니다.',
-        );
+        setCareerError(error instanceof Error ? error.message : '경력 목록을 불러오지 못했습니다.');
       })
       .finally(() => {
         if (!isMounted) return;
@@ -190,7 +188,14 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
                 </p>
               </div>
             </div>
-            <span className="text-xl text-gray-300">›</span>
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+              {selectedCareer ? (
+                <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                  {selectedCareer}
+                </span>
+              ) : null}
+              <span className="text-xl text-gray-300">›</span>
+            </div>
           </button>
           <button
             type="button"
