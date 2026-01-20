@@ -43,13 +43,11 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
   const [selectedTech, setSelectedTech] = useState<string[]>([]);
   const [techQuery, setTechQuery] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
-  const [skillsLoading, setSkillsLoading] = useState(false);
+  const [skillsLoading, setSkillsLoading] = useState(true);
   const [skillsError, setSkillsError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    setSkillsLoading(true);
-    setSkillsError(null);
     getSkills()
       .then((data) => {
         if (!isMounted) return;
