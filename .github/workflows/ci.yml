@@ -157,11 +157,24 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Verify Build Output
+        run: |
+          if [ -d ".next" ]; then
+            echo "✅ .next directory exists"
+            ls -la .next/
+          else
+            echo "❌ .next directory not found"
+            exit 1
+          fi
+
       - name: Archive Build Artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: next-build-artifact
-          path: .next/
+          name: next-build-artifact-${{ github.sha }}
+          path: |
+            .next/
+            !.next/cache/
           retention-days: 7
 
       - name: Create Release Tag
