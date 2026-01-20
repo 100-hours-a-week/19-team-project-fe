@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
-import { getSkills } from '@/features/onboarding/api';
+import { getCareerLevels, getSkills } from '@/features/onboarding/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Button } from '@/shared/ui/button';
@@ -32,8 +32,6 @@ const JOBS = [
   'DevOps / 시스템 관리자',
 ];
 
-const CAREERS = ['신입', '1~3년', '4~6년', '7~9년', '10년 이상', '리드/매니저'];
-
 export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingProfileFormProps) {
   const isExpert = role === 'expert';
   const displayRole = roleTitle[role] ?? roleTitle.seeker;
@@ -45,6 +43,9 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
   const [skills, setSkills] = useState<string[]>([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
   const [skillsError, setSkillsError] = useState<string | null>(null);
+  const [careerLevels, setCareerLevels] = useState<string[]>([]);
+  const [careerLoading, setCareerLoading] = useState(true);
+  const [careerError, setCareerError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -60,6 +61,29 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
       .finally(() => {
         if (!isMounted) return;
         setSkillsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    getCareerLevels()
+      .then((data) => {
+        if (!isMounted) return;
+        setCareerLevels(data.career_levels.map((item) => item.level));
+      })
+      .catch((error: unknown) => {
+        if (!isMounted) return;
+        setCareerError(
+          error instanceof Error ? error.message : '경력 목록을 불러오지 못했습니다.',
+        );
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setCareerLoading(false);
       });
 
     return () => {
@@ -289,21 +313,27 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
 
         {activeSheet === 'career' ? (
           <div className="flex max-h-[46vh] flex-col gap-4 overflow-y-auto pr-1">
-            {CAREERS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setSelectedCareer(item)}
-                className="flex items-center justify-between text-left"
-              >
-                <span className="text-sm font-medium text-text-body">{item}</span>
-                <span
-                  className={`h-5 w-5 rounded-md border ${
-                    selectedCareer === item ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
-                  }`}
-                />
-              </button>
-            ))}
+            {careerLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+            {careerError ? <p className="text-sm text-red-500">{careerError}</p> : null}
+            {!careerLoading && !careerError
+              ? careerLevels.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setSelectedCareer(item)}
+                    className="flex items-center justify-between text-left"
+                  >
+                    <span className="text-sm font-medium text-text-body">{item}</span>
+                    <span
+                      className={`h-5 w-5 rounded-md border ${
+                        selectedCareer === item
+                          ? 'border-[#2b4b7e] bg-[#2b4b7e]'
+                          : 'border-gray-300'
+                      }`}
+                    />
+                  </button>
+                ))
+              : null}
           </div>
         ) : null}
       </BottomSheet>
