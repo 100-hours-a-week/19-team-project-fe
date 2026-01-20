@@ -185,7 +185,14 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
                 </p>
               </div>
             </div>
-            <span className="text-xl text-gray-300">›</span>
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+              {selectedJob ? (
+                <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                  {selectedJob}
+                </span>
+              ) : null}
+              <span className="text-xl text-gray-300">›</span>
+            </div>
           </button>
           <button
             type="button"
