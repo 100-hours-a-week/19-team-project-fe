@@ -1,8 +1,9 @@
 ﻿'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
+import { getSkills } from '@/features/onboarding/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Button } from '@/shared/ui/button';
@@ -33,22 +34,6 @@ const JOBS = [
 
 const CAREERS = ['신입', '1~3년', '4~6년', '7~9년', '10년 이상', '리드/매니저'];
 
-const TECH_STACK = [
-  'JavaScript',
-  'TypeScript',
-  'React',
-  'Next.js',
-  'Node.js',
-  'Python',
-  'Java',
-  'Spring',
-  'Kotlin',
-  'Swift',
-  'AWS',
-  'Docker',
-  'Kubernetes',
-];
-
 export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingProfileFormProps) {
   const isExpert = role === 'expert';
   const displayRole = roleTitle[role] ?? roleTitle.seeker;
@@ -57,12 +42,38 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
   const [selectedCareer, setSelectedCareer] = useState<string>('');
   const [selectedTech, setSelectedTech] = useState<string[]>([]);
   const [techQuery, setTechQuery] = useState('');
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
+  const [skillsError, setSkillsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    setSkillsLoading(true);
+    setSkillsError(null);
+    getSkills()
+      .then((data) => {
+        if (!isMounted) return;
+        setSkills(data.skills.map((item) => item.name));
+      })
+      .catch((error: unknown) => {
+        if (!isMounted) return;
+        setSkillsError(error instanceof Error ? error.message : '스킬 목록을 불러오지 못했습니다.');
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setSkillsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredTech = useMemo(() => {
     const query = techQuery.trim().toLowerCase();
-    if (!query) return TECH_STACK;
-    return TECH_STACK.filter((item) => item.toLowerCase().includes(query));
-  }, [techQuery]);
+    if (!query) return skills;
+    return skills.filter((item) => item.toLowerCase().includes(query));
+  }, [skills, techQuery]);
 
   const toggleTech = (value: string) => {
     setSelectedTech((prev) =>
@@ -222,24 +233,28 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
               ))}
             </div>
             <div className="mt-6 flex max-h-[36vh] flex-col gap-3 overflow-y-auto pr-1">
-              {filteredTech.map((item) => {
-                const isSelected = selectedTech.includes(item);
-                return (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => toggleTech(item)}
-                    className="flex items-center justify-between border-b border-gray-100 pb-3 text-left"
-                  >
-                    <span className="text-sm font-medium text-text-body">{item}</span>
-                    <span
-                      className={`h-5 w-5 rounded-full border ${
-                        isSelected ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
-                      }`}
-                    />
-                  </button>
-                );
-              })}
+              {skillsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+              {skillsError ? <p className="text-sm text-red-500">{skillsError}</p> : null}
+              {!skillsLoading && !skillsError
+                ? filteredTech.map((item) => {
+                    const isSelected = selectedTech.includes(item);
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => toggleTech(item)}
+                        className="flex items-center justify-between border-b border-gray-100 pb-3 text-left"
+                      >
+                        <span className="text-sm font-medium text-text-body">{item}</span>
+                        <span
+                          className={`h-5 w-5 rounded-full border ${
+                            isSelected ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
+                          }`}
+                        />
+                      </button>
+                    );
+                  })
+                : null}
             </div>
           </div>
         ) : null}
