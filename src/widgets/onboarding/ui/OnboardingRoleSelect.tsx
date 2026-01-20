@@ -13,11 +13,7 @@ const ROLE_COPY = {
   seeker: {
     title: '구직자',
     tagline: '나에게 맞는 공고와 준비 플로우를 빠르게.',
-    description: [
-      '맞춤 공고 큐레이션',
-      '포트폴리오 체크리스트',
-      '이력서 문항 AI 피드백',
-    ],
+    description: ['맞춤 공고 큐레이션', '포트폴리오 체크리스트', '이력서 문항 AI 피드백'],
     accent: 'text-[#2b4b7e]',
     bg: 'from-[#b0d8e4] via-[#b0d8e4] to-[#b0d8e4]',
     imageBg: 'bg-white/60',
@@ -25,11 +21,7 @@ const ROLE_COPY = {
   expert: {
     title: '현직자',
     tagline: '경험을 나누고, 프로필 가치를 높여요.',
-    description: [
-      '상담 요청 관리',
-      '전문 분야 노출',
-      '리워드 정산 내역',
-    ],
+    description: ['상담 요청 관리', '전문 분야 노출', '리워드 정산 내역'],
     accent: 'text-[#7b2b4b]',
     bg: 'from-[#dc8aa1] via-[#dc8aa1] to-[#dc8aa1]',
     imageBg: 'bg-white/45',

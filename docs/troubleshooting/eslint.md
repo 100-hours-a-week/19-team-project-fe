@@ -1,5 +1,30 @@
 # ESLint 트러블슈팅
 
+## 커밋 차단 해제 정책
+
+### 의도
+
+- 개발 속도를 우선하고, lint 이슈는 문서화로 추적한다
+- pre-commit에서 lint 실패가 커밋을 막지 않도록 설정한다
+
+### 적용
+
+- `.husky/pre-commit`에서 lint 실패를 자동 기록하도록 변경
+- lint 에러/경고는 이 문서의 Lint Log에 누적 기록된다
+
+---
+
+## TODO: lint 이슈 기록
+
+- `react-hooks/set-state-in-effect` (예: `KakaoCallbackPage`, `BottomSheet`)
+  - effect 내부에서 즉시 `setState` 호출
+  - 해결 방향: 상태 전이를 이벤트 핸들러/콜백으로 분리
+- `react-hooks/exhaustive-deps` (예: `OnboardingProfileForm`)
+  - `useMemo` 의존성 누락
+  - 해결 방향: 의존성 추가 또는 `useMemo` 제거
+
+## Lint Log
+
 ## react-hooks/immutability 에러
 
 ### 증상
@@ -71,3 +96,56 @@ const curve = useMemo(() => {
 ### 해결
 
 - 해당 `eslint-disable` 주석 제거
+
+### 2026-01-20
+
+- Logged at: 2026-01-20 10:53:08Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/app/(auth)/auth/social/callback/page.tsx
+  23:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/junseopark/re-fit/src/app/(auth)/auth/social/callback/page.tsx:23:7
+  21 |     if (error) {
+  22 |       sessionStorage.setItem('kakaoLoginError', errorDescription ?? error);
+> 23 |       setStatus('error');
+     |       ^^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |       router.replace('/');
+  25 |       return;
+  26 |     }  react-hooks/set-state-in-effect
+
+/Users/junseopark/re-fit/src/shared/ui/bottom-sheet/BottomSheet.tsx
+  31:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/junseopark/re-fit/src/shared/ui/bottom-sheet/BottomSheet.tsx:31:7
+  29 |   useEffect(() => {
+  30 |     if (!open) {
+> 31 |       setDragOffset(0);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  32 |       setIsDragging(false);
+  33 |     }
+  34 |   }, [open]);  react-hooks/set-state-in-effect
+
+/Users/junseopark/re-fit/src/widgets/onboarding/ui/OnboardingProfileForm.tsx
+  65:6  warning  React Hook useMemo has a missing dependency: 'techStack'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (2 errors, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
