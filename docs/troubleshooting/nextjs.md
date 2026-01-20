@@ -79,3 +79,28 @@
 
 - `skillsLoading` 기본값을 `true`로 변경
 - `setSkillsLoading(true)`/`setSkillsError(null)` 호출 제거
+
+---
+
+## BottomSheet Hydration 에러 (Portal 불일치)
+
+### 증상
+
+- `Hydration failed because the server rendered HTML didn't match the client` 에러
+- `BottomSheet`의 `createPortal` 렌더링 지점에서 불일치 로그
+
+### 발생 위치
+
+- `src/shared/ui/bottom-sheet/BottomSheet.tsx`
+
+### 원인
+
+- SSR 단계에서는 Portal DOM이 없고, 클라이언트에서만 DOM이 생성되어 트리 불일치 발생
+
+### 해결
+
+- 클라이언트 마운트 이후에만 Portal을 렌더하도록 가드 추가
+
+### 적용한 수정 요약
+
+- `mounted` 상태를 두고 `mounted === true`일 때만 `createPortal` 실행

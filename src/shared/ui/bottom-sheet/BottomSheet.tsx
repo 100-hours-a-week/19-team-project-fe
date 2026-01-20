@@ -12,15 +12,10 @@ type BottomSheetProps = {
 };
 
 export default function BottomSheet({ open, title, onClose, children }: BottomSheetProps) {
-  const [mounted, setMounted] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef(0);
   const lastOffsetRef = useRef(0);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -31,7 +26,7 @@ export default function BottomSheet({ open, title, onClose, children }: BottomSh
     };
   }, [open]);
 
-  if (!mounted) return null;
+  if (!open || typeof document === 'undefined') return null;
 
   const effectiveDragOffset = open ? dragOffset : 0;
   const effectiveDragging = open && isDragging;
