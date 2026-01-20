@@ -140,7 +140,8 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            pnpm install --prod --frozen-lockfile
+            # prepare 스크립트 무시하고 프로덕션 의존성만 설치
+            pnpm install --prod --frozen-lockfile --ignore-scripts
 
             # 8. PM2를 이용한 무중단 재시작
             if pm2 describe $APP_NAME > /dev/null 2>&1; then
