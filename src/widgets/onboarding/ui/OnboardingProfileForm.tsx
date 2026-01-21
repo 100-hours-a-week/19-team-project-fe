@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 import { signup } from '@/features/auth/signup/api';
 import { getCareerLevels, getJobs, getSkills } from '@/features/onboarding/api';
+import { BusinessError } from '@/shared/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import iconCareer from '@/shared/icons/icon_career.png';
@@ -23,10 +24,23 @@ type OnboardingProfileFormProps = {
   role?: RoleId;
 };
 
+const nicknameLimit = 10;
+const introductionLimit = 300;
+
 const roleTitle: Record<RoleId, string> = {
   seeker: '구직자',
   expert: '현직자',
 };
+
+const signupErrorMessages: Record<string, string> = {
+  SIGNUP_OAUTH_PROVIDER_INVALID: '소셜 로그인 제공자가 올바르지 않습니다.',
+  SIGNUP_OAUTH_ID_EMPTY: '소셜 로그인 정보가 필요합니다.',
+  NICKNAME_EMPTY: '닉네임을 입력해 주세요.',
+  SIGNUP_USER_TYPE_INVALID: '유저 타입이 올바르지 않습니다.',
+  CAREER_LEVEL_NOT_FOUND: '선택한 경력이 올바르지 않습니다.',
+};
+
+const defaultSignupErrorMessage = '회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 
 export default function OnboardingProfileForm({ role }: OnboardingProfileFormProps) {
   const router = useRouter();
@@ -53,6 +67,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   const [nickname, setNickname] = useState('');
   const [introduction, setIntroduction] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -141,7 +156,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     if (!raw) return;
 
     let oauthId = '';
-    let email = '';
+    const email = '';
     let fallbackNickname = '';
 
     try {
@@ -156,7 +171,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       const signupRequired = parsed.signupRequired;
       if (signupRequired) {
         oauthId = signupRequired.providerUserId ?? '';
-        email = signupRequired.email ?? '';
         fallbackNickname = signupRequired.nickname ?? '';
       }
     } catch {
@@ -166,9 +180,10 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     const resolvedNickname = nickname.trim() || fallbackNickname;
     if (!oauthId || !resolvedNickname) return;
 
+    setSubmitError(null);
     setIsSubmitting(true);
     try {
-      await signup({
+      const signupResponse = await signup({
         oauth_provider: 'KAKAO',
         oauth_id: oauthId,
         email,
@@ -182,7 +197,20 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         })),
         introduction: introduction.trim(),
       });
+      document.cookie = `access_token=${encodeURIComponent(signupResponse.access_token)}; path=/`;
+      document.cookie = `refresh_token=${encodeURIComponent(signupResponse.refresh_token)}; path=/`;
+      sessionStorage.setItem('signupSuccess', '1');
       router.replace('/');
+    } catch (error: unknown) {
+      if (error instanceof BusinessError) {
+        setSubmitError(
+          signupErrorMessages[error.code] ?? error.message ?? defaultSignupErrorMessage,
+        );
+      } else if (error instanceof Error) {
+        setSubmitError(error.message);
+      } else {
+        setSubmitError(defaultSignupErrorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -234,14 +262,14 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                 placeholder="닉네임을 입력해 주세요"
                 value={nickname}
                 onChange={(event) => setNickname(event.target.value)}
+                maxLength={nicknameLimit}
                 className="rounded-none pr-14 text-base text-black"
               />
               <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-caption">
-                {nickname.length} / 15
+                {nickname.length} / {nicknameLimit}
               </span>
             </div>
           </Input.Root>
-          <div className="mt-2 text-xs text-red-500">이미 사용중인 닉네임입니다</div>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -325,13 +353,17 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
               placeholder="Tell us everything..."
               value={introduction}
               onChange={(event) => setIntroduction(event.target.value)}
+              maxLength={introductionLimit}
             />
-            <p className="mt-2 text-right text-xs text-text-caption">0/300</p>
+            <p className="mt-2 text-right text-xs text-text-caption">
+              {introduction.length}/{introductionLimit}
+            </p>
           </div>
         </div>
       </section>
 
       <div className="pt-6">
+        {submitError ? <p className="mb-3 text-sm text-red-500">{submitError}</p> : null}
         <Button
           icon={<Image src={iconMark} alt="" width={20} height={20} />}
           onClick={handleSubmit}
