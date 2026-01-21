@@ -38,6 +38,10 @@ export default {
         "blur-strong": "var(--shadow-blur-strong)",
         "blur-basic": "var(--shadow-blur-basic)",
       },
+      height: {
+        "app-header": "var(--app-header-height)",
+        "app-footer": "var(--app-footer-height)",
+      },
     },
   },
 } satisfies Config;
