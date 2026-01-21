@@ -24,6 +24,9 @@ type OnboardingProfileFormProps = {
   role?: RoleId;
 };
 
+const nicknameLimit = 10;
+const introductionLimit = 300;
+
 const roleTitle: Record<RoleId, string> = {
   seeker: '구직자',
   expert: '현직자',
@@ -196,10 +199,13 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       });
       document.cookie = `access_token=${encodeURIComponent(signupResponse.access_token)}; path=/`;
       document.cookie = `refresh_token=${encodeURIComponent(signupResponse.refresh_token)}; path=/`;
+      sessionStorage.setItem('signupSuccess', '1');
       router.replace('/');
     } catch (error: unknown) {
       if (error instanceof BusinessError) {
-        setSubmitError(signupErrorMessages[error.code] ?? error.message ?? defaultSignupErrorMessage);
+        setSubmitError(
+          signupErrorMessages[error.code] ?? error.message ?? defaultSignupErrorMessage,
+        );
       } else if (error instanceof Error) {
         setSubmitError(error.message);
       } else {
@@ -256,14 +262,14 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                 placeholder="닉네임을 입력해 주세요"
                 value={nickname}
                 onChange={(event) => setNickname(event.target.value)}
+                maxLength={nicknameLimit}
                 className="rounded-none pr-14 text-base text-black"
               />
               <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-caption">
-                {nickname.length} / 15
+                {nickname.length} / {nicknameLimit}
               </span>
             </div>
           </Input.Root>
-          <div className="mt-2 text-xs text-red-500">이미 사용중인 닉네임입니다</div>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -347,8 +353,11 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
               placeholder="Tell us everything..."
               value={introduction}
               onChange={(event) => setIntroduction(event.target.value)}
+              maxLength={introductionLimit}
             />
-            <p className="mt-2 text-right text-xs text-text-caption">0/300</p>
+            <p className="mt-2 text-right text-xs text-text-caption">
+              {introduction.length}/{introductionLimit}
+            </p>
           </div>
         </div>
       </section>
