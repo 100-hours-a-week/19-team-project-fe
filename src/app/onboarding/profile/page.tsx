@@ -7,7 +7,8 @@ type OnboardingProfilePageProps = {
 };
 
 export default function OnboardingProfilePage({ searchParams }: OnboardingProfilePageProps) {
-  const role = searchParams?.role === 'expert' ? 'expert' : 'seeker';
+  const normalizedRole = searchParams?.role?.toLowerCase();
+  const role = normalizedRole === 'expert' ? 'expert' : 'seeker';
 
   return <OnboardingProfileForm role={role} />;
 }
