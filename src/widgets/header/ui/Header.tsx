@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-import logo from '@/shared/icons/Logo.png';
+import logo from '@/shared/icons/logo.png';
 
 export default function Header() {
   return (
