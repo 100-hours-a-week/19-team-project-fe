@@ -196,7 +196,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     !nickname.trim();
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#F7F7F7] px-6 pb-10 pt-12 text-text-body">
+    <main className="flex min-h-screen flex-col bg-[#F7F7F7] px-6 pb-10 pt-4 text-text-body">
       <header className="relative"></header>
 
       <section className="mt-10 flex flex-1 flex-col gap-6">
