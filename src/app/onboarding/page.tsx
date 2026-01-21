@@ -1,5 +1,14 @@
-import { OnboardingRoleSelect } from '@/widgets/onboarding';
+import { OnboardingProfileForm } from '@/widgets/onboarding';
 
-export default function OnboardingPage() {
-  return <OnboardingRoleSelect />;
+type OnboardingProfilePageProps = {
+  searchParams?: Promise<{
+    role?: string;
+  }>;
+};
+
+export default async function OnboardingProfilePage({ searchParams }: OnboardingProfilePageProps) {
+  const params = searchParams ? await searchParams : undefined;
+  const role = params?.role === 'expert' ? 'expert' : 'seeker';
+
+  return <OnboardingProfileForm role={role} />;
 }

@@ -26,7 +26,7 @@ export default function BottomSheet({ open, title, onClose, children }: BottomSh
     };
   }, [open]);
 
-  if (typeof document === 'undefined') return null;
+  if (!open || typeof document === 'undefined') return null;
 
   const effectiveDragOffset = open ? dragOffset : 0;
   const effectiveDragging = open && isDragging;
