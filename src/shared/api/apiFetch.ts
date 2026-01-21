@@ -1,7 +1,7 @@
 import { BusinessError, HttpError } from './errors';
 import type { ApiResponse } from './types';
 
-const DEFAULT_SUCCESS_CODES = ['SUCCESS'];
+const DEFAULT_SUCCESS_CODES = ['SUCCESS', 'OK', 'CREATED'];
 
 export type ApiFetchOptions = RequestInit & {
   successCodes?: string[];

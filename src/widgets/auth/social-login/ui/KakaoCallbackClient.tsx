@@ -8,49 +8,46 @@ import { kakaoLogin } from '@/features/auth/social-login';
 export default function KakaoCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
   useEffect(() => {
     const code = searchParams.get('code');
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
 
+    // 1. 카카오 OAuth 에러
     if (error) {
-      sessionStorage.setItem('kakaoLoginError', errorDescription ?? error);
-      router.replace('/');
+      console.error('[KAKAO][ERROR]', errorDescription ?? error);
+      router.replace('/login?error=kakao');
       return;
     }
 
+    // 2. code 없음
     if (!code) {
-      sessionStorage.setItem('kakaoLoginError', '인가 코드가 없습니다.');
-      router.replace('/');
+      console.error('[KAKAO][ERROR] no code');
+      router.replace('/login?error=invalid_callback');
       return;
     }
 
-    let active = true;
     kakaoLogin(code)
-      .then((data) => {
-        if (!active) return;
-        sessionStorage.setItem('kakaoLoginResult', JSON.stringify(data));
-        if (data.status === 'LOGIN_SUCCESS') {
+      .then((result) => {
+        if (result.status === 'LOGIN_SUCCESS') {
           router.replace('/');
           return;
         }
-        if (data.status === 'SIGNUP_REQUIRED') {
+
+        if (result.status === 'SIGNUP_REQUIRED') {
           router.replace('/onboarding');
           return;
         }
-        sessionStorage.setItem('kakaoLoginError', '알 수 없는 로그인 응답입니다.');
-        router.replace('/');
-      })
-      .catch(() => {
-        if (!active) return;
-        sessionStorage.setItem('kakaoLoginError', '로그인에 실패했습니다.');
-        router.replace('/');
-      });
 
-    return () => {
-      active = false;
-    };
+        console.error('[KAKAO][ERROR] unknown response', result);
+        router.replace('/login?error=unknown');
+      })
+      .catch((err) => {
+        console.error('[KAKAO][ERROR] backend login fail', err);
+        router.replace('/login?error=server');
+      });
   }, [router, searchParams]);
 
-  return <p className="p-6 text-sm text-gray-600">로그인 완료! 이동 중...</p>;
+  return <p className="p-6 text-sm text-gray-600">카카오 로그인 처리 중입니다…</p>;
 }

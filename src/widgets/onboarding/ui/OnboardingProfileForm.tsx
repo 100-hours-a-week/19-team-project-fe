@@ -2,12 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 import { signup } from '@/features/auth/signup/api';
 import { getCareerLevels, getJobs, getSkills } from '@/features/onboarding/api';
 import iconMark from '@/shared/icons/icon-mark.png';
+import iconMarkB from '@/shared/icons/icon-mark_B.png';
+import iconCareer from '@/shared/icons/icon_career.png';
+import iconJob from '@/shared/icons/Icon_job.png';
+import iconTech from '@/shared/icons/Icon_tech.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -24,10 +28,14 @@ const roleTitle: Record<RoleId, string> = {
   expert: '현직자',
 };
 
-export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingProfileFormProps) {
+export default function OnboardingProfileForm({ role }: OnboardingProfileFormProps) {
   const router = useRouter();
-  const isExpert = role === 'expert';
-  const displayRole = roleTitle[role] ?? roleTitle.seeker;
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get('role')?.toLowerCase();
+  const resolvedRole: RoleId =
+    roleParam === 'expert' || roleParam === 'seeker' ? roleParam : (role ?? 'seeker');
+  const isExpert = resolvedRole === 'expert';
+  const displayRole = roleTitle[resolvedRole] ?? roleTitle.seeker;
   const [activeSheet, setActiveSheet] = useState<SheetId>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [selectedCareer, setSelectedCareer] = useState<CareerLevel | null>(null);
@@ -188,27 +196,20 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
     !nickname.trim();
 
   return (
-    <main className="flex min-h-screen flex-col bg-white px-6 pb-10 pt-12 text-text-body">
-      <header className="relative">
-        <button
-          type="button"
-          className="absolute left-0 top-1/2 -translate-y-1/2 text-2xl text-text-caption"
-          aria-label="뒤로가기"
-        >
-          ←
-        </button>
-        <div className="mx-auto max-w-xs text-center">
-          <Image src={iconMark} alt="re-fit" width={36} height={36} priority />
-          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.25em] text-text-caption">
-            onboarding
-          </p>
-        </div>
-      </header>
+    <main className="flex min-h-screen flex-col bg-[#F7F7F7] px-6 pb-10 pt-12 text-text-body">
+      <header className="relative"></header>
 
       <section className="mt-10 flex flex-1 flex-col gap-6">
         <div>
-          <p className="text-2xl font-semibold text-text-title">환영합니다!</p>
-          <p className="mt-2 text-sm text-text-caption">선택한 유형: {displayRole}</p>
+          <div className="flex items-center gap-2">
+            <Image src={iconMarkB} alt="" width={28} height={28} />
+            <p className="text-2xl font-semibold text-text-title">환영합니다!</p>
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+              {displayRole}
+            </span>
+          </div>
         </div>
 
         {isExpert ? (
@@ -226,23 +227,21 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
         ) : null}
 
         <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between text-sm text-text-caption">
-            <span>닉네임</span>
-            <span>0 / 15</span>
-          </div>
+          <div className="text-base font-semibold text-black">닉네임</div>
           <Input.Root className="mt-2">
-            <Input.Field
-              placeholder="닉네임을 입력해 주세요"
-              value={nickname}
-              onChange={(event) => setNickname(event.target.value)}
-            />
+            <div className="relative">
+              <Input.Field
+                placeholder="닉네임을 입력해 주세요"
+                value={nickname}
+                onChange={(event) => setNickname(event.target.value)}
+                className="rounded-none pr-14 text-base text-black"
+              />
+              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-caption">
+                {nickname.length} / 15
+              </span>
+            </div>
           </Input.Root>
-          <div className="mt-2 flex items-center justify-between text-xs text-red-500">
-            <span>이미 사용중인 닉네임입니다</span>
-            <button type="button" className="h-6 w-6 rounded-full bg-gray-200 text-gray-500">
-              ×
-            </button>
-          </div>
+          <div className="mt-2 text-xs text-red-500">이미 사용중인 닉네임입니다</div>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -252,7 +251,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
           >
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gray-200" aria-hidden="true" />
+              <Image src={iconJob} alt="직무" width={40} height={40} />
               <div className="text-left">
                 <span className="text-base font-semibold text-text-body">직무</span>
                 <p className="mt-1 text-xs text-text-caption">
@@ -275,7 +274,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
           >
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gray-200" aria-hidden="true" />
+              <Image src={iconCareer} alt="경력" width={40} height={40} />
               <div className="text-left">
                 <span className="text-base font-semibold text-text-body">경력</span>
                 <p className="mt-1 text-xs text-text-caption">
@@ -298,7 +297,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
             className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
           >
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gray-200" aria-hidden="true" />
+              <Image src={iconTech} alt="기술스택" width={40} height={40} />
               <div className="text-left">
                 <span className="text-base font-semibold text-text-body">기술스택</span>
                 <p className="mt-1 text-xs text-text-caption">기술을 선택해 주세요</p>
@@ -322,7 +321,7 @@ export default function OnboardingProfileForm({ role = 'seeker' }: OnboardingPro
           <p className="text-base font-semibold text-text-title">자기 소개</p>
           <div className="mt-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
             <textarea
-              className="h-28 w-full resize-none text-sm text-text-body placeholder:text-gray-400 focus:outline-none"
+              className="h-28 w-full resize-none text-base text-text-body placeholder:text-gray-400 focus:outline-none"
               placeholder="Tell us everything..."
               value={introduction}
               onChange={(event) => setIntroduction(event.target.value)}
