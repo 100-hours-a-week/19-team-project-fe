@@ -36,12 +36,9 @@ export default function OnboardingRoleSelect() {
   const roles = Object.entries(ROLE_COPY) as [RoleId, typeof ROLE_COPY.seeker][];
 
   return (
-    <main className="flex min-h-screen flex-col bg-white pb-10 pt-12 text-text-body">
+    <main className="flex min-h-screen flex-col bg-white pb-10 pt-4 text-text-body">
       <header className="relative px-6">
         <div className="mx-auto max-w-xs text-center">
-          <div className="flex justify-center">
-            <Image src={iconMark} alt="re-fit" width={36} height={36} priority />
-          </div>
           <h1 className="mt-4 text-2xl font-semibold text-text-title">
             어떤 서비스를 이용하고 싶으세요
           </h1>
