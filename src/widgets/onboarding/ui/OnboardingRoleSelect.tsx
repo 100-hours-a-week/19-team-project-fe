@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 import { Button } from '@/shared/ui/button';
 import iconMark from '@/shared/icons/icon-mark.png';
@@ -20,7 +19,7 @@ const ROLE_COPY = {
   },
   expert: {
     title: '현직자',
-    tagline: '경험을 나누고, 프로필 가치를 높여요.',
+    tagline: '경험을 나누고, 프로필 가치를 높여요..',
     description: ['상담 요청 관리', '전문 분야 노출', '리워드 정산 내역'],
     accent: 'text-[#7b2b4b]',
     bg: 'from-[#dc8aa1] via-[#dc8aa1] to-[#dc8aa1]',
@@ -29,7 +28,6 @@ const ROLE_COPY = {
 } as const;
 
 export default function OnboardingRoleSelect() {
-  const router = useRouter();
   const [activeRole, setActiveRole] = useState<RoleId>('seeker');
   const roles = Object.entries(ROLE_COPY) as [RoleId, typeof ROLE_COPY.seeker][];
 
@@ -118,12 +116,7 @@ export default function OnboardingRoleSelect() {
         </div>
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 pb-2">
           <div className="pointer-events-auto px-2.5">
-            <Button
-              icon={<Image src={iconMark} alt="" width={20} height={20} />}
-              onClick={() => router.push(`/onboarding/profile?role=${activeRole}`)}
-            >
-              가입 완료
-            </Button>
+            <Button icon={<Image src={iconMark} alt="" width={20} height={20} />}>다음 단계</Button>
           </div>
         </div>
       </section>

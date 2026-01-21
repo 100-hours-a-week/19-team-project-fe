@@ -443,3 +443,36 @@ Calling setState synchronously within an effect body causes cascading renders th
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-01-20 Raw Log
+
+- Logged at: 2026-01-20 16:46:57Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/shared/ui/bottom-sheet/BottomSheet.tsx
+  22:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/junseopark/re-fit/src/shared/ui/bottom-sheet/BottomSheet.tsx:22:5
+  20 |
+  21 |   useEffect(() => {
+> 22 |     setMounted(true);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |   }, []);
+  24 |
+  25 |   useEffect(() => {  react-hooks/set-state-in-effect
+
+✖ 1 problem (1 error, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
