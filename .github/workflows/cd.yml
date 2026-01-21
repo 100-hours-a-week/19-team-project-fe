@@ -15,6 +15,7 @@ jobs:
     # CI가 성공했을 때만 실행
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    environment: ${{ github.event.workflow_run.head_branch == 'main' && 'production' || 'development' }}
     steps:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
@@ -86,11 +87,11 @@ jobs:
             # 1. 디렉토리 준비
             mkdir -p $BACKUP_DIR $LOG_DIR
 
-            # 2. .env.production 체크
-            if [ ! -f "$FE_DIR/.env.production" ]; then
-              echo "❌ 에러: .env.production 파일이 없습니다. 배포를 중단합니다."
-              rm -rf $TEMP_DIR
-              exit 1
+            # 2. 환경 변수 체크 (선택적, 런타임 환경 변수가 필요한 경우)
+            if [ -f "$FE_DIR/.env.production" ]; then
+              echo "✅ .env.production 파일 발견 (런타임 환경 변수 사용)"
+            else
+              echo "ℹ️  .env.production 파일 없음 (빌드 시점 환경 변수 사용)"
             fi
 
             # 3. 백업 (기존 .next, node_modules)
