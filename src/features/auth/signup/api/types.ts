@@ -18,3 +18,9 @@ export type SignupRequest = {
   skills: SignupSkill[];
   introduction: string;
 };
+
+export type SignupResponse = {
+  user_id: number;
+  access_token: string;
+  refresh_token: string;
+};

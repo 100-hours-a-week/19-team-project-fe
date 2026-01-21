@@ -141,7 +141,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     if (!raw) return;
 
     let oauthId = '';
-    let email = '';
+    const email = '';
     let fallbackNickname = '';
 
     try {
@@ -156,7 +156,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       const signupRequired = parsed.signupRequired;
       if (signupRequired) {
         oauthId = signupRequired.providerUserId ?? '';
-        email = signupRequired.email ?? '';
         fallbackNickname = signupRequired.nickname ?? '';
       }
     } catch {
