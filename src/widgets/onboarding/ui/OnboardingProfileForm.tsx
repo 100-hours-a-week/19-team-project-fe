@@ -167,7 +167,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
     setIsSubmitting(true);
     try {
-      await signup({
+      const signupResponse = await signup({
         oauth_provider: 'KAKAO',
         oauth_id: oauthId,
         email,
@@ -181,6 +181,8 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         })),
         introduction: introduction.trim(),
       });
+      document.cookie = `access_token=${encodeURIComponent(signupResponse.access_token)}; path=/`;
+      document.cookie = `refresh_token=${encodeURIComponent(signupResponse.refresh_token)}; path=/`;
       router.replace('/');
     } finally {
       setIsSubmitting(false);
