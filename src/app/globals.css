@@ -4,6 +4,7 @@
 @layer base {
   :root {
     --app-header-height: 56px;
+    --app-footer-height: 56px;
 
     /* ========== Primary ========== */
     --color-primary-main: #35558b;

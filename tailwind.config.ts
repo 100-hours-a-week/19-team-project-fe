@@ -40,6 +40,7 @@ export default {
       },
       height: {
         "app-header": "var(--app-header-height)",
+        "app-footer": "var(--app-footer-height)",
       },
     },
   },
