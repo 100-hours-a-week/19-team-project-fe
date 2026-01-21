@@ -62,6 +62,54 @@ Re-Fit 프론트엔드는 GitHub Actions를 통해 완전 자동화된 CI/CD 파
 
 ---
 
+## 환경 변수 관리 전략
+
+### GitHub Environments를 통한 환경별 관리
+
+Re-Fit 프론트엔드는 **GitHub Environments**를 사용하여 환경별로 다른 설정을 관리합니다.
+
+**환경 구성:**
+- `production`: main 브랜치 배포 시 사용
+- `development`: develop 브랜치 배포 시 사용
+
+**장점:**
+- ✅ 환경별 변수 및 시크릿 분리 관리
+- ✅ 빌드와 배포 환경의 일관성 보장
+- ✅ 환경 변수가 빌드 아티팩트에 포함되어 서버 설정 불필요
+- ✅ 팀원 간 환경 변수 동기화 자동화
+- ✅ Production 환경에 대한 승인 규칙 설정 가능
+
+### 빌드 시점 환경 변수 주입 (Build-time Injection)
+
+**주입되는 환경 변수:**
+- `NEXT_PUBLIC_API_URL`: API 서버 엔드포인트
+- `NEXT_PUBLIC_KAKAO_REDIRECT_URL`: 카카오 OAuth 리다이렉트 URL
+- `NEXT_PUBLIC_ENV`: 환경 구분 (production/development)
+
+**동작 방식:**
+
+#### 1. PR 검증 단계 (`lint-and-test`)
+- ❌ Environment 사용 안 함
+- Repository-level Variables 또는 fallback 값 사용
+- 목적: 빌드 가능 여부만 확인
+
+#### 2. 배포 빌드 단계 (`release`)
+- ✅ Environment 사용
+- 브랜치에 따라 environment 자동 결정:
+  - `main` 브랜치 → `production` environment
+  - `develop` 브랜치 → `development` environment
+- 해당 environment의 Variables를 사용하여 빌드
+- 빌드 아티팩트에 환경 변수가 포함됨
+
+#### 3. 배포 단계 (`deploy`)
+- ✅ CI와 동일한 environment 사용
+- `github.event.workflow_run.head_branch`로 브랜치 판단
+- 환경별로 동일한 설정으로 배포 수행
+
+**Note**: `NEXT_PUBLIC_*` 변수는 Next.js 빌드 시점에 번들에 포함되므로, 런타임에 `.env.production` 파일을 수정해도 반영되지 않습니다.
+
+---
+
 ## CI 파이프라인 (ci.yml)
 
 ### 환경 설정
@@ -78,6 +126,11 @@ PNPM_VERSION: 10
 - PR이 업데이트될 때 (synchronize, reopened)
 - 수동 실행 (workflow_dispatch)
 
+**Environment 설정:**
+- ❌ **Environment를 사용하지 않음**
+- PR 검증은 빌드 가능 여부만 확인하므로, 기본 fallback 값으로 빌드
+- Repository-level Variables가 있으면 사용, 없으면 기본값 사용
+
 **실행 과정:**
 
 1. **환경 준비**
@@ -91,10 +144,21 @@ PNPM_VERSION: 10
    pnpm install --frozen-lockfile  # 의존성 설치
    pnpm run lint                   # 코드 린팅
    pnpm test                       # 단위 테스트
-   pnpm run build                  # 빌드 검증
    ```
 
-3. **결과**
+3. **빌드 검증 (fallback 환경 변수)**
+   ```bash
+   NODE_ENV=production \
+   NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }} \
+   NEXT_PUBLIC_KAKAO_REDIRECT_URL=${{ vars.NEXT_PUBLIC_KAKAO_REDIRECT_URL || 'http://localhost:3000/callback.html' }} \
+   NEXT_PUBLIC_ENV=development \
+   pnpm run build
+   ```
+
+   - Environment가 없으므로 repository-level variables 또는 fallback 값 사용
+   - 빌드 가능 여부만 검증 (실제 배포용 아티팩트 아님)
+
+4. **결과**
    - 모든 단계 통과 시 ✅ PR 승인 가능
    - 실패 시 ❌ 머지 불가
 
@@ -132,6 +196,14 @@ PNPM_VERSION: 10
 - `develop` 브랜치에 push될 때 (🚀 개발 단계 임시)
 - 수동 실행 (workflow_dispatch)
 
+**Environment 설정:**
+```yaml
+environment: ${{ (github.ref == 'refs/heads/main' || github.ref_name == 'main') && 'production' || 'development' }}
+```
+- `main` 브랜치 → `production` environment
+- `develop` 브랜치 → `development` environment
+- 각 environment의 Variables 사용
+
 **실행 과정:**
 
 1. **환경 준비**
@@ -144,10 +216,19 @@ PNPM_VERSION: 10
    pnpm run test:all               # 전체 테스트 스위트
    ```
 
-3. **프로덕션 빌드**
+3. **프로덕션 빌드 (환경별 변수 주입)**
    ```bash
-   NODE_ENV=production pnpm run build
+   NODE_ENV=production \
+   NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }} \
+   NEXT_PUBLIC_KAKAO_REDIRECT_URL=${{ vars.NEXT_PUBLIC_KAKAO_REDIRECT_URL }} \
+   NEXT_PUBLIC_ENV=${{ vars.NEXT_PUBLIC_ENV }} \
+   pnpm run build
    ```
+
+   **중요**:
+   - GitHub Environment Variables (`vars.*`)에서 환경 변수를 주입
+   - 브랜치에 따라 다른 environment의 값이 사용됨
+   - 빌드 아티팩트에 환경 변수가 포함됨
 
 4. **빌드 아티팩트 검증 및 업로드**
    ```bash
@@ -191,6 +272,14 @@ workflow_run:
 
 - CI 워크플로우가 `main` 또는 `develop` 브랜치에서 **성공적으로 완료**되면 자동 실행
 - CI 실패 시 CD는 실행되지 않음
+
+**Environment 설정:**
+```yaml
+environment: ${{ github.event.workflow_run.head_branch == 'main' && 'production' || 'development' }}
+```
+- `main` 브랜치 → `production` environment
+- `develop` 브랜치 → `development` environment
+- CI에서 사용한 것과 동일한 environment 사용
 
 ---
 
@@ -257,13 +346,19 @@ APP_NAME="frontend"
 mkdir -p $BACKUP_DIR $LOG_DIR
 ```
 
-##### 2. 환경 변수 검증
+##### 2. 환경 변수 체크 (선택적)
 ```bash
-if [ ! -f "$FE_DIR/.env.production" ]; then
-  echo "❌ 에러: .env.production 파일이 없습니다."
-  exit 1
+if [ -f "$FE_DIR/.env.production" ]; then
+  echo "✅ .env.production 파일 발견 (런타임 환경 변수 사용)"
+else
+  echo "ℹ️  .env.production 파일 없음 (빌드 시점 환경 변수 사용)"
 fi
 ```
+
+**변경 사항**:
+- 이제 환경 변수는 CI 빌드 시점에 GitHub Secrets에서 주입되어 빌드 아티팩트에 포함됩니다.
+- 서버의 `.env.production` 파일은 선택적이며, 런타임에 추가로 필요한 환경 변수가 있을 때만 사용됩니다.
+- `NEXT_PUBLIC_*` 변수는 빌드 시점에 이미 번들에 포함되어 있습니다.
 
 ##### 3. 기존 빌드 백업
 ```bash
@@ -372,16 +467,98 @@ pm2 reload frontend
 
 ---
 
-## 필수 GitHub Secrets
+## GitHub Environments 및 Secrets 설정
 
-### CI 단계
-- `PAT`: Personal Access Token (릴리즈 태그 push용)
+### 1. Environments 생성
 
-### CD 단계
-- `SSH_HOST`: 배포 서버 호스트
-- `SSH_USER`: 배포 서버 사용자 (ubuntu)
-- `SSH_KEY`: SSH 개인키
-- `SSH_PORT`: SSH 포트
+GitHub 저장소 → **Settings** → **Environments**
+
+#### Production Environment
+1. **New environment** 클릭 → 이름: `production`
+2. (선택) **Required reviewers** 설정으로 배포 승인 프로세스 추가
+3. (선택) **Deployment branches** → `main` 브랜치만 허용
+
+#### Development Environment
+1. **New environment** 클릭 → 이름: `development`
+2. 별도 승인 프로세스 없이 자동 배포
+
+---
+
+### 2. Environment Variables 설정
+
+각 Environment에 다음 Variables를 추가합니다:
+
+> **중요**: Secrets가 아닌 **Variables** 탭에 추가해야 합니다. `vars.*`로 접근됩니다.
+
+#### Production Environment Variables
+
+GitHub 저장소 → Settings → Environments → **production** → **Variables** 탭 → Add variable
+
+| Name | Value (예시) | 설명 |
+|------|------------|------|
+| `NEXT_PUBLIC_API_URL` | `https://api.re-fit.kr` | 프로덕션 API 서버 |
+| `NEXT_PUBLIC_KAKAO_REDIRECT_URL` | `https://www.re-fit.kr/callback.html` | 카카오 OAuth 콜백 |
+| `NEXT_PUBLIC_ENV` | `production` | 환경 구분자 |
+
+#### Development Environment Variables
+
+GitHub 저장소 → Settings → Environments → **development** → **Variables** 탭 → Add variable
+
+| Name | Value (예시) | 설명 |
+|------|------------|------|
+| `NEXT_PUBLIC_API_URL` | `https://dev-api.re-fit.kr` | 개발 API 서버 |
+| `NEXT_PUBLIC_KAKAO_REDIRECT_URL` | `https://dev.re-fit.kr/callback.html` | 카카오 OAuth 콜백 |
+| `NEXT_PUBLIC_ENV` | `development` | 환경 구분자 |
+
+#### (선택) Repository-level Variables
+
+PR 검증(`lint-and-test`)에서 사용할 기본값 (environment 없이 빌드 시):
+
+GitHub 저장소 → Settings → Secrets and variables → Actions → **Variables** 탭
+
+| Name | Value | 설명 |
+|------|-------|------|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | PR 검증용 기본값 |
+| `NEXT_PUBLIC_KAKAO_REDIRECT_URL` | `http://localhost:3000/callback.html` | PR 검증용 기본값 |
+
+- 설정하지 않으면 워크플로우의 fallback 값 사용
+- 설정하면 PR에서 이 값으로 빌드
+
+---
+
+### 3. Repository Secrets 설정
+
+환경에 관계없이 공통으로 사용되는 Secrets:
+
+GitHub 저장소 → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+
+| Secret Name | 설명 | 용도 |
+|------------|------|------|
+| `PAT` | Personal Access Token | 릴리즈 태그 push |
+| `SSH_HOST` | 배포 서버 호스트 | CD 배포 |
+| `SSH_USER` | 배포 서버 사용자 (ubuntu) | CD 배포 |
+| `SSH_KEY` | SSH 개인키 | CD 배포 |
+| `SSH_PORT` | SSH 포트 | CD 배포 |
+
+---
+
+### 4. 환경별 배포 흐름
+
+```
+main 브랜치 push
+  → CI release job (environment: production)
+    → production의 Variables 사용하여 빌드
+  → CD deploy job (environment: production)
+    → production 서버로 배포
+
+develop 브랜치 push
+  → CI release job (environment: development)
+    → development의 Variables 사용하여 빌드
+  → CD deploy job (environment: development)
+    → development 서버로 배포
+```
+
+**중요**: Variables 값을 변경하면 다음 빌드부터 새 값이 적용됩니다. 이미 배포된 환경에 즉시 반영하려면 재배포가 필요합니다.
 
 ---
 

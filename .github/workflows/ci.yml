@@ -68,6 +68,9 @@ jobs:
         run: pnpm run build
         env:
           NODE_ENV: production
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
+          NEXT_PUBLIC_KAKAO_REDIRECT_URL: ${{ vars.NEXT_PUBLIC_KAKAO_REDIRECT_URL || 'http://localhost:3000/callback.html' }}
+          NEXT_PUBLIC_ENV: development
 
   # 2. 통합 검증 단계
   integration:
@@ -117,6 +120,7 @@ jobs:
       (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release' || github.event.inputs.job_to_run == 'all'))
     runs-on: ubuntu-latest
+    environment: ${{ (github.ref == 'refs/heads/main' || github.ref_name == 'main') && 'production' || 'development' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -156,6 +160,9 @@ jobs:
         run: pnpm run build
         env:
           NODE_ENV: production
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_KAKAO_REDIRECT_URL: ${{ vars.NEXT_PUBLIC_KAKAO_REDIRECT_URL }}
+          NEXT_PUBLIC_ENV: ${{ vars.NEXT_PUBLIC_ENV }}
 
       - name: Verify Build Output
         run: |
