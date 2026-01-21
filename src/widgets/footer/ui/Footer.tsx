@@ -1,6 +1,13 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
+
 export default function Footer() {
+  const pathname = usePathname();
+  const isHome = pathname === '/';
+
   return (
-    <footer className="flex h-app-footer w-full items-center justify-between px-4 bg-white/80">
+    <footer className="fixed bottom-0 left-1/2 z-10 flex h-app-footer w-full max-w-[600px] -translate-x-1/2 items-center justify-between bg-white/80 px-4">
       <button type="button" className="flex flex-col items-center gap-1 text-xs text-text-caption">
         <svg
           data-slot="icon"
@@ -39,7 +46,12 @@ export default function Footer() {
         </svg>
         레포트
       </button>
-      <button type="button" className="flex flex-col items-center gap-1 text-xs text-text-caption">
+      <button
+        type="button"
+        className={`flex flex-col items-center gap-1 text-xs ${
+          isHome ? 'text-primary-main' : 'text-text-caption'
+        }`}
+      >
         <svg
           data-slot="icon"
           fill="none"
