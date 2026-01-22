@@ -149,26 +149,97 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   };
 
   const handleSubmit = async () => {
-    console.log('handleSubmit fired');
-    alert('handleSubmit fired');
     if (isSubmitting) return;
+    const debugPayload = (() => {
+      let oauthId = '';
+      let fallbackNickname = '';
+      const email = '';
+      const raw = sessionStorage.getItem('kakaoLoginResult');
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw) as {
+            signupRequired?: {
+              provider?: string;
+              providerUserId?: string;
+              email?: string | null;
+              nickname?: string | null;
+            };
+          };
+          const signupRequired = parsed.signupRequired;
+          if (signupRequired) {
+            oauthId = signupRequired.providerUserId ?? '';
+            fallbackNickname = signupRequired.nickname ?? '';
+          }
+        } catch {
+          // Ignore debug parse errors.
+        }
+      }
+
+      return {
+        oauth_provider: 'KAKAO',
+        oauth_id: oauthId,
+        email: 'test@naver.com',
+        nickname: nickname.trim() || fallbackNickname,
+        user_type: 'JOB_SEEKER',
+        career_level_id: selectedCareer?.id ?? null,
+        job_ids: selectedJob ? [selectedJob.id] : [],
+        skills: selectedTech.map((skill, index) => ({
+          skill_id: skill.id,
+          display_order: index + 1,
+        })),
+        introduction: introduction.trim(),
+      };
+    })();
+
+    alert(JSON.stringify(debugPayload, null, 2));
+
     if (!selectedJob || !selectedCareer || selectedTech.length === 0) {
       setSubmitError('직무, 경력, 기술스택을 모두 선택해 주세요.');
-      return;
-    }
-
-    const oauthId = '300';
-    const email = '';
-
-    const resolvedNickname = nickname.trim();
-    if (!resolvedNickname) {
-      setSubmitError('닉네임을 입력해 주세요.');
       return;
     }
 
     setSubmitError(null);
     setIsSubmitting(true);
     try {
+      const raw = sessionStorage.getItem('kakaoLoginResult');
+      if (!raw) {
+        setSubmitError('소셜 로그인 정보가 없습니다. 다시 로그인해 주세요.');
+        return;
+      }
+
+      let oauthId = '';
+      let fallbackNickname = '';
+      const email = 'test12@naver.com';
+
+      try {
+        const parsed = JSON.parse(raw) as {
+          signup_required?: {
+            oauth_provider?: string;
+            oauth_id?: string;
+            email?: string | null;
+            nickname?: string | null;
+          };
+        };
+        const signupRequired = parsed.signup_required;
+        if (signupRequired) {
+          oauthId = signupRequired.oauth_id ?? '';
+          fallbackNickname = signupRequired.nickname ?? '';
+        }
+      } catch {
+        setSubmitError('로그인 정보 파싱에 실패했습니다. 다시 로그인해 주세요.');
+        return;
+      }
+
+      const resolvedNickname = nickname.trim() || fallbackNickname;
+      if (!oauthId) {
+        setSubmitError('소셜 로그인 정보가 부족합니다. 다시 로그인해 주세요.');
+        return;
+      }
+      if (!resolvedNickname) {
+        setSubmitError('닉네임을 입력해 주세요.');
+        return;
+      }
+
       const signupPayload = {
         oauth_provider: 'KAKAO' as const,
         oauth_id: oauthId,
@@ -183,8 +254,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         })),
         introduction: introduction.trim(),
       };
-
-      alert(JSON.stringify(signupPayload, null, 2));
 
       const signupResponse = await signup({
         ...signupPayload,

@@ -13,6 +13,10 @@ export default function SplashGate({ children, durationMs = 5000 }: SplashGatePr
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
+    if (sessionStorage.getItem('signupSuccess')) {
+      setShowSplash(false);
+      return;
+    }
     const timer = setTimeout(() => setShowSplash(false), durationMs);
     return () => clearTimeout(timer);
   }, [durationMs]);
