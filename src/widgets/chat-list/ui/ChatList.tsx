@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const chats = [
   {
     chat_id: 1,
@@ -162,7 +164,7 @@ const formatChatTime = (value: string) => {
     parsed.getDate() === now.getDate();
 
   if (!isToday) {
-    return `${parsed.getFullYear()}.${pad2(parsed.getMonth() + 1)}.${pad2(parsed.getDate())}`;
+    return `${pad2(parsed.getMonth() + 1)}.${pad2(parsed.getDate())}`;
   }
 
   const hours = parsed.getHours();
@@ -175,12 +177,12 @@ const formatChatTime = (value: string) => {
 
 export default function ChatList() {
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-white text-black">
-      <div className="px-6 pt-8">
+    <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
+      <div className="fixed top-0 left-1/2 z-10 flex h-app-header w-full max-w-[600px] -translate-x-1/2 items-center bg-[#f7f7f7] px-6">
         <h1 className="text-2xl font-semibold">채팅</h1>
       </div>
 
-      <section className="px-6 pt-6">
+      <section className="px-6 pt-[calc(var(--app-header-height)+24px)]">
         <div className="flex items-center justify-between rounded-3xl bg-neutral-100 px-6 py-5 text-black">
           <div>
             <p className="text-lg font-semibold">[채팅 소개] 간단한 채팅 소개</p>
@@ -193,9 +195,9 @@ export default function ChatList() {
       <ul className="mt-4 flex flex-1 flex-col gap-1 px-2 pb-[calc(var(--app-footer-height)+16px)]">
         {chats.map((chat) => (
           <li key={chat.chat_id}>
-            <button
-              type="button"
-              className="flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-left transition hover:bg-neutral-100"
+            <Link
+              href={`/chat/${chat.chat_id}`}
+              className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition hover:bg-neutral-100"
             >
               <div className="h-12 w-12 flex-shrink-0 rounded-full bg-neutral-200" />
               <div className="min-w-0 flex-1">
@@ -207,12 +209,12 @@ export default function ChatList() {
               <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
                 <span>{formatChatTime(chat.last_message.created_at)}</span>
                 {chat.unread_count > 0 ? (
-                  <span className="rounded-full bg-orange-500 px-2 py-1 text-[11px] font-semibold text-white">
+                  <span className="rounded-full bg-[var(--color-primary-main)] px-2 py-1 text-[11px] font-semibold text-white">
                     {chat.unread_count}
                   </span>
                 ) : null}
               </div>
-            </button>
+            </Link>
           </li>
         ))}
       </ul>
