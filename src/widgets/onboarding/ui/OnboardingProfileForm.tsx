@@ -25,7 +25,7 @@ type OnboardingProfileFormProps = {
 };
 
 const nicknameLimit = 10;
-const introductionLimit = 300;
+const introductionLimit = 500;
 
 const roleTitle: Record<RoleId, string> = {
   seeker: '구직자',
@@ -149,46 +149,32 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   };
 
   const handleSubmit = async () => {
+    console.log('handleSubmit fired');
+    alert('handleSubmit fired');
     if (isSubmitting) return;
-    if (!selectedJob || !selectedCareer || selectedTech.length === 0) return;
-
-    const raw = sessionStorage.getItem('kakaoLoginResult');
-    if (!raw) return;
-
-    let oauthId = '';
-    const email = '';
-    let fallbackNickname = '';
-
-    try {
-      const parsed = JSON.parse(raw) as {
-        signupRequired?: {
-          provider?: string;
-          providerUserId?: string;
-          email?: string | null;
-          nickname?: string | null;
-        };
-      };
-      const signupRequired = parsed.signupRequired;
-      if (signupRequired) {
-        oauthId = signupRequired.providerUserId ?? '';
-        fallbackNickname = signupRequired.nickname ?? '';
-      }
-    } catch {
+    if (!selectedJob || !selectedCareer || selectedTech.length === 0) {
+      setSubmitError('직무, 경력, 기술스택을 모두 선택해 주세요.');
       return;
     }
 
-    const resolvedNickname = nickname.trim() || fallbackNickname;
-    if (!oauthId || !resolvedNickname) return;
+    const oauthId = '300';
+    const email = '';
+
+    const resolvedNickname = nickname.trim();
+    if (!resolvedNickname) {
+      setSubmitError('닉네임을 입력해 주세요.');
+      return;
+    }
 
     setSubmitError(null);
     setIsSubmitting(true);
     try {
-      const signupResponse = await signup({
-        oauth_provider: 'KAKAO',
+      const signupPayload = {
+        oauth_provider: 'KAKAO' as const,
         oauth_id: oauthId,
         email,
         nickname: resolvedNickname,
-        user_type: 'JOB_SEEKER',
+        user_type: 'JOB_SEEKER' as const,
         career_level_id: selectedCareer.id,
         job_ids: [selectedJob.id],
         skills: selectedTech.map((skill, index) => ({
@@ -196,6 +182,12 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           display_order: index + 1,
         })),
         introduction: introduction.trim(),
+      };
+
+      alert(JSON.stringify(signupPayload, null, 2));
+
+      const signupResponse = await signup({
+        ...signupPayload,
       });
       document.cookie = `access_token=${encodeURIComponent(signupResponse.access_token)}; path=/`;
       document.cookie = `refresh_token=${encodeURIComponent(signupResponse.refresh_token)}; path=/`;
