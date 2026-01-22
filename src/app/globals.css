@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @config "../../tailwind.config.ts";
+@import 'react-spring-bottom-sheet/dist/style.css';
 
 @layer base {
   :root {
