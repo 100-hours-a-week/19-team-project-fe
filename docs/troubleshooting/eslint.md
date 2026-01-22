@@ -512,3 +512,94 @@ Calling setState synchronously within an effect body causes cascading renders th
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-01-22 Raw Log
+
+- Logged at: 2026-01-22 08:23:18Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/app/(auth)/auth/social/page.tsx
+  1:1  error  '@/widgets/auth' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/app/oauth/kakao/callback/page.tsx
+  3:1  error  '@/widgets/auth' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/app/onboarding/page.tsx
+  1:1  error  '@/widgets/onboarding' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/app/onboarding/profile/page.tsx
+  1:1  error  '@/widgets/onboarding' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/app/page.tsx
+  1:1  error  '@/widgets/home' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다           no-restricted-imports
+  2:1  error  '@/widgets/footer' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다         no-restricted-imports
+  3:1  error  '@/widgets/header' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다         no-restricted-imports
+  4:1  error  '@/widgets/splash-screen' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/features/auth/api/kakaoAuthorize.ts
+  13:1  error  '@/shared/api' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/features/auth/api/kakaoLogin.ts
+  1:1  error  '@/shared/api' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다     no-restricted-imports
+  2:1  error  '@/entities/auth' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/features/auth/index.ts
+  3:1  error  '@/entities/auth' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/features/onboarding/api/getCareerLevels.ts
+  1:1  error  '@/shared/api' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다           no-restricted-imports
+  2:1  error  '@/entities/onboarding' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/features/onboarding/api/getJobs.ts
+  1:1  error  '@/shared/api' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다           no-restricted-imports
+  2:1  error  '@/entities/onboarding' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/features/onboarding/api/getSkills.ts
+  1:1  error  '@/shared/api' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다           no-restricted-imports
+  2:1  error  '@/entities/onboarding' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/features/onboarding/api/signup.ts
+  1:1  error  '@/shared/api' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다           no-restricted-imports
+  3:1  error  '@/entities/onboarding' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/auth/ui/KakaoCallbackClient.tsx
+  6:1  error  '@/features/auth' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/auth/ui/SocialLoginPage.tsx
+  1:1  error  '@/features/auth' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/header/ui/Header.tsx
+  3:1  error  '@/shared/icons/logo.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/home/ui/HomeContent.tsx
+  5:1  error  '@/shared/icons/icon-mark.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+  6:1  error  '@/shared/ui/button' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다            no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/onboarding/ui/OnboardingProfileForm.tsx
+   7:1  error  '@/entities/onboarding' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다           no-restricted-imports
+   8:1  error  '@/features/onboarding' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다           no-restricted-imports
+   9:1  error  '@/shared/api' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다                    no-restricted-imports
+  10:1  error  '@/shared/icons/icon-mark.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다    no-restricted-imports
+  11:1  error  '@/shared/icons/icon-mark_B.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+  12:1  error  '@/shared/icons/icon_career.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+  13:1  error  '@/shared/icons/Icon_job.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다     no-restricted-imports
+  14:1  error  '@/shared/icons/Icon_tech.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다    no-restricted-imports
+  15:1  error  '@/shared/ui/bottom-sheet' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다        no-restricted-imports
+  16:1  error  '@/shared/ui/button' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다              no-restricted-imports
+  17:1  error  '@/shared/ui/input' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다               no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/onboarding/ui/OnboardingRoleSelect.tsx
+   7:1  error  '@/shared/ui/button' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다                    no-restricted-imports
+   8:1  error  '@/shared/icons/icon-mark.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다          no-restricted-imports
+   9:1  error  '@/shared/icons/onboarding-expert.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+  10:1  error  '@/shared/icons/onboarding-seeker.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 40 problems (40 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

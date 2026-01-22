@@ -47,10 +47,14 @@ const eslintConfig = defineConfig([
           patterns: [
             {
               group: [
-                "@/shared/**/**/**",
-                "@/entities/**/**/**",
-                "@/features/**/**/**",
-                "@/widgets/**/**/**",
+                "@/shared/*/*/*",
+                "@/shared/*/*/*/**",
+                "@/entities/*/*",
+                "@/entities/*/*/**",
+                "@/features/*/*",
+                "@/features/*/*/**",
+                "@/widgets/*/*",
+                "@/widgets/*/*/**",
               ],
               message:
                 "FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다.",
