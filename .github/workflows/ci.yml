@@ -32,31 +32,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
       - name: Run Lint
         run: pnpm run lint
@@ -81,31 +61,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
       - name: Integration Test
         run: pnpm run test:integration || echo "⚠️  Integration tests not yet implemented"
@@ -116,6 +76,7 @@ jobs:
 
   # 3. 릴리즈 확정 단계 (develop/main 모두 아티팩트 생성)
   release:
+    # todo: CD 수동으로 돌리는 경우, 아티팩트 없으면 가장 최근 아티팩트 찾아서 배포
     if: |
       (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release' || github.event.inputs.job_to_run == 'all'))
@@ -127,31 +88,11 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
       - name: Full Regression Test
         run: pnpm run test:all || echo "⚠️  Full tests not yet implemented"
