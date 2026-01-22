@@ -41,16 +41,11 @@ jobs:
       - name: Run Lint
         run: pnpm run lint
 
+      - name: TypeScript Type Check
+        run: pnpm run type-check
+
       - name: Run Unit Tests
         run: pnpm test || echo "⚠️  No tests defined yet"
-
-      - name: Build Check
-        run: pnpm run build
-        env:
-          NODE_ENV: production
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
-          NEXT_PUBLIC_KAKAO_REDIRECT_URL: ${{ vars.NEXT_PUBLIC_KAKAO_REDIRECT_URL || 'http://localhost:3000/callback.html' }}
-          NEXT_PUBLIC_ENV: development
 
   # 2. 통합 검증 단계
   integration:
