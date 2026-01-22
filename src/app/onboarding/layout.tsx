@@ -1,14 +1,14 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 type OnboardingLayoutProps = {
   children: ReactNode;
 };
 
-export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
+function OnboardingLayoutInner({ children }: OnboardingLayoutProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -38,5 +38,19 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
         {children}
       </div>
     </div>
+  );
+}
+
+export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="onboarding-stack">
+          <div className="onboarding-stack__screen">{children}</div>
+        </div>
+      }
+    >
+      <OnboardingLayoutInner>{children}</OnboardingLayoutInner>
+    </Suspense>
   );
 }
