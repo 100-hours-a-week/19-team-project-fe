@@ -158,16 +158,16 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       if (raw) {
         try {
           const parsed = JSON.parse(raw) as {
-            signupRequired?: {
-              provider?: string;
-              providerUserId?: string;
+            signup_required?: {
+              oauth_provider?: string;
+              oauth_id?: string;
               email?: string | null;
               nickname?: string | null;
             };
           };
-          const signupRequired = parsed.signupRequired;
+          const signupRequired = parsed.signup_required;
           if (signupRequired) {
-            oauthId = signupRequired.providerUserId ?? '';
+            oauthId = signupRequired.oauth_id ?? '';
             fallbackNickname = signupRequired.nickname ?? '';
           }
         } catch {
@@ -178,7 +178,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       return {
         oauth_provider: 'KAKAO',
         oauth_id: oauthId,
-        email: 'test@naver.com',
+        email,
         nickname: nickname.trim() || fallbackNickname,
         user_type: 'JOB_SEEKER',
         career_level_id: selectedCareer?.id ?? null,
@@ -209,7 +209,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
       let oauthId = '';
       let fallbackNickname = '';
-      const email = 'test12@naver.com';
+      const email = '';
 
       try {
         const parsed = JSON.parse(raw) as {
