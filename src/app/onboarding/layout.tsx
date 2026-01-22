@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Suspense, useEffect, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 type OnboardingLayoutProps = {
@@ -17,13 +17,13 @@ function OnboardingLayoutInner({ children }: OnboardingLayoutProps) {
     return pathname.includes('/onboarding/profile') ? 1 : 0;
   }, [pathname]);
 
-  const prevStepRef = useRef(step);
-  const direction =
-    step === prevStepRef.current ? 'none' : step > prevStepRef.current ? 'forward' : 'back';
+  const [prevStep, setPrevStep] = useState(step);
+  const [direction, setDirection] = useState<'none' | 'forward' | 'back'>('none');
 
   useEffect(() => {
-    prevStepRef.current = step;
-  }, [step]);
+    setDirection(step === prevStep ? 'none' : step > prevStep ? 'forward' : 'back');
+    setPrevStep(step);
+  }, [prevStep, step]);
 
   const key = `${pathname}?${searchParams?.toString() ?? ''}`;
 
