@@ -76,7 +76,6 @@ jobs:
       (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release' || github.event.inputs.job_to_run == 'all'))
     runs-on: ubuntu-latest
-    environment: ${{ (github.ref == 'refs/heads/main' || github.ref_name == 'main') && 'production' || 'development' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -92,13 +91,18 @@ jobs:
       - name: Full Regression Test
         run: pnpm run test:all || echo "⚠️  Full tests not yet implemented"
 
+      - name: Setup Environment Variables
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "${{ secrets.PROD_ENV_FILE }}" > .env.production
+          else
+            echo "${{ secrets.DEV_ENV_FILE }}" > .env.production
+          fi
+
       - name: Production Build
         run: pnpm run build
         env:
           NODE_ENV: production
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
-          NEXT_PUBLIC_KAKAO_REDIRECT_URL: ${{ vars.NEXT_PUBLIC_KAKAO_REDIRECT_URL }}
-          NEXT_PUBLIC_ENV: ${{ vars.NEXT_PUBLIC_ENV }}
 
       - name: Verify Build Output
         run: |
