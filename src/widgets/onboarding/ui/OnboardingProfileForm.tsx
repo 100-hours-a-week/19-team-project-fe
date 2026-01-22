@@ -287,8 +287,8 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     <main className="flex min-h-screen flex-col bg-[#F7F7F7] px-6 pb-10 pt-4 text-text-body">
       <header className="relative"></header>
 
-      <section className="mt-10 flex flex-1 flex-col gap-6">
-        <div>
+      <section className="onboarding-form-stagger mt-10 flex flex-1 flex-col gap-6">
+        <div className="onboarding-form-stagger__item">
           <div className="flex items-center gap-2">
             <Image src={iconMarkB} alt="" width={28} height={28} />
             <p className="text-2xl font-semibold text-text-title">환영합니다!</p>
@@ -301,7 +301,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         </div>
 
         {isExpert ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-4">
+          <div className="onboarding-form-stagger__item rounded-xl border border-gray-200 bg-white p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-text-title">이메일 인증</p>
@@ -314,7 +314,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           </div>
         ) : null}
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+        <div className="onboarding-form-stagger__item rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
           <div className="text-base font-semibold text-black">닉네임</div>
           <Input.Root className="mt-2">
             <div className="relative">
@@ -332,7 +332,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           </Input.Root>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="onboarding-form-stagger__item flex flex-col gap-3">
           <button
             type="button"
             onClick={() => setActiveSheet('job')}
@@ -405,7 +405,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           </button>
         </div>
 
-        <div>
+        <div className="onboarding-form-stagger__item">
           <p className="text-base font-semibold text-text-title">자기 소개</p>
           <div className="mt-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
             <textarea
@@ -422,7 +422,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         </div>
       </section>
 
-      <div className="pt-6">
+      <div className="onboarding-form-stagger__item pt-6">
         {submitError ? <p className="mb-3 text-sm text-red-500">{submitError}</p> : null}
         <Button
           icon={<Image src={iconMark} alt="" width={20} height={20} />}
@@ -441,7 +441,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         onClose={() => setActiveSheet(null)}
       >
         {activeSheet === 'tech' ? (
-          <div>
+          <div className="flex h-full flex-col">
             <div className="flex items-center gap-2 rounded-full bg-[#edf4ff] px-4 py-3">
               <span className="text-sm text-text-caption">🔍</span>
               <input
@@ -463,7 +463,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                 </button>
               ))}
             </div>
-            <div className="mt-6 flex max-h-[36vh] flex-col gap-3 overflow-y-auto pr-1">
+            <div className="mt-6 flex flex-col gap-3 pr-1">
               {skillsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
               {skillsError ? <p className="text-sm text-red-500">{skillsError}</p> : null}
               {!skillsLoading && !skillsError
@@ -491,18 +491,19 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         ) : null}
 
         {activeSheet === 'job' ? (
-          <div className="flex max-h-[46vh] flex-col gap-4 overflow-y-auto pr-1">
+          <div className="flex h-full flex-col">
             {jobsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
             {jobsError ? <p className="text-sm text-red-500">{jobsError}</p> : null}
-            {!jobsLoading && !jobsError
-              ? jobs.map((item) => (
+            {!jobsLoading && !jobsError ? (
+              <div className="flex flex-col gap-4 pr-1">
+                {jobs.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedJob(item)}
                     className="flex items-center justify-between text-left"
                   >
-                    <span className="text-sm font-medium text-text-body">{item.name}</span>
+                    <span className="text-base font-semibold text-text-body">{item.name}</span>
                     <span
                       className={`h-5 w-5 rounded-md border ${
                         selectedJob?.id === item.id
@@ -511,24 +512,26 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                       }`}
                     />
                   </button>
-                ))
-              : null}
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
         {activeSheet === 'career' ? (
-          <div className="flex max-h-[46vh] flex-col gap-4 overflow-y-auto pr-1">
+          <div className="flex h-full flex-col">
             {careerLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
             {careerError ? <p className="text-sm text-red-500">{careerError}</p> : null}
-            {!careerLoading && !careerError
-              ? careerLevels.map((item) => (
+            {!careerLoading && !careerError ? (
+              <div className="flex flex-col gap-4 pr-1">
+                {careerLevels.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedCareer(item)}
                     className="flex items-center justify-between text-left"
                   >
-                    <span className="text-sm font-medium text-text-body">{item.level}</span>
+                    <span className="text-base font-semibold text-text-body">{item.level}</span>
                     <span
                       className={`h-5 w-5 rounded-md border ${
                         selectedCareer?.id === item.id
@@ -537,8 +540,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                       }`}
                     />
                   </button>
-                ))
-              : null}
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </BottomSheet>

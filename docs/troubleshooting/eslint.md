@@ -603,3 +603,44 @@ Calling setState synchronously within an effect body causes cascading renders th
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-01-22 Raw Log
+
+- Logged at: 2026-01-22 12:23:26Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/app/onboarding/layout.tsx
+  22:14  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/Users/junseopark/re-fit/src/app/onboarding/layout.tsx:22:14
+  20 |   const prevStepRef = useRef(step);
+  21 |   const direction =
+> 22 |     step === prevStepRef.current ? 'none' : step > prevStepRef.current ? 'forward' : 'back';
+     |              ^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  23 |
+  24 |   useEffect(() => {
+  25 |     prevStepRef.current = step;                                        react-hooks/refs
+  22:52  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/Users/junseopark/re-fit/src/app/onboarding/layout.tsx:22:52
+  20 |   const prevStepRef = useRef(step);
+  21 |   const direction =
+> 22 |     step === prevStepRef.current ? 'none' : step > prevStepRef.current ? 'forward' : 'back';
+     |                                                    ^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  23 |
+  24 |   useEffect(() => {
+  25 |     prevStepRef.current = step;  react-hooks/refs
+
+✖ 2 problems (2 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
