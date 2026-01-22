@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export default function Footer() {
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const isChat = pathname === '/chat';
 
   return (
     <footer className="fixed bottom-0 left-1/2 z-10 flex h-app-footer w-full max-w-[600px] -translate-x-1/2 items-center justify-between bg-white/80 px-4">
@@ -46,8 +48,8 @@ export default function Footer() {
         </svg>
         레포트
       </button>
-      <button
-        type="button"
+      <Link
+        href="/"
         className={`flex flex-col items-center gap-1 text-xs ${
           isHome ? 'text-primary-main' : 'text-text-caption'
         }`}
@@ -69,8 +71,13 @@ export default function Footer() {
           />
         </svg>
         홈
-      </button>
-      <button type="button" className="flex flex-col items-center gap-1 text-xs text-text-caption">
+      </Link>
+      <Link
+        href="/chat"
+        className={`flex flex-col items-center gap-1 text-xs ${
+          isChat ? 'text-primary-main' : 'text-text-caption'
+        }`}
+      >
         <svg
           data-slot="icon"
           fill="none"
@@ -88,7 +95,7 @@ export default function Footer() {
           />
         </svg>
         채팅
-      </button>
+      </Link>
       <button type="button" className="flex flex-col items-center gap-1 text-xs text-text-caption">
         <svg
           data-slot="icon"
