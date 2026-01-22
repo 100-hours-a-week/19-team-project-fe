@@ -1,4 +1,4 @@
-export { getSkills } from './getSkills';
-export { getCareerLevels } from './getCareerLevels';
-export { getJobs } from './getJobs';
-export { signup } from './signup';
+export { getSkills } from './api/getSkills';
+export { getCareerLevels } from './api/getCareerLevels';
+export { getJobs } from './api/getJobs';
+export { signup } from './api/signup';
