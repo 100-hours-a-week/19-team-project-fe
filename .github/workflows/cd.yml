@@ -23,6 +23,7 @@ jobs:
           name: next-build-artifact-${{ github.event.workflow_run.head_sha }}
           path: build-output/.next
           github-token: ${{ secrets.PAT }}
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Download Deployment Files
         uses: actions/download-artifact@v4
@@ -30,6 +31,7 @@ jobs:
           name: deploy-files-${{ github.event.workflow_run.head_sha }}
           path: build-output
           github-token: ${{ secrets.PAT }}
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Verify Downloaded Files
         run: |
