@@ -495,15 +495,15 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             {jobsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
             {jobsError ? <p className="text-sm text-red-500">{jobsError}</p> : null}
             {!jobsLoading && !jobsError ? (
-              <div className="flex flex-col gap-4 pr-1">
+              <div className="flex flex-col gap-6 pr-1">
                 {jobs.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedJob(item)}
-                    className="flex items-center justify-between text-left"
+                    className="flex items-center justify-between py-2 text-left"
                   >
-                    <span className="text-base font-semibold text-text-body">{item.name}</span>
+                    <span className="text-xl font-semibold text-text-body">{item.name}</span>
                     <span
                       className={`h-5 w-5 rounded-md border ${
                         selectedJob?.id === item.id
@@ -523,15 +523,15 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             {careerLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
             {careerError ? <p className="text-sm text-red-500">{careerError}</p> : null}
             {!careerLoading && !careerError ? (
-              <div className="flex flex-col gap-4 pr-1">
+              <div className="flex flex-col gap-6 pr-1">
                 {careerLevels.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedCareer(item)}
-                    className="flex items-center justify-between text-left"
+                    className="flex items-center justify-between py-2 text-left"
                   >
-                    <span className="text-base font-semibold text-text-body">{item.level}</span>
+                    <span className="text-xl font-semibold text-text-body">{item.level}</span>
                     <span
                       className={`h-5 w-5 rounded-md border ${
                         selectedCareer?.id === item.id
