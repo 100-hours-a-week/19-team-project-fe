@@ -1,5 +1,5 @@
 import { apiFetch, buildApiUrl } from '@/shared/api';
-import type { KakaoOAuthLoginData } from './types';
+import type { KakaoOAuthLoginData } from '@/entities/auth';
 
 const KAKAO_LOGIN_PATH = '/api/v1/auth/oauth/kakao/login';
 

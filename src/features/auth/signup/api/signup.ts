@@ -1,6 +1,6 @@
 import { apiFetch, buildApiUrl } from '@/shared/api';
 
-import type { SignupRequest, SignupResponse } from './types';
+import type { SignupRequest, SignupResponse } from '@/entities/onboarding';
 
 const SIGNUP_PATH = '/api/v1/auth/signup';
 
