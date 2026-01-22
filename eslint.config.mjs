@@ -28,6 +28,7 @@ const eslintConfig = defineConfig([
       ],
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/explicit-function-return-type": "off",
+      "react-hooks/set-state-in-effect": "off",
     },
   },
   prettier,

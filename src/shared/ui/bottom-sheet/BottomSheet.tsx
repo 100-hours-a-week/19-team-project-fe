@@ -61,14 +61,10 @@ export default function BottomSheet({ open, title, onClose, children }: BottomSh
   };
 
   return createPortal(
-    <div
-      className={`fixed inset-y-0 left-1/2 z-40 w-full max-w-[600px] -translate-x-1/2 ${
-        open ? 'pointer-events-auto' : 'pointer-events-none'
-      }`}
-    >
+    <div className="fixed inset-y-0 left-1/2 z-40 w-full max-w-[600px] -translate-x-1/2 pointer-events-none">
       <div
         className={`absolute inset-0 bg-black/40 transition-opacity ${
-          open ? 'opacity-100' : 'pointer-events-none opacity-0'
+          open ? 'opacity-100 pointer-events-auto' : 'pointer-events-none opacity-0'
         }`}
         onClick={handleClose}
         aria-hidden="true"
@@ -76,7 +72,7 @@ export default function BottomSheet({ open, title, onClose, children }: BottomSh
       <div
         className={`absolute inset-x-0 bottom-0 z-50 max-h-[70vh] rounded-t-3xl bg-white px-6 pb-8 pt-3 shadow-[0_-20px_60px_rgba(0,0,0,0.1)] transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
-        } ${effectiveDragging ? 'transition-none' : ''}`}
+        } ${effectiveDragging ? 'transition-none' : ''} pointer-events-auto`}
         style={{ transform: open ? `translateY(${effectiveDragOffset}px)` : 'translateY(100%)' }}
         role="dialog"
         aria-modal="true"

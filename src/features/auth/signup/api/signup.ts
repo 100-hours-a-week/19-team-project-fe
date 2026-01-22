@@ -2,7 +2,7 @@ import { apiFetch, buildApiUrl } from '@/shared/api';
 
 import type { SignupRequest, SignupResponse } from './types';
 
-const SIGNUP_PATH = '/api/v3/auth/signup';
+const SIGNUP_PATH = '/api/v1/auth/signup';
 
 export async function signup(payload: SignupRequest): Promise<SignupResponse> {
   const url = buildApiUrl(SIGNUP_PATH);
@@ -10,6 +10,6 @@ export async function signup(payload: SignupRequest): Promise<SignupResponse> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-    successCodes: ['CREATED'],
+    successCodes: ['OK', 'CREATED'],
   });
 }

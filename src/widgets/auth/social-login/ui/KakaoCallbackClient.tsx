@@ -36,6 +36,7 @@ export default function KakaoCallbackClient() {
         }
 
         if (result.status === 'SIGNUP_REQUIRED') {
+          sessionStorage.setItem('kakaoLoginResult', JSON.stringify(result));
           router.replace('/onboarding');
           return;
         }

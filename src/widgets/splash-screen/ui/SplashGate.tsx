@@ -10,12 +10,16 @@ interface SplashGateProps {
 }
 
 export default function SplashGate({ children, durationMs = 5000 }: SplashGateProps) {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return sessionStorage.getItem('signupSuccess') ? false : true;
+  });
 
   useEffect(() => {
+    if (!showSplash) return;
     const timer = setTimeout(() => setShowSplash(false), durationMs);
     return () => clearTimeout(timer);
-  }, [durationMs]);
+  }, [durationMs, showSplash]);
 
   if (showSplash) {
     return <SplashScreen />;
