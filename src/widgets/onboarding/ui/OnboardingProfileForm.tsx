@@ -5,8 +5,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
-import { signup } from '@/features/auth/signup/api';
-import { getCareerLevels, getJobs, getSkills } from '@/features/onboarding/api';
+import { getCareerLevels, getJobs, getSkills, signup } from '@/features/onboarding';
 import { BusinessError } from '@/shared/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';

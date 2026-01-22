@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { KakaoCallbackClient } from '@/widgets/auth/social-login';
+import { KakaoCallbackClient } from '@/widgets/auth';
 
 export default function KakaoOauthCallbackPage() {
   return (
