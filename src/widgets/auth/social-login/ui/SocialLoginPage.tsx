@@ -1,4 +1,4 @@
-import { KakaoLoginButton } from '@/features/auth/social-login';
+import { KakaoLoginButton } from '@/features/auth';
 
 export default function SocialLoginPage() {
   return (

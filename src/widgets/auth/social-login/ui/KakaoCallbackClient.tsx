@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { kakaoLogin } from '@/features/auth/social-login';
+import { kakaoLogin } from '@/features/auth';
 
 export default function KakaoCallbackClient() {
   const router = useRouter();
