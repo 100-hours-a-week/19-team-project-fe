@@ -67,6 +67,151 @@
   }
 }
 
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0%);
+  }
+}
+
+@keyframes sheet-down {
+  from {
+    transform: translateY(0%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-sheet-up {
+  animation: sheet-up 220ms ease-out;
+}
+
+.animate-sheet-down {
+  animation: sheet-down 180ms ease-in;
+}
+
+.animate-fade-in {
+  animation: fade-in 180ms ease-out;
+}
+
+.animate-fade-out {
+  animation: fade-out 140ms ease-in;
+}
+
+.re-fit-bottom-sheet-overlay[data-state='open'] {
+  animation: fade-in 180ms ease-out;
+}
+
+.re-fit-bottom-sheet-overlay[data-state='closed'] {
+  animation: fade-out 140ms ease-in;
+}
+
+.re-fit-bottom-sheet-content[data-state='open'] {
+  animation: sheet-up 220ms ease-out;
+}
+
+.re-fit-bottom-sheet-content[data-state='closed'] {
+  animation: sheet-down 180ms ease-in;
+}
+
+.onboarding-stack {
+  position: relative;
+  overflow: hidden;
+}
+
+.onboarding-stack__screen {
+  will-change: transform;
+  animation-duration: 240ms;
+  animation-timing-function: ease-out;
+}
+
+.onboarding-stack__screen--forward {
+  animation-name: onboarding-slide-in-left;
+}
+
+.onboarding-stack__screen--back {
+  animation-name: onboarding-slide-in-right;
+}
+
+@keyframes onboarding-slide-in-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes onboarding-slide-in-right {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+.onboarding-form-stagger__item {
+  opacity: 0;
+  animation: onboarding-item-in 260ms ease-out forwards;
+}
+
+.onboarding-form-stagger__item:nth-child(1) {
+  animation-delay: 20ms;
+}
+
+.onboarding-form-stagger__item:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.onboarding-form-stagger__item:nth-child(3) {
+  animation-delay: 220ms;
+}
+
+.onboarding-form-stagger__item:nth-child(4) {
+  animation-delay: 320ms;
+}
+
+.onboarding-form-stagger__item:nth-child(5) {
+  animation-delay: 420ms;
+}
+
+.onboarding-form-stagger__item:nth-child(6) {
+  animation-delay: 520ms;
+}
+
+@keyframes onboarding-item-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
 body.app-shell {
   margin: 0;
   min-height: 100dvh;
