@@ -5,10 +5,10 @@ import { SplashGate } from '@/widgets/splash-screen';
 
 export default function Home() {
   return (
-    <SplashGate durationMs={5000}>
+    <>
       <Header />
       <HomeContent />
       <Footer />
-    </SplashGate>
+    </>
   );
 }

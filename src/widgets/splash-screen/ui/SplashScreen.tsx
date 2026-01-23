@@ -1,11 +1,11 @@
 'use client';
 
-import Lanyard from './Lanyard';
+// import Lanyard from './Lanyard';
 
 export default function SplashScreen() {
   return (
     <section className="relative h-screen w-full overflow-hidden">
-      <Lanyard position={[0, 0, 20]} gravity={[0, -65, 0]} />
+      {/* <Lanyard position={[0, 0, 20]} gravity={[0, -65, 0]} /> */}
       <div className="pointer-events-none absolute inset-0">
         <div
           className="absolute inset-0"
