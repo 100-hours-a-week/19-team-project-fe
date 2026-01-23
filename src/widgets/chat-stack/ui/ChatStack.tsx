@@ -24,7 +24,9 @@ export default function ChatStack({ children }: { children: ReactNode }) {
       <div
         key={pathname}
         className={`onboarding-stack__screen ${
-          direction === 'forward' ? 'onboarding-stack__screen--forward' : 'onboarding-stack__screen--back'
+          direction === 'forward'
+            ? 'onboarding-stack__screen--forward'
+            : 'onboarding-stack__screen--back'
         }`}
       >
         {children}
