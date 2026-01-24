@@ -1,155 +1,15 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-const chats = [
-  {
-    chat_id: 1,
-    requester: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    receiver: {
-      user_id: 3,
-      nickname: 'daniel',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    last_message: {
-      message_id: 14,
-      content: 'ㅋㅋㅋㅎㅇㅎㅇㅎㅇ',
-      created_at: '2026-01-22 16:14:34',
-    },
-    unread_count: 0,
-    status: 'ACTIVE',
-    created_at: '2026-01-22 15:36:44',
-    updated_at: '2026-01-22 16:14:34',
-  },
-  {
-    chat_id: 2,
-    requester: {
-      user_id: 7,
-      nickname: 'kobe',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    receiver: {
-      user_id: 9,
-      nickname: 'chloe',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    last_message: {
-      message_id: 21,
-      content: '굳굳',
-      created_at: '2026-01-21 10:22:01',
-    },
-    unread_count: 12,
-    status: 'ACTIVE',
-    created_at: '2026-01-21 09:44:20',
-    updated_at: '2026-01-21 10:22:01',
-  },
-  {
-    chat_id: 3,
-    requester: {
-      user_id: 10,
-      nickname: 'bella',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    receiver: {
-      user_id: 11,
-      nickname: 're-fit',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    last_message: {
-      message_id: 30,
-      content: '인증이 완료되었습니다.',
-      created_at: '2026-01-21 08:01:35',
-    },
-    unread_count: 8,
-    status: 'ACTIVE',
-    created_at: '2026-01-20 18:20:00',
-    updated_at: '2026-01-21 08:01:35',
-  },
-  {
-    chat_id: 4,
-    requester: {
-      user_id: 12,
-      nickname: 'juncci',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    receiver: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    last_message: {
-      message_id: 42,
-      content: '사진을 보냈습니다.',
-      created_at: '2026-01-20 19:33:48',
-    },
-    unread_count: 0,
-    status: 'ACTIVE',
-    created_at: '2026-01-20 17:05:48',
-    updated_at: '2026-01-20 19:33:48',
-  },
-  {
-    chat_id: 5,
-    requester: {
-      user_id: 13,
-      nickname: '카카오계정',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    receiver: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    last_message: {
-      message_id: 50,
-      content: '카카오계정 로그인 알림',
-      created_at: '2026-01-20 15:01:12',
-    },
-    unread_count: 0,
-    status: 'ACTIVE',
-    created_at: '2026-01-19 22:05:30',
-    updated_at: '2026-01-20 15:01:12',
-  },
-  {
-    chat_id: 6,
-    requester: {
-      user_id: 14,
-      nickname: '카카오',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    receiver: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: '...',
-      user_type: 'JOB_SEEKER',
-    },
-    last_message: {
-      message_id: 62,
-      content: '...',
-      created_at: '2026-01-20 11:10:03',
-    },
-    unread_count: 9,
-    status: 'ACTIVE',
-    created_at: '2026-01-19 08:05:30',
-    updated_at: '2026-01-20 11:10:03',
-  },
-];
+import { getChatList } from '@/features/chat';
+import type { ChatSummary } from '@/entities/chat';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
-const formatChatTime = (value: string) => {
+const formatChatTime = (value?: string | null) => {
+  if (!value) return '';
   const normalized = value.replace(' ', 'T');
   const parsed = new Date(normalized);
 
@@ -176,6 +36,48 @@ const formatChatTime = (value: string) => {
 };
 
 export default function ChatList() {
+  const [chats, setChats] = useState<ChatSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const data = await getChatList();
+        alert(JSON.stringify(data, null, 2));
+        if (cancelled) return;
+        const normalized = data.chats
+          .map((chat) => {
+            const rawChatId = chat.chat_id ?? chat.chatId ?? null;
+            const parsedChatId = typeof rawChatId === 'string' ? Number(rawChatId) : rawChatId;
+            const chatId =
+              typeof parsedChatId === 'number' && !Number.isNaN(parsedChatId) ? parsedChatId : null;
+
+            if (chatId == null) return null;
+            return {
+              ...chat,
+              chat_id: chatId,
+            };
+          })
+          .filter((chat): chat is ChatSummary => !!chat);
+        setChats(normalized);
+        setLoadError(null);
+      } catch (error) {
+        if (cancelled) return;
+        setLoadError(error instanceof Error ? error.message : '채팅 목록을 불러오지 못했습니다.');
+      } finally {
+        if (cancelled) return;
+        setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <div className="fixed top-0 left-1/2 z-10 flex h-app-header w-full max-w-[600px] -translate-x-1/2 items-center bg-[#f7f7f7] px-6">
@@ -193,30 +95,43 @@ export default function ChatList() {
       </section>
 
       <ul className="mt-4 flex flex-1 flex-col gap-1 px-2 pb-[calc(var(--app-footer-height)+16px)]">
-        {chats.map((chat) => (
-          <li key={chat.chat_id}>
-            <Link
-              href={`/chat/${chat.chat_id}`}
-              className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition hover:bg-neutral-100"
-            >
-              <div className="h-12 w-12 flex-shrink-0 rounded-full bg-neutral-200" />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-base font-semibold">{chat.requester.nickname}</div>
-                <div className="mt-1 truncate text-sm text-neutral-500">
-                  {chat.last_message.content}
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
-                <span>{formatChatTime(chat.last_message.created_at)}</span>
-                {chat.unread_count > 0 ? (
-                  <span className="rounded-full bg-[var(--color-primary-main)] px-2 py-1 text-[11px] font-semibold text-white">
-                    {chat.unread_count}
-                  </span>
-                ) : null}
-              </div>
-            </Link>
-          </li>
-        ))}
+        {isLoading ? (
+          <li className="px-4 py-6 text-center text-sm text-neutral-500">불러오는 중...</li>
+        ) : loadError ? (
+          <li className="px-4 py-6 text-center text-sm text-red-500">{loadError}</li>
+        ) : chats.length === 0 ? (
+          <li className="px-4 py-6 text-center text-sm text-neutral-500">아직 채팅이 없습니다.</li>
+        ) : (
+          chats.map((chat) => {
+            const lastMessage = chat.last_message;
+            return (
+              <li key={chat.chat_id}>
+                <Link
+                  href={`/chat/${chat.chat_id}`}
+                  className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition hover:bg-neutral-100"
+                >
+                  <div className="h-12 w-12 flex-shrink-0 rounded-full bg-neutral-200" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-base font-semibold">
+                      {chat.requester.nickname}
+                    </div>
+                    <div className="mt-1 truncate text-sm text-neutral-500">
+                      {lastMessage?.content ?? '대화를 시작해 보세요.'}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
+                    <span>{lastMessage ? formatChatTime(lastMessage.created_at) : ''}</span>
+                    {chat.unread_count > 0 ? (
+                      <span className="rounded-full bg-[var(--color-primary-main)] px-2 py-1 text-[11px] font-semibold text-white">
+                        {chat.unread_count}
+                      </span>
+                    ) : null}
+                  </div>
+                </Link>
+              </li>
+            );
+          })
+        )}
       </ul>
     </div>
   );

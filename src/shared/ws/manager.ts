@@ -43,7 +43,7 @@ export const stompManager = {
     return !!st.client?.connected;
   },
 
-  async connect(url: string): Promise<void> {
+  async connect(url: string, options?: { connectHeaders?: Record<string, string> }): Promise<void> {
     const st = getState();
 
     if (st.client?.connected) return;
@@ -54,7 +54,10 @@ export const stompManager = {
 
     st.connectingPromise = new Promise<void>((resolve, reject) => {
       try {
-        const client = createStompClient({ url });
+        const client = createStompClient({
+          url,
+          connectHeaders: options?.connectHeaders,
+        });
         st.client = client;
 
         client.onConnect = () => {
@@ -63,7 +66,10 @@ export const stompManager = {
           resolve();
         };
 
-        client.onStompError = () => {
+        client.onStompError = (frame) => {
+          console.error('STOMP ERROR');
+          console.error('headers:', frame.headers);
+          console.error('body:', frame.body);
           st.status = 'error';
           st.connectingPromise = null;
           reject(new Error('STOMP error'));
@@ -113,6 +119,13 @@ export const stompManager = {
       st.status = 'disconnected';
     }
   },
+
+  /**
+   * 구독
+   * @param destination STOMP destination
+   * @param handler 메시지 핸들러
+   * @param key 구독 키 (중복 방지용)
+   */
 
   subscribe<T>(
     destination: string,

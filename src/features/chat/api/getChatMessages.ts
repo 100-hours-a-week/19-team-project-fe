@@ -21,11 +21,11 @@ export async function getChatMessages(params: ChatMessagesParams): Promise<ChatM
   const accessToken =
     typeof document === 'undefined'
       ? null
-      : document.cookie
+      : (document.cookie
           .split(';')
           .map((item) => item.trim())
           .find((item) => item.startsWith('access_token='))
-          ?.split('=')[1] ?? null;
+          ?.split('=')[1] ?? null);
 
   return apiFetch<ChatMessageListData>(fullUrl, {
     method: 'GET',
