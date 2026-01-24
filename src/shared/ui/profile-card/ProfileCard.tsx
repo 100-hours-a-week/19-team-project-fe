@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
@@ -13,8 +14,7 @@ const ANIMATION_CONFIG = {
   ENTER_TRANSITION_MS: 180,
 } as const;
 
-const clamp = (value: number, min = 0, max = 100): number =>
-  Math.min(Math.max(value, min), max);
+const clamp = (value: number, min = 0, max = 100): number => Math.min(Math.max(value, min), max);
 const round = (value: number, precision = 3): number => parseFloat(value.toFixed(precision));
 const adjust = (value: number, fMin: number, fMax: number, tMin: number, tMax: number): number =>
   round(tMin + ((tMax - tMin) * (value - fMin)) / (fMax - fMin));
@@ -259,7 +259,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       if (!shell || !tiltEngine) return;
 
       const { beta, gamma } = event;
-      if (beta == null || gamma == null) return;
+      if (beta === null || beta === undefined || gamma === null || gamma === undefined) return;
 
       const centerX = shell.clientWidth / 2;
       const centerY = shell.clientHeight / 2;
@@ -434,7 +434,13 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     <div
       ref={wrapRef}
       className={`relative touch-none ${className}`.trim()}
-      style={{ perspective: '500px', transform: 'translate3d(0, 0, 0.1px)', ...cardStyle } as CSSProperties}
+      style={
+        {
+          perspective: '500px',
+          transform: 'translate3d(0, 0, 0.1px)',
+          ...cardStyle,
+        } as CSSProperties
+      }
     >
       {behindGlowEnabled && (
         <div
@@ -499,17 +505,19 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                 backfaceVisibility: 'hidden',
               }}
             >
-              {showAvatarPlaceholder ? (
+              {showAvatarPlaceholder || !avatarUrl ? (
                 <div
                   className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full"
                   style={{ backgroundColor: placeholderColor }}
                 />
               ) : (
-                <img
+                <Image
                   className="absolute left-1/2 bottom-0 w-full translate-x-[-50%]"
                   src={avatarUrl}
                   alt={`${name} avatar`}
-                  loading="lazy"
+                  width={240}
+                  height={320}
+                  unoptimized
                   style={{ borderRadius: cardRadius }}
                   onError={(event) => {
                     (event.target as HTMLImageElement).style.display = 'none';
@@ -552,9 +560,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                 >
                   {title}
                 </p>
-                {subtitle && (
-                  <p className="m-0 mt-1 text-[10px] text-white/70">{subtitle}</p>
-                )}
+                {subtitle && <p className="m-0 mt-1 text-[10px] text-white/70">{subtitle}</p>}
               </div>
             </div>
           </div>
