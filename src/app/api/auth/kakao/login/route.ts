@@ -1,28 +1,33 @@
-/**
- * Kakao Login Route Entry
- *
- * - app/api는 Entry Layer
- * - 비즈니스 로직 담당하지 않음..
- * - 쿠키 직접 제어 하지 않게 하기
- */
-
+// app/api/auth/kakao/login/route.ts
 import { NextResponse } from 'next/server';
-import { kakaoLogin } from '@/features/auth.server';
+import { kakaoLogin } from '@/features/auth/server';
 
 export async function POST(req: Request) {
-  try {
-    const { code } = await req.json();
+  const { code } = await req.json();
 
-    if (!code) {
-      return NextResponse.json({ message: 'INVALID_REQUEST' }, { status: 400 });
-    }
+  const result = await kakaoLogin(code);
 
-    const result = await kakaoLogin(code);
+  const response = NextResponse.json({
+    userId: result.userId,
+    userType: result.userType,
+  });
 
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('[Kakao Login Error]', error);
+  // 쿠키는 반드시 여기서 설정
+  response.cookies.set('access_token', result.accessToken, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 15,
+  });
 
-    return NextResponse.json({ message: 'LOGIN_FAILED' }, { status: 401 });
-  }
+  response.cookies.set('refresh_token', result.refreshToken, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 14,
+  });
+
+  return response;
 }

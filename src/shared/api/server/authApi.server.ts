@@ -1,8 +1,17 @@
-type KakaoLoginResponse = {
-  user_id: number;
-  user_type: string;
-  access_token: string;
-  refresh_token: string;
+export type KakaoLoginBackendResponse = {
+  status: 'LOGIN_SUCCESS' | 'SIGNUP_REQUIRED';
+  login_success: {
+    user_id: number;
+    user_type: string;
+    access_token: string;
+    refresh_token: string;
+  } | null;
+  signup_required: {
+    oauth_provider: 'KAKAO';
+    oauth_id: string;
+    email: string | null;
+    nickname: string | null;
+  } | null;
 };
 
 type SignupRequestPayload = {
@@ -26,14 +35,10 @@ type SignupResponsePayload = {
   refresh_token: string;
 };
 
-const SIGNUP_PATH = '/api/v1/auth/signup';
-
-export async function loginWithKakao(code: string): Promise<KakaoLoginResponse> {
+export async function loginWithKakao(code: string): Promise<KakaoLoginBackendResponse> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/kakao/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code }),
   });
 
@@ -42,18 +47,21 @@ export async function loginWithKakao(code: string): Promise<KakaoLoginResponse> 
   }
 
   const body = await res.json();
-
-  return body.data as KakaoLoginResponse;
+  return body.data as KakaoLoginBackendResponse;
 }
 
+/* ✅ 여기 추가 */
 export async function signup(payload: SignupRequestPayload): Promise<SignupResponsePayload> {
-  const url = buildApiUrl(SIGNUP_PATH);
-  return apiFetch<SignupResponsePayload>(url, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/signup`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
+
+  if (!res.ok) {
+    throw new Error('SIGNUP_FAILED');
+  }
+
+  const body = await res.json();
+  return body.data as SignupResponsePayload;
 }
-import { apiFetch, buildApiUrl } from '@/shared/api';

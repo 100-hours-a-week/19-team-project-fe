@@ -79,9 +79,7 @@ export default function ChatList() {
         setLoadError(null);
       } catch (error) {
         if (cancelled) return;
-        setLoadError(
-          error instanceof Error ? error.message : '채팅 목록을 불러오지 못했습니다.',
-        );
+        setLoadError(error instanceof Error ? error.message : '채팅 목록을 불러오지 못했습니다.');
       } finally {
         if (cancelled) return;
         setIsLoading(false);
@@ -115,9 +113,7 @@ export default function ChatList() {
 
       <ul className="mt-4 flex flex-1 flex-col gap-1 px-2 pb-[calc(var(--app-footer-height)+16px)]">
         {authStatus === 'guest' ? (
-          <li className="px-4 py-6 text-center text-sm text-neutral-500">
-            로그인이 필요합니다.
-          </li>
+          <li className="px-4 py-6 text-center text-sm text-neutral-500">로그인이 필요합니다.</li>
         ) : isLoading ? (
           <li className="px-4 py-6 text-center text-sm text-neutral-500">불러오는 중...</li>
         ) : loadError ? (
