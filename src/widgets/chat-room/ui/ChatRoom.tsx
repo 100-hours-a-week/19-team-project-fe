@@ -99,7 +99,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       if (cancelled) return;
 
       unsubscribe = subscribeChat<ChatMessage>(chatId, (response) => {
-        if (response.code !== 'CREATED' || response.data == null) return;
+        if (response.code !== 'CREATED' || response.data === null || response.data === undefined)
+          return;
 
         setMessages((prev) => [...prev, response.data]);
       });
