@@ -98,7 +98,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
       if (cancelled) return;
 
-      unsubscribe = subscribeChat<ChatMessage>(chatId, (response) => {
+      unsubscribe = subscribeChat<ChatMessageItem>(chatId, (response) => {
         if (response.code !== 'CREATED' || response.data === null || response.data === undefined)
           return;
 
