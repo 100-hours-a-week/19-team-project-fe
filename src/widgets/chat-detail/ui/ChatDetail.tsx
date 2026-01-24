@@ -1,11 +1,6 @@
 import Link from 'next/link';
 
-const participants = [
-  { id: 1, name: 'eden' },
-  { id: 2, name: '하린' },
-  { id: 3, name: '도윤' },
-  { id: 4, name: '지수' },
-];
+const participants: Array<{ id: number; name: string }> = [];
 
 export default function ChatDetail() {
   return (
@@ -22,12 +17,16 @@ export default function ChatDetail() {
         <section>
           <h2 className="text-sm font-semibold text-neutral-700">참여자</h2>
           <div className="mt-4 flex flex-wrap gap-4">
-            {participants.map((participant) => (
-              <div key={participant.id} className="flex flex-col items-center gap-2">
-                <div className="h-14 w-14 rounded-full bg-neutral-200" />
-                <span className="text-xs text-neutral-600">{participant.name}</span>
-              </div>
-            ))}
+            {participants.length === 0 ? (
+              <p className="text-sm text-neutral-500">참여자가 없습니다.</p>
+            ) : (
+              participants.map((participant) => (
+                <div key={participant.id} className="flex flex-col items-center gap-2">
+                  <div className="h-14 w-14 rounded-full bg-neutral-200" />
+                  <span className="text-xs text-neutral-600">{participant.name}</span>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </div>

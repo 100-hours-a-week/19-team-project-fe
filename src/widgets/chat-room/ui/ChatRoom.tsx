@@ -1,233 +1,23 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
-const currentUserId = 2;
+import { stompManager } from '@/shared/ws';
+import { getChatMessages, sendChatMessage, subscribeChat } from '@/features/chat';
+import type { ChatMessageItem } from '@/entities/chat';
 
-const messages = [
-  {
-    message_id: 33,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '집 도착했어!',
-    created_at: '2026-01-22 20:53:50',
-  },
-  {
-    message_id: 34,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '오늘 회의 어땠어?',
-    created_at: '2026-01-22 20:53:52',
-  },
-  {
-    message_id: 35,
-    chat_id: 1,
-    sender: {
-      user_id: 3,
-      nickname: '하린',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '무난했지 뭐. 점심은?',
-    created_at: '2026-01-22 20:53:53',
-  },
-  {
-    message_id: 36,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '편의점 김밥으로 때웠어.',
-    created_at: '2026-01-22 21:20:39',
-  },
-  {
-    message_id: 37,
-    chat_id: 1,
-    sender: {
-      user_id: 3,
-      nickname: '하린',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '헉.. 내일은 제대로 먹자 ㅋㅋ',
-    created_at: '2026-01-22 21:20:42',
-  },
-  {
-    message_id: 38,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '좋아! 점심 뭐 먹고 싶어?',
-    created_at: '2026-01-22 21:24:11',
-  },
-  {
-    message_id: 39,
-    chat_id: 1,
-    sender: {
-      user_id: 3,
-      nickname: '하린',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '나는 쌀국수 땡김. 너는?',
-    created_at: '2026-01-22 21:24:45',
-  },
-  {
-    message_id: 40,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '오케이. 12시에 회사 앞에서 보자.',
-    created_at: '2026-01-22 21:25:10',
-  },
-  {
-    message_id: 41,
-    chat_id: 1,
-    sender: {
-      user_id: 3,
-      nickname: '하린',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '좋아! 회사 앞 신호등 쪽?',
-    created_at: '2026-01-22 21:26:02',
-  },
-  {
-    message_id: 42,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '응 거기. 그리고 오후에 커피도 한 잔 할래?',
-    created_at: '2026-01-22 21:26:40',
-  },
-  {
-    message_id: 43,
-    chat_id: 1,
-    sender: {
-      user_id: 3,
-      nickname: '하린',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '완전 좋지. 디저트 맛집 찾아볼게.',
-    created_at: '2026-01-22 21:27:11',
-  },
-  {
-    message_id: 44,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '오케이. 혹시 커피 말고 버블티는 어때?',
-    created_at: '2026-01-22 21:27:55',
-  },
-  {
-    message_id: 45,
-    chat_id: 1,
-    sender: {
-      user_id: 3,
-      nickname: '하린',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '버블티도 좋아 ㅋㅋ 요즘 딸기맛 핫하더라.',
-    created_at: '2026-01-22 21:28:30',
-  },
-  {
-    message_id: 46,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '그럼 쌀국수 먹고 버블티 가자.',
-    created_at: '2026-01-22 21:29:04',
-  },
-  {
-    message_id: 47,
-    chat_id: 1,
-    sender: {
-      user_id: 3,
-      nickname: '하린',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '굿! 내일 아침에 다시 시간 확인해줄게.',
-    created_at: '2026-01-22 21:30:10',
-  },
-  {
-    message_id: 48,
-    chat_id: 1,
-    sender: {
-      user_id: 2,
-      nickname: 'eden',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: 'ㅇㅋ. 그럼 편히 쉬어~',
-    created_at: '2026-01-22 21:31:12',
-  },
-  {
-    message_id: 49,
-    chat_id: 1,
-    sender: {
-      user_id: 3,
-      nickname: '하린',
-      profile_image_url: 'https://cdn.refit.com/default-profile.png',
-      user_type: 'JOB_SEEKER',
-    },
-    message_type: 'TEXT',
-    content: '너도! 내일 보자 👋',
-    created_at: '2026-01-22 21:31:44',
-  },
-];
+const readCurrentUserId = () => {
+  if (typeof document === 'undefined') return null;
+  const value = document.cookie
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith('user_id='))
+    ?.split('=')[1];
+  if (!value) return null;
+  const parsed = Number(decodeURIComponent(value));
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
@@ -235,9 +25,7 @@ const formatChatTime = (value: string) => {
   const normalized = value.replace(' ', 'T');
   const parsed = new Date(normalized);
 
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
+  if (Number.isNaN(parsed.getTime())) return value;
 
   const hours = parsed.getHours();
   const minutes = pad2(parsed.getMinutes());
@@ -247,12 +35,111 @@ const formatChatTime = (value: string) => {
   return `${period} ${displayHours}:${minutes}`;
 };
 
-export default function ChatRoom() {
+interface ChatRoomProps {
+  chatId: number;
+}
+
+export default function ChatRoom({ chatId }: ChatRoomProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [messages, setMessages] = useState<ChatMessageItem[]>([]);
+  const [draft, setDraft] = useState('');
+  const currentUserId = readCurrentUserId();
 
   useEffect(() => {
+    alert(`chatId prop: ${chatId}`);
+  }, [chatId]);
+
+  useEffect(() => {
+    if (!chatId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const data = await getChatMessages({ chatId });
+        alert(JSON.stringify(data, null, 2));
+        if (cancelled) return;
+        setMessages(data.messages);
+      } catch (error) {
+        if (cancelled) return;
+        console.warn('Chat messages load failed:', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chatId]);
+
+  /**
+   * STOMP 연결 + 구독
+   */
+  useEffect(() => {
+    if (!chatId) return;
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
+
+    (async () => {
+      const accessToken = document.cookie
+        .split(';')
+        .map((item) => item.trim())
+        .find((item) => item.startsWith('access_token='))
+        ?.split('=')[1];
+
+      if (!accessToken) return;
+
+      try {
+        await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!, {
+          connectHeaders: { Authorization: `Bearer ${decodeURIComponent(accessToken)}` },
+        });
+      } catch (e) {
+        console.warn('WS connect failed:', e);
+        return; // UI는 살려둠
+      }
+
+      if (cancelled) return;
+
+      unsubscribe = subscribeChat<ChatMessageItem>(chatId, (response) => {
+        if (response.code !== 'CREATED' || response.data === null || response.data === undefined)
+          return;
+
+        setMessages((prev) => [...prev, response.data]);
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, [chatId]);
+
+  /**
+   * 새 메시지 올 때마다 스크롤
+   */
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
-  }, []);
+  }, [messages]);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+
+    alert(
+      `sendChatMessage payload: ${JSON.stringify({
+        chat_id: chatId,
+        content: trimmed,
+        message_type: 'TEXT',
+      })}`,
+    );
+
+    sendChatMessage({
+      chat_id: chatId,
+      content: trimmed,
+      message_type: 'TEXT',
+    });
+
+    setDraft('');
+  };
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#f7f7f7]">
@@ -261,14 +148,14 @@ export default function ChatRoom() {
           ←
         </Link>
         <div className="text-sm font-semibold text-neutral-900">eden</div>
-        <Link href="/chat/1/detail" className="text-sm text-neutral-700">
+        <Link href={`/chat/${chatId}/detail`} className="text-sm text-neutral-700">
           설정
         </Link>
       </header>
 
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-6 pt-[calc(var(--app-header-height)+16px)]">
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[calc(72px+24px)] pt-[calc(var(--app-header-height)+16px)]">
         {messages.map((message) => {
-          const isMine = message.sender.user_id === currentUserId;
+          const isMine = currentUserId !== null && message.sender.user_id === currentUserId;
 
           return (
             <div
@@ -276,7 +163,9 @@ export default function ChatRoom() {
               className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[75%] ${isMine ? 'items-end' : 'items-start'} flex flex-col gap-1`}
+                className={`max-w-[75%] ${
+                  isMine ? 'items-end' : 'items-start'
+                } flex flex-col gap-1`}
               >
                 <div
                   className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
@@ -296,6 +185,24 @@ export default function ChatRoom() {
         })}
         <div ref={bottomRef} />
       </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="fixed bottom-0 left-1/2 flex w-full max-w-[600px] -translate-x-1/2 items-center gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
+      >
+        <input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          placeholder="메시지를 입력하세요"
+          className="h-11 flex-1 rounded-full border border-neutral-200 bg-white px-4 text-sm text-neutral-900 placeholder:text-neutral-400"
+        />
+        <button
+          type="submit"
+          className="h-11 rounded-full bg-[var(--color-primary-main)] px-4 text-sm font-semibold text-white"
+        >
+          전송
+        </button>
+      </form>
     </div>
   );
 }
