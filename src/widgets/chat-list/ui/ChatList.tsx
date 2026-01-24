@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
+import { KakaoLoginButton, getMe } from '@/features/auth';
 import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';
+import { BottomSheet } from '@/shared/ui/bottom-sheet';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
@@ -36,17 +39,27 @@ const formatChatTime = (value?: string | null) => {
 };
 
 export default function ChatList() {
+  const router = useRouter();
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [authStatus, setAuthStatus] = useState<'checking' | 'authed' | 'guest'>('checking');
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
+        const auth = await getMe();
+        if (cancelled) return;
+        if (!auth.authenticated) {
+          setAuthStatus('guest');
+          setIsLoading(false);
+          return;
+        }
+
+        setAuthStatus('authed');
         const data = await getChatList();
-        alert(JSON.stringify(data, null, 2));
         if (cancelled) return;
         const normalized = data.chats
           .map((chat) => {
@@ -78,6 +91,10 @@ export default function ChatList() {
     };
   }, []);
 
+  const handleAuthSheetClose = () => {
+    router.replace('/');
+  };
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <div className="fixed top-0 left-1/2 z-10 flex h-app-header w-full max-w-[600px] -translate-x-1/2 items-center bg-[#f7f7f7] px-6">
@@ -95,7 +112,9 @@ export default function ChatList() {
       </section>
 
       <ul className="mt-4 flex flex-1 flex-col gap-1 px-2 pb-[calc(var(--app-footer-height)+16px)]">
-        {isLoading ? (
+        {authStatus === 'guest' ? (
+          <li className="px-4 py-6 text-center text-sm text-neutral-500">로그인이 필요합니다.</li>
+        ) : isLoading ? (
           <li className="px-4 py-6 text-center text-sm text-neutral-500">불러오는 중...</li>
         ) : loadError ? (
           <li className="px-4 py-6 text-center text-sm text-red-500">{loadError}</li>
@@ -133,6 +152,21 @@ export default function ChatList() {
           })
         )}
       </ul>
+
+      <BottomSheet
+        open={authStatus === 'guest'}
+        title="로그인이 필요합니다"
+        onClose={handleAuthSheetClose}
+      >
+        <div className="flex h-full flex-col gap-4">
+          <div>
+            <p className="mt-2 text-sm text-text-caption">채팅을 보려면 로그인해 주세요.</p>
+          </div>
+          <div className="mt-auto">
+            <KakaoLoginButton />
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

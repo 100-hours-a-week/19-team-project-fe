@@ -1,7 +1,9 @@
-import { apiFetch } from '@/shared/api';
-import type { ChatListData } from '@/entities/chat';
+import { cookies } from 'next/headers';
 
-const CHAT_LIST_PATH = '/api/chat';
+import type { ChatListData } from '@/entities/chat';
+import { apiFetch, buildApiUrl } from '@/shared/api';
+
+const CHAT_LIST_PATH = '/api/v1/chats';
 
 export interface ChatListParams {
   status?: 'ACTIVE' | 'CLOSED';
@@ -10,8 +12,15 @@ export interface ChatListParams {
 }
 
 export async function getChatList(params: ChatListParams = {}): Promise<ChatListData> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('access_token')?.value;
+
+  if (!accessToken) {
+    throw new Error('UNAUTHORIZED');
+  }
+
   const { status = 'ACTIVE', cursor, size = 20 } = params;
-  const url = CHAT_LIST_PATH;
+  const url = buildApiUrl(CHAT_LIST_PATH);
   const query = new URLSearchParams();
 
   query.set('status', status);
@@ -19,7 +28,11 @@ export async function getChatList(params: ChatListParams = {}): Promise<ChatList
   if (size !== null && size !== undefined) query.set('size', String(size));
 
   const fullUrl = `${url}?${query.toString()}`;
+
   return apiFetch<ChatListData>(fullUrl, {
     method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   });
 }
