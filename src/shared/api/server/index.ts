@@ -1,1 +1,1 @@
-export { loginWithKakao } from './authApi.server';
+export { loginWithKakao, signup } from './authApi.server';

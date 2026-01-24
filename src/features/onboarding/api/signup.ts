@@ -1,12 +1,15 @@
-import { apiFetch, buildApiUrl } from '@/shared/api';
+import { apiFetch } from '@/shared/api';
 
-import type { SignupRequest, SignupResponse } from '@/entities/onboarding';
+import type { SignupRequest } from '@/entities/onboarding';
 
-const SIGNUP_PATH = '/api/v1/auth/signup';
+const SIGNUP_PATH = '/api/auth/signup';
 
-export async function signup(payload: SignupRequest): Promise<SignupResponse> {
-  const url = buildApiUrl(SIGNUP_PATH);
-  return apiFetch<SignupResponse>(url, {
+type SignupResult = {
+  userId: number;
+};
+
+export async function signup(payload: SignupRequest): Promise<SignupResult> {
+  return apiFetch<SignupResult>(SIGNUP_PATH, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

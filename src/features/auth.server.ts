@@ -1,1 +1,1 @@
-export { kakaoLogin } from './auth/server';
+export { kakaoLogin, signup } from './auth/server';

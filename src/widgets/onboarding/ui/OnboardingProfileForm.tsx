@@ -254,13 +254,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         introduction: introduction.trim(),
       };
 
-      const signupResponse = await signup({
+      await signup({
         ...signupPayload,
       });
-      document.cookie = `access_token=${encodeURIComponent(signupResponse.access_token)}; path=/`;
-      document.cookie = `refresh_token=${encodeURIComponent(signupResponse.refresh_token)}; path=/`;
-      document.cookie = `user_id=${encodeURIComponent(String(signupResponse.user_id))}; path=/`;
-      sessionStorage.setItem('signupSuccess', '1');
       router.replace('/');
     } catch (error: unknown) {
       if (error instanceof BusinessError) {
