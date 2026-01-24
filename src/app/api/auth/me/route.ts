@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getMe } from '@/features/auth/server';
+import { getMe } from '@/features/auth.server';
 
 export const dynamic = 'force-dynamic';
 

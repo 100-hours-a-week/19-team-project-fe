@@ -1,6 +1,6 @@
 // app/api/auth/kakao/login/route.ts
 import { NextResponse } from 'next/server';
-import { kakaoLogin } from '@/features/auth/server';
+import { kakaoLogin } from '@/features/auth.server';
 
 export async function POST(req: Request) {
   const { code } = await req.json();
