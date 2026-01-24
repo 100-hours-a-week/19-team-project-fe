@@ -1,8 +1,10 @@
+import Link from 'next/link';
+
 export default function SearchBar() {
   return (
     <section className="px-6 pt-4">
-      <button
-        type="button"
+      <Link
+        href="/experts"
         className="flex w-full items-center justify-between gap-3 rounded-full border border-[#262627] bg-[#f7f7f7] px-4 py-3 text-left text-text-hint-main"
         aria-label="검색"
       >
@@ -23,7 +25,7 @@ export default function SearchBar() {
             d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
           />
         </svg>
-      </button>
+      </Link>
     </section>
   );
 }
