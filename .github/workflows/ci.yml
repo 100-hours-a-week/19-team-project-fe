@@ -44,6 +44,14 @@ jobs:
       - name: TypeScript Type Check
         run: pnpm run type-check
 
+      - name: Setup Build Environment
+        run: echo "${{ secrets.TEST_ENV_FILE }}" > .env.production
+
+      - name: Build Check
+        run: pnpm run build
+        env:
+          NODE_ENV: production
+
       - name: Run Unit Tests
         run: pnpm test || echo "⚠️  No tests defined yet"
 
