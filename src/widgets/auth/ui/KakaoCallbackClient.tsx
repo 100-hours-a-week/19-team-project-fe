@@ -47,7 +47,7 @@ export default function KakaoCallbackClient() {
 
           if (at) document.cookie = `access_token=${encodeURIComponent(at)}; Path=/;`;
           if (rt) document.cookie = `refresh_token=${encodeURIComponent(rt)}; Path=/;`;
-          if (userId != null) {
+          if (userId !== null && userId !== undefined) {
             document.cookie = `user_id=${encodeURIComponent(String(userId))}; Path=/;`;
           }
 

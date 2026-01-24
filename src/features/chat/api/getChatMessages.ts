@@ -14,8 +14,8 @@ export async function getChatMessages(params: ChatMessagesParams): Promise<ChatM
   const url = buildApiUrl(`${CHAT_MESSAGES_PATH}/${chatId}/messages`);
   const query = new URLSearchParams();
 
-  if (cursor != null) query.set('cursor', String(cursor));
-  if (size != null) query.set('size', String(size));
+  if (cursor !== null && cursor !== undefined) query.set('cursor', String(cursor));
+  if (size !== null && size !== undefined) query.set('size', String(size));
 
   const fullUrl = query.toString() ? `${url}?${query.toString()}` : url;
   const accessToken =

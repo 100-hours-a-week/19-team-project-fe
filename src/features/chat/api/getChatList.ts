@@ -15,8 +15,8 @@ export async function getChatList(params: ChatListParams = {}): Promise<ChatList
   const query = new URLSearchParams();
 
   query.set('status', status);
-  if (cursor != null) query.set('cursor', String(cursor));
-  if (size != null) query.set('size', String(size));
+  if (cursor !== null && cursor !== undefined) query.set('cursor', String(cursor));
+  if (size !== null && size !== undefined) query.set('size', String(size));
 
   const fullUrl = `${url}?${query.toString()}`;
   const accessToken =

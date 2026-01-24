@@ -154,7 +154,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[calc(72px+24px)] pt-[calc(var(--app-header-height)+16px)]">
         {messages.map((message) => {
-          const isMine = currentUserId != null && message.sender.user_id === currentUserId;
+          const isMine = currentUserId !== null && message.sender.user_id === currentUserId;
 
           return (
             <div
