@@ -7,7 +7,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { kakaoLogin } from '@/features/auth/server';
+import { kakaoLogin } from '@/features/auth.server';
 
 export async function POST(req: Request) {
   try {

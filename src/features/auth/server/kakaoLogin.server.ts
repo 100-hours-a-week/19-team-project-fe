@@ -15,7 +15,7 @@ type KakaoLoginResult = {
   userType: string;
 };
 
-export async function kakaoLogin(code: string) {
+export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
   // 1. Backend 호출
   const data = await loginWithKakao(code);
 

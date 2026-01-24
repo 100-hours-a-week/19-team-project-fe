@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { kakaoLogin } from '@/features/auth';
-import { stompManager } from '@/shared/ws';
 
 export default function KakaoCallbackClient() {
   const router = useRouter();
@@ -30,7 +29,7 @@ export default function KakaoCallbackClient() {
     }
 
     kakaoLogin(code)
-      .then((result) => {
+      .then(() => {
         /**
          * result 예시:
          * {
