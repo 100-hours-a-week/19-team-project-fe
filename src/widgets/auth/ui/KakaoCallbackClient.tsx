@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { kakaoLogin } from '@/features/auth';
-import { readAccessToken } from '@/shared/api';
+import { readAccessToken, setAuthCookies } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 
 export default function KakaoCallbackClient() {
@@ -51,6 +51,12 @@ export default function KakaoCallbackClient() {
           router.replace('/onboarding');
           return;
         }
+
+        setAuthCookies({
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          userId: result.userId,
+        });
 
         try {
           const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
