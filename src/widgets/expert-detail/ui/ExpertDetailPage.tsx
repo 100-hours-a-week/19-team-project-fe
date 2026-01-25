@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
-import { createChat } from '@/features/chat';
+import { createChat, getChatList } from '@/features/chat';
 import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
 import { BusinessError, HttpError } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
@@ -62,13 +62,25 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
       const data = await createChat({
         receiver_id: userId,
         resume_id: 1,
-        job_post_url: '',
+        job_post_url: 'https://example.com/job/123',
         request_type: 'COFFEE_CHAT',
       });
       router.push(`/chat/${data.chat_id}`);
     } catch (error) {
       if (error instanceof BusinessError && error.code === 'CHAT_ROOM_ALREADY_EXISTS') {
-        alert('이미 채팅방이 존재합니다.');
+        try {
+          const list = await getChatList({ status: 'ACTIVE' });
+          const matched = list.chats.find(
+            (chat) => chat.receiver.user_id === userId || chat.requester.user_id === userId,
+          );
+          if (matched) {
+            router.push(`/chat/${matched.chat_id}`);
+            return;
+          }
+        } catch (listError) {
+          console.error('[Chat List Error]', listError);
+        }
+        alert('이미 채팅방이 존재하지만 이동할 수 없습니다.');
         return;
       }
       if (error instanceof BusinessError && error.code === 'AUTH_UNAUTHORIZED') {
