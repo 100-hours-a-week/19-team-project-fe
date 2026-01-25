@@ -61,6 +61,7 @@ export default function ChatList() {
         setAuthStatus('authed');
         const data = await getChatList();
         if (cancelled) return;
+        alert(JSON.stringify(data, null, 2));
         const normalized = data.chats
           .map((chat) => {
             const rawChatId = chat.chat_id ?? chat.chatId ?? null;
@@ -131,9 +132,7 @@ export default function ChatList() {
                 >
                   <div className="h-12 w-12 flex-shrink-0 rounded-full bg-neutral-200" />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-base font-semibold">
-                      {chat.requester.nickname}
-                    </div>
+                    <div className="truncate text-base font-semibold">{chat.receiver.nickname}</div>
                     <div className="mt-1 truncate text-sm text-neutral-500">
                       {lastMessage?.content ?? '대화를 시작해 보세요.'}
                     </div>
