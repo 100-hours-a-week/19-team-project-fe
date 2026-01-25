@@ -1,1 +1,1 @@
-export { getChatList, getChatMessages } from './chat/server';
+export { getChatList, getChatMessages, createChat } from './chat/server';

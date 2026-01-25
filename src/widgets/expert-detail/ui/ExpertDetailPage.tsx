@@ -2,9 +2,12 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
+import { createChat } from '@/features/chat';
 import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
+import { BusinessError, HttpError } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import profileBasic from '@/shared/icons/profile_basic.png';
@@ -16,6 +19,7 @@ type ExpertDetailPageProps = {
 };
 
 export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
+  const router = useRouter();
   const [expert, setExpert] = useState<ExpertDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -55,7 +59,28 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         setAuthSheetOpen(true);
         return;
       }
-      // TODO: wire chat request creation when API is ready.
+      const data = await createChat({
+        receiver_id: userId,
+        resume_id: 1,
+        job_post_url: '',
+        request_type: 'COFFEE_CHAT',
+      });
+      router.push(`/chat/${data.chat_id}`);
+    } catch (error) {
+      if (error instanceof BusinessError && error.code === 'CHAT_ROOM_ALREADY_EXISTS') {
+        alert('이미 채팅방이 존재합니다.');
+        return;
+      }
+      if (error instanceof BusinessError && error.code === 'AUTH_UNAUTHORIZED') {
+        setAuthSheetOpen(true);
+        return;
+      }
+      if (error instanceof HttpError && error.status === 401) {
+        setAuthSheetOpen(true);
+        return;
+      }
+      console.error('[Chat Request Error]', error);
+      alert('채팅 요청에 실패했습니다.');
     } finally {
       setIsCheckingAuth(false);
     }
@@ -101,6 +126,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         <Button
           type="button"
           onClick={handleChatRequestClick}
+          disabled={isCheckingAuth}
           icon={<Image src={iconMark} alt="" width={18} height={18} />}
         >
           채팅 요청하기
