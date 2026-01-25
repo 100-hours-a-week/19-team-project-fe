@@ -3,8 +3,10 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
+import { KakaoLoginButton, getMe } from '@/features/auth';
 import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
 import { Button } from '@/shared/ui/button';
+import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import profileBasic from '@/shared/icons/profile_basic.png';
 import iconMark from '@/shared/icons/icon-mark.png';
 import ExpertDetailHeader from './ExpertDetailHeader';
@@ -17,6 +19,8 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const [expert, setExpert] = useState<ExpertDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [authSheetOpen, setAuthSheetOpen] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -41,6 +45,21 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
       isMounted = false;
     };
   }, [userId]);
+
+  const handleChatRequestClick = async () => {
+    if (isCheckingAuth) return;
+    setIsCheckingAuth(true);
+    try {
+      const auth = await getMe();
+      if (!auth.authenticated) {
+        setAuthSheetOpen(true);
+        return;
+      }
+      // TODO: wire chat request creation when API is ready.
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -79,10 +98,29 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
       </section>
 
       <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-6 pb-6 pt-3">
-        <Button type="button" icon={<Image src={iconMark} alt="" width={18} height={18} />}>
+        <Button
+          type="button"
+          onClick={handleChatRequestClick}
+          icon={<Image src={iconMark} alt="" width={18} height={18} />}
+        >
           채팅 요청하기
         </Button>
       </div>
+
+      <BottomSheet
+        open={authSheetOpen}
+        title="로그인이 필요합니다"
+        onClose={() => setAuthSheetOpen(false)}
+      >
+        <div className="flex h-full flex-col gap-4">
+          <div>
+            <p className="mt-2 text-sm text-text-caption">채팅을 요청하려면 로그인해 주세요.</p>
+          </div>
+          <div className="mt-auto">
+            <KakaoLoginButton />
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }
