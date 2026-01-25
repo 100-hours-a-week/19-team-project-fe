@@ -10,20 +10,25 @@ interface SplashGateProps {
 }
 
 export default function SplashGate({ children, durationMs = 5000 }: SplashGateProps) {
-  const [showSplash, setShowSplash] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return sessionStorage.getItem('signupSuccess') ? false : true;
-  });
+  const [mounted, setMounted] = useState(false);
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
-    if (!showSplash) return;
+    setMounted(true);
+    const hasSignupSuccess = sessionStorage.getItem('signupSuccess');
+    const hasSeenSplash = sessionStorage.getItem('splashSeen');
+    const shouldShow = !(hasSignupSuccess || hasSeenSplash);
+
+    sessionStorage.setItem('splashSeen', 'true');
+    setShowSplash(shouldShow);
+
+    if (!shouldShow) return;
     const timer = setTimeout(() => setShowSplash(false), durationMs);
     return () => clearTimeout(timer);
-  }, [durationMs, showSplash]);
+  }, [durationMs]);
 
-  if (showSplash) {
-    return <SplashScreen />;
-  }
+  if (!mounted) return null;
+  if (showSplash) return <SplashScreen />;
 
   return <>{children}</>;
 }
