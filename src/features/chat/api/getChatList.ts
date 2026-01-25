@@ -1,4 +1,4 @@
-import { apiFetch } from '@/shared/api';
+import { apiFetch, readAccessToken } from '@/shared/api';
 import type { ChatListData } from '@/entities/chat';
 
 const CHAT_LIST_PATH = '/api/chat';
@@ -19,7 +19,9 @@ export async function getChatList(params: ChatListParams = {}): Promise<ChatList
   if (size !== null && size !== undefined) query.set('size', String(size));
 
   const fullUrl = `${url}?${query.toString()}`;
+  const accessToken = readAccessToken();
   return apiFetch<ChatListData>(fullUrl, {
     method: 'GET',
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
 }

@@ -1,4 +1,5 @@
 export type ChatMessageType = 'TEXT';
+export type ChatRequestType = 'FEEDBACK' | 'COFFEE_CHAT';
 
 export interface SendChatMessageRequest {
   chat_id: number;
@@ -20,6 +21,13 @@ export type ChatResponse<T> =
 
 export interface ChatCreatedData {
   chat_id: number;
+}
+
+export interface ChatCreateRequest {
+  receiver_id: number;
+  resume_id: number;
+  job_post_url: string;
+  request_type: ChatRequestType;
 }
 
 export interface ChatParticipant {

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 import { getCareerLevels, getJobs, getSkills, signup } from '@/features/onboarding';
-import { BusinessError } from '@/shared/api';
+import { BusinessError, readAccessToken } from '@/shared/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import iconCareer from '@/shared/icons/icon_career.png';
@@ -15,6 +15,7 @@ import iconTech from '@/shared/icons/Icon_tech.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { stompManager } from '@/shared/ws';
 
 type RoleId = 'seeker' | 'expert';
 type SheetId = 'job' | 'career' | 'tech' | null;
@@ -257,6 +258,20 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       await signup({
         ...signupPayload,
       });
+      try {
+        const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+        if (!wsUrl) {
+          console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
+        } else {
+          const accessToken = readAccessToken();
+          const connectHeaders = accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined;
+          await stompManager.connect(wsUrl, { connectHeaders });
+        }
+      } catch (wsError) {
+        console.warn('[WS] connect after signup failed', wsError);
+      }
       router.replace('/');
     } catch (error: unknown) {
       if (error instanceof BusinessError) {

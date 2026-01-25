@@ -12,6 +12,7 @@ export async function signup(payload: SignupRequest): Promise<SignupResult> {
   await setAuthCookies({
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
+    userId: data.user_id,
   });
 
   return {

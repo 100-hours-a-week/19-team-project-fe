@@ -9,11 +9,12 @@ export interface ChatMessagesParams {
   chatId: number;
   cursor?: number;
   size?: number;
+  accessToken?: string;
 }
 
 export async function getChatMessages(params: ChatMessagesParams): Promise<ChatMessageListData> {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get('access_token')?.value;
+  const accessToken = params.accessToken ?? cookieStore.get('access_token')?.value;
 
   if (!accessToken) {
     throw new Error('UNAUTHORIZED');

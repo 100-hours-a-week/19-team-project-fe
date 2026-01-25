@@ -2,9 +2,14 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
+import { KakaoLoginButton, getMe } from '@/features/auth';
+import { createChat, getChatList } from '@/features/chat';
 import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
+import { BusinessError, HttpError } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
+import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import profileBasic from '@/shared/icons/profile_basic.png';
 import iconMark from '@/shared/icons/icon-mark.png';
 import ExpertDetailHeader from './ExpertDetailHeader';
@@ -14,9 +19,12 @@ type ExpertDetailPageProps = {
 };
 
 export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
+  const router = useRouter();
   const [expert, setExpert] = useState<ExpertDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [authSheetOpen, setAuthSheetOpen] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -41,6 +49,54 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
       isMounted = false;
     };
   }, [userId]);
+
+  const handleChatRequestClick = async () => {
+    if (isCheckingAuth) return;
+    setIsCheckingAuth(true);
+    try {
+      const auth = await getMe();
+      if (!auth.authenticated) {
+        setAuthSheetOpen(true);
+        return;
+      }
+      const data = await createChat({
+        receiver_id: userId,
+        resume_id: 1,
+        job_post_url: 'https://example.com/job/123',
+        request_type: 'COFFEE_CHAT',
+      });
+      router.push(`/chat/${data.chat_id}`);
+    } catch (error) {
+      if (error instanceof BusinessError && error.code === 'CHAT_ROOM_ALREADY_EXISTS') {
+        try {
+          const list = await getChatList({ status: 'ACTIVE' });
+          const matched = list.chats.find(
+            (chat) => chat.receiver.user_id === userId || chat.requester.user_id === userId,
+          );
+          if (matched) {
+            router.push(`/chat/${matched.chat_id}`);
+            return;
+          }
+        } catch (listError) {
+          console.error('[Chat List Error]', listError);
+        }
+        alert('이미 채팅방이 존재하지만 이동할 수 없습니다.');
+        return;
+      }
+      if (error instanceof BusinessError && error.code === 'AUTH_UNAUTHORIZED') {
+        setAuthSheetOpen(true);
+        return;
+      }
+      if (error instanceof HttpError && error.status === 401) {
+        setAuthSheetOpen(true);
+        return;
+      }
+      console.error('[Chat Request Error]', error);
+      alert('채팅 요청에 실패했습니다.');
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -79,10 +135,30 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
       </section>
 
       <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-6 pb-6 pt-3">
-        <Button type="button" icon={<Image src={iconMark} alt="" width={18} height={18} />}>
+        <Button
+          type="button"
+          onClick={handleChatRequestClick}
+          disabled={isCheckingAuth}
+          icon={<Image src={iconMark} alt="" width={18} height={18} />}
+        >
           채팅 요청하기
         </Button>
       </div>
+
+      <BottomSheet
+        open={authSheetOpen}
+        title="로그인이 필요합니다"
+        onClose={() => setAuthSheetOpen(false)}
+      >
+        <div className="flex h-full flex-col gap-4">
+          <div>
+            <p className="mt-2 text-sm text-text-caption">채팅을 요청하려면 로그인해 주세요.</p>
+          </div>
+          <div className="mt-auto">
+            <KakaoLoginButton />
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

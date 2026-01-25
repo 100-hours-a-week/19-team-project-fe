@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { kakaoLogin } from '@/features/auth';
+import { readAccessToken } from '@/shared/api';
+import { stompManager } from '@/shared/ws';
 
 export default function KakaoCallbackClient() {
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function KakaoCallbackClient() {
     }
 
     kakaoLogin(code)
-      .then(() => {
+      .then(async () => {
         /**
          * result 예시:
          * {
@@ -40,6 +42,21 @@ export default function KakaoCallbackClient() {
          * 토큰 없음
          * 쿠키는 이미 서버에서 설정됨
          */
+
+        try {
+          const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+          if (!wsUrl) {
+            console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
+          } else {
+            const accessToken = readAccessToken();
+            const connectHeaders = accessToken
+              ? { Authorization: `Bearer ${accessToken}` }
+              : undefined;
+            await stompManager.connect(wsUrl, { connectHeaders });
+          }
+        } catch (err) {
+          console.warn('[WS] connect after login failed', err);
+        }
 
         router.replace('/');
       })
