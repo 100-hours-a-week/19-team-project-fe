@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
+import { readAccessToken } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
-import { getChatMessages, sendChatMessage, subscribeChat } from '@/features/chat';
+import { getChatMessages, markChatRead, sendChatMessage, subscribeChat } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
 
 const readCurrentUserId = () => {
@@ -35,12 +36,23 @@ const formatChatTime = (value: string) => {
   return `${period} ${displayHours}:${minutes}`;
 };
 
+const sortMessagesByTime = (items: ChatMessageItem[]) =>
+  [...items].sort((a, b) => {
+    const timeA = new Date(a.created_at.replace(' ', 'T')).getTime();
+    const timeB = new Date(b.created_at.replace(' ', 'T')).getTime();
+    if (Number.isNaN(timeA) || Number.isNaN(timeB)) {
+      return a.message_id - b.message_id;
+    }
+    return timeA - timeB;
+  });
+
 interface ChatRoomProps {
   chatId: number;
 }
 
 export default function ChatRoom({ chatId }: ChatRoomProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [draft, setDraft] = useState('');
   const [isWsReady, setIsWsReady] = useState(stompManager.isConnected());
@@ -59,7 +71,14 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         const data = await getChatMessages({ chatId });
         alert(JSON.stringify(data, null, 2));
         if (cancelled) return;
-        setMessages(data.messages);
+        const sorted = sortMessagesByTime(data.messages);
+        setMessages(sorted);
+        const latest = sorted[sorted.length - 1];
+        if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
+          markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch((readError) => {
+            console.warn('Mark chat read failed:', readError);
+          });
+        }
       } catch (error) {
         if (cancelled) return;
         console.warn('Chat messages load failed:', error);
@@ -81,12 +100,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     setIsWsReady(stompManager.isConnected());
 
     (async () => {
-      const accessToken = document.cookie
-        .split(';')
-        .map((item) => item.trim())
-        .find((item) => item.startsWith('access_token='))
-        ?.split('=')[1];
-
+      const accessToken = readAccessToken();
       if (!accessToken) {
         setIsWsReady(stompManager.isConnected());
         return;
@@ -94,7 +108,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
       try {
         await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!, {
-          connectHeaders: { Authorization: `Bearer ${decodeURIComponent(accessToken)}` },
+          connectHeaders: { Authorization: `Bearer ${accessToken}` },
         });
       } catch (e) {
         console.warn('WS connect failed:', e);
@@ -108,7 +122,14 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         if (response.code !== 'CREATED' || response.data === null || response.data === undefined)
           return;
 
-        setMessages((prev) => [...prev, response.data]);
+        setMessages((prev) => sortMessagesByTime([...prev, response.data]));
+        if (currentUserId !== null && response.data.sender.user_id !== currentUserId) {
+          markChatRead({ chat_id: chatId, message_id: response.data.message_id }).catch(
+            (readError) => {
+              console.warn('Mark chat read failed:', readError);
+            },
+          );
+        }
       });
     })();
 
@@ -120,11 +141,19 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   }, [chatId]);
 
   /**
-   * 새 메시지 올 때마다 스크롤
+   * 최신 메시지 위치로 포커스
    */
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: 'end' });
-  }, [messages]);
+  useLayoutEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      const container = listRef.current;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+        return;
+      }
+      bottomRef.current?.scrollIntoView({ block: 'end' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [messages.length]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -144,6 +173,20 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     );
 
     try {
+      const now = new Date();
+      const optimistic: ChatMessageItem = {
+        message_id: -now.getTime(),
+        chat_id: chatId,
+        sender: {
+          user_id: currentUserId ?? 0,
+          nickname: 'me',
+        },
+        message_type: 'TEXT',
+        content: trimmed,
+        created_at: now.toISOString(),
+      };
+      setMessages((prev) => sortMessagesByTime([...prev, optimistic]));
+
       sendChatMessage({
         chat_id: chatId,
         content: trimmed,
@@ -163,13 +206,15 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         <Link href="/chat" className="text-sm text-neutral-700">
           ←
         </Link>
-        <div className="text-sm font-semibold text-neutral-900">eden</div>
         <Link href={`/chat/${chatId}/detail`} className="text-sm text-neutral-700">
           설정
         </Link>
       </header>
 
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[calc(72px+24px)] pt-[calc(var(--app-header-height)+16px)]">
+      <div
+        ref={listRef}
+        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[calc(72px+24px)] pt-[calc(var(--app-header-height)+16px)]"
+      >
         {messages.map((message) => {
           const isMine = currentUserId !== null && message.sender.user_id === currentUserId;
 
@@ -215,9 +260,24 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         <button
           type="submit"
           disabled={!isWsReady}
-          className="h-11 rounded-full bg-[var(--color-primary-main)] px-4 text-sm font-semibold text-white"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-main)] text-sm font-semibold text-white"
         >
-          전송
+          <svg
+            data-slot="icon"
+            fill="none"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            className="h-5 w-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+            />
+          </svg>
         </button>
       </form>
     </div>

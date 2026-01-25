@@ -9,11 +9,12 @@ export interface ChatListParams {
   status?: 'ACTIVE' | 'CLOSED';
   cursor?: number;
   size?: number;
+  accessToken?: string;
 }
 
 export async function getChatList(params: ChatListParams = {}): Promise<ChatListData> {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get('access_token')?.value;
+  const accessToken = params.accessToken ?? cookieStore.get('access_token')?.value;
 
   if (!accessToken) {
     throw new Error('UNAUTHORIZED');

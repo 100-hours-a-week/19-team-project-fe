@@ -1,4 +1,4 @@
-import { apiFetch } from '@/shared/api';
+import { apiFetch, readAccessToken } from '@/shared/api';
 import type { ChatMessageListData } from '@/entities/chat';
 
 const CHAT_MESSAGES_PATH = '/api/chat';
@@ -19,7 +19,9 @@ export async function getChatMessages(params: ChatMessagesParams): Promise<ChatM
 
   const fullUrl = query.toString() ? `${url}?${query.toString()}` : url;
 
+  const accessToken = readAccessToken();
   return apiFetch<ChatMessageListData>(fullUrl, {
     method: 'GET',
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
 }

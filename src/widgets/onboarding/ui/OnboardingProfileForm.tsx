@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 import { getCareerLevels, getJobs, getSkills, signup } from '@/features/onboarding';
-import { BusinessError } from '@/shared/api';
+import { BusinessError, readAccessToken } from '@/shared/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import iconCareer from '@/shared/icons/icon_career.png';
@@ -26,15 +26,6 @@ type OnboardingProfileFormProps = {
 
 const nicknameLimit = 10;
 const introductionLimit = 500;
-const readAccessToken = () => {
-  if (typeof document === 'undefined') return null;
-  const value = document.cookie
-    .split(';')
-    .map((item) => item.trim())
-    .find((item) => item.startsWith('access_token='))
-    ?.split('=')[1];
-  return value ? decodeURIComponent(value) : null;
-};
 
 const roleTitle: Record<RoleId, string> = {
   seeker: '구직자',
@@ -273,7 +264,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
         } else {
           const accessToken = readAccessToken();
-          const connectHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
+          const connectHeaders = accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined;
           await stompManager.connect(wsUrl, { connectHeaders });
         }
       } catch (wsError) {

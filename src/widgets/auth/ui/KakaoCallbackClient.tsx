@@ -4,17 +4,8 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { kakaoLogin } from '@/features/auth';
+import { readAccessToken } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
-
-const readAccessToken = () => {
-  if (typeof document === 'undefined') return null;
-  const value = document.cookie
-    .split(';')
-    .map((item) => item.trim())
-    .find((item) => item.startsWith('access_token='))
-    ?.split('=')[1];
-  return value ? decodeURIComponent(value) : null;
-};
 
 export default function KakaoCallbackClient() {
   const router = useRouter();
