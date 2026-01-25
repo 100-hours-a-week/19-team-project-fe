@@ -9,7 +9,10 @@ type Params = {
 
 export async function GET(req: Request, context: { params: Params }) {
   try {
-    const chatId = Number(context.params.chatId);
+    const pathnameParts = new URL(req.url).pathname.split('/').filter(Boolean);
+    const fallbackChatId = pathnameParts.length >= 2 ? pathnameParts[pathnameParts.length - 2] : '';
+    const rawChatId = context.params?.chatId ?? fallbackChatId;
+    const chatId = Number(rawChatId);
     if (Number.isNaN(chatId)) {
       const response: ApiResponse<null> = {
         code: 'INVALID_CHAT_ID',

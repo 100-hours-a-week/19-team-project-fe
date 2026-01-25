@@ -43,6 +43,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [draft, setDraft] = useState('');
+  const [isWsReady, setIsWsReady] = useState(stompManager.isConnected());
   const currentUserId = readCurrentUserId();
 
   useEffect(() => {
@@ -77,6 +78,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     if (!chatId) return;
     let unsubscribe: (() => void) | null = null;
     let cancelled = false;
+    setIsWsReady(stompManager.isConnected());
 
     (async () => {
       const accessToken = document.cookie
@@ -85,7 +87,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         .find((item) => item.startsWith('access_token='))
         ?.split('=')[1];
 
-      if (!accessToken) return;
+      if (!accessToken) {
+        setIsWsReady(stompManager.isConnected());
+        return;
+      }
 
       try {
         await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!, {
@@ -97,6 +102,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       }
 
       if (cancelled) return;
+      setIsWsReady(true);
 
       unsubscribe = subscribeChat<ChatMessageItem>(chatId, (response) => {
         if (response.code !== 'CREATED' || response.data === null || response.data === undefined)
@@ -108,6 +114,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
     return () => {
       cancelled = true;
+      setIsWsReady(false);
       unsubscribe?.();
     };
   }, [chatId]);
@@ -123,6 +130,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     event.preventDefault();
     const trimmed = draft.trim();
     if (!trimmed) return;
+    if (!isWsReady || !stompManager.isConnected()) {
+      alert('채팅 연결이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
 
     alert(
       `sendChatMessage payload: ${JSON.stringify({
@@ -132,11 +143,16 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       })}`,
     );
 
-    sendChatMessage({
-      chat_id: chatId,
-      content: trimmed,
-      message_type: 'TEXT',
-    });
+    try {
+      sendChatMessage({
+        chat_id: chatId,
+        content: trimmed,
+        message_type: 'TEXT',
+      });
+    } catch (error) {
+      console.warn('Send message failed:', error);
+      alert('메시지 전송에 실패했습니다.');
+    }
 
     setDraft('');
   };
@@ -198,6 +214,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         />
         <button
           type="submit"
+          disabled={!isWsReady}
           className="h-11 rounded-full bg-[var(--color-primary-main)] px-4 text-sm font-semibold text-white"
         >
           전송

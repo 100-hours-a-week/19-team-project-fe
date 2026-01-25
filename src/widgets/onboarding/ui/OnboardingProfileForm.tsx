@@ -15,6 +15,7 @@ import iconTech from '@/shared/icons/Icon_tech.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { stompManager } from '@/shared/ws';
 
 type RoleId = 'seeker' | 'expert';
 type SheetId = 'job' | 'career' | 'tech' | null;
@@ -25,6 +26,15 @@ type OnboardingProfileFormProps = {
 
 const nicknameLimit = 10;
 const introductionLimit = 500;
+const readAccessToken = () => {
+  if (typeof document === 'undefined') return null;
+  const value = document.cookie
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith('access_token='))
+    ?.split('=')[1];
+  return value ? decodeURIComponent(value) : null;
+};
 
 const roleTitle: Record<RoleId, string> = {
   seeker: '구직자',
@@ -257,6 +267,18 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       await signup({
         ...signupPayload,
       });
+      try {
+        const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+        if (!wsUrl) {
+          console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
+        } else {
+          const accessToken = readAccessToken();
+          const connectHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
+          await stompManager.connect(wsUrl, { connectHeaders });
+        }
+      } catch (wsError) {
+        console.warn('[WS] connect after signup failed', wsError);
+      }
       router.replace('/');
     } catch (error: unknown) {
       if (error instanceof BusinessError) {
