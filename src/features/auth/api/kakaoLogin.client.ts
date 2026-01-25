@@ -16,7 +16,7 @@ type KakaoLoginResult =
     };
 
 export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
-  const res = await fetch('/api/auth/kakao/login', {
+  const res = await fetch('/bff/auth/kakao/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code }),

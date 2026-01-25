@@ -7,7 +7,7 @@ type GuestStatus = {
 };
 
 export async function getMe(): Promise<AuthStatus | GuestStatus> {
-  const res = await fetch('/api/auth/me', {
+  const res = await fetch('/bff/auth/me', {
     cache: 'no-store',
     credentials: 'include',
   });
