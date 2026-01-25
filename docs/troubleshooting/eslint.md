@@ -921,3 +921,23 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-01-24 Raw Log
+
+- Logged at: 2026-01-24 19:09:47Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/shared/ui/profile-card/ProfileCard.tsx
+  261:16  error    Expected '===' and instead saw '=='                                                                                                                                                                                                                                                      eqeqeq
+  261:33  error    Expected '===' and instead saw '=='                                                                                                                                                                                                                                                      eqeqeq
+  513:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 3 problems (2 errors, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

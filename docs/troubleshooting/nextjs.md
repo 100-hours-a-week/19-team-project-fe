@@ -104,3 +104,31 @@
 ### 적용한 수정 요약
 
 - `mounted` 상태를 두고 `mounted === true`일 때만 `createPortal` 실행
+
+---
+
+## params Promise 접근 에러 (App Router, dynamic route)
+
+### 증상
+
+- `/experts/[id]` 진입 시 `params is a Promise and must be unwrapped` 런타임 에러 발생
+- 콘솔 로그에 `Route "/experts/[id]" used params.id` 메시지 출력
+
+### 발생 위치
+
+- `src/app/experts/[id]/page.tsx`
+
+### 원인
+
+- Next.js App Router에서 `params`가 `Promise`로 전달되는 모드가 활성화됨
+- 동기적으로 `params.id`에 접근하면서 에러 발생
+
+### 해결
+
+- 페이지 컴포넌트를 `async`로 변경
+- `params: Promise<{ id: string }>` 형태로 받고 `await`로 해제
+
+### 적용한 수정 요약
+
+- `export default async function`으로 전환
+- `const { id } = await params` 후 `userId` 파싱
