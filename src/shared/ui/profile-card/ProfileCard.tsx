@@ -4,6 +4,7 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import profileBasic from '@/shared/icons/profile_basic.png';
 const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)';
 
 const ANIMATION_CONFIG = {
@@ -49,7 +50,6 @@ type ProfileCardProps = {
   maxHeight?: string;
   aspectRatio?: string;
   showAvatarPlaceholder?: boolean;
-  placeholderColor?: string;
 };
 
 type TiltEngine = {
@@ -78,7 +78,6 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   maxHeight = '260px',
   aspectRatio = '0.74',
   showAvatarPlaceholder = true,
-  placeholderColor = '#ff3b30',
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -506,10 +505,15 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               }}
             >
               {showAvatarPlaceholder || !avatarUrl ? (
-                <div
-                  className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  style={{ backgroundColor: placeholderColor }}
-                />
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <Image
+                    src={profileBasic}
+                    alt="기본 프로필 이미지"
+                    width={64}
+                    height={64}
+                    className="rounded-full"
+                  />
+                </div>
               ) : (
                 <Image
                   className="absolute left-1/2 bottom-0 w-full translate-x-[-50%]"

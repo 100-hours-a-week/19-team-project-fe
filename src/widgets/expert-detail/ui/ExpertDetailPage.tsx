@@ -79,10 +79,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
       </section>
 
       <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-6 pb-6 pt-3">
-        <Button
-          type="button"
-          icon={<Image src={iconMark} alt="" width={18} height={18} />}
-        >
+        <Button type="button" icon={<Image src={iconMark} alt="" width={18} height={18} />}>
           채팅 요청하기
         </Button>
       </div>

@@ -103,6 +103,32 @@
   }
 }
 
+.page-enter-from-right {
+  animation: page-enter-from-right 260ms ease-out;
+}
+
+.page-enter-from-left {
+  animation: page-enter-from-left 260ms ease-out;
+}
+
+@keyframes page-enter-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes page-enter-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
 .animate-sheet-up {
   animation: sheet-up 220ms ease-out;
 }
