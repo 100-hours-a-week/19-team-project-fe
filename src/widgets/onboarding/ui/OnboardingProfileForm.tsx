@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 import { getCareerLevels, getJobs, getSkills, signup } from '@/features/onboarding';
-import { BusinessError, readAccessToken } from '@/shared/api';
+import { BusinessError, readAccessToken, setAuthCookies } from '@/shared/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import iconCareer from '@/shared/icons/icon_career.png';
@@ -153,7 +153,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     const debugPayload = (() => {
       let oauthId = '';
       let fallbackNickname = '';
-      const email = '';
+      const email = 'tre@naver.com';
       const raw = sessionStorage.getItem('kakaoLoginResult');
       if (raw) {
         try {
@@ -178,7 +178,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       return {
         oauth_provider: 'KAKAO',
         oauth_id: oauthId,
-        email,
+        email: 'tttt@naver.com',
         nickname: nickname.trim() || fallbackNickname,
         user_type: 'JOB_SEEKER',
         career_level_id: selectedCareer?.id ?? null,
@@ -190,8 +190,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         introduction: introduction.trim(),
       };
     })();
-
-    alert(JSON.stringify(debugPayload, null, 2));
 
     if (!selectedJob || !selectedCareer || selectedTech.length === 0) {
       setSubmitError('직무, 경력, 기술스택을 모두 선택해 주세요.');
@@ -209,7 +207,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
       let oauthId = '';
       let fallbackNickname = '';
-      const email = '';
+      const email = 'tre@naver.com';
 
       try {
         const parsed = JSON.parse(raw) as {
@@ -255,9 +253,15 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         introduction: introduction.trim(),
       };
 
-      await signup({
+      const signupResult = await signup({
         ...signupPayload,
       });
+      setAuthCookies({
+        accessToken: signupResult.accessToken,
+        refreshToken: signupResult.refreshToken,
+        userId: signupResult.userId,
+      });
+      sessionStorage.setItem('signupSuccess', 'true');
       try {
         const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
         if (!wsUrl) {
