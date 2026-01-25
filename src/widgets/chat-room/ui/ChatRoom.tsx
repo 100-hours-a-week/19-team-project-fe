@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 
 import { readAccessToken } from '@/shared/api';
@@ -56,11 +56,11 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [draft, setDraft] = useState('');
   const [isWsReady, setIsWsReady] = useState(stompManager.isConnected());
-  const currentUserId = readCurrentUserId();
+  const currentUserId = useMemo(() => readCurrentUserId(), []);
 
   useEffect(() => {
     alert(`chatId prop: ${chatId}`);
-  }, [chatId]);
+  }, [chatId, currentUserId]);
 
   useEffect(() => {
     if (!chatId) return;
@@ -88,7 +88,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     return () => {
       cancelled = true;
     };
-  }, [chatId]);
+  }, [chatId, currentUserId]);
 
   /**
    * STOMP 연결 + 구독
@@ -138,7 +138,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       setIsWsReady(false);
       unsubscribe?.();
     };
-  }, [chatId]);
+  }, [chatId, currentUserId]);
 
   /**
    * 최신 메시지 위치로 포커스
