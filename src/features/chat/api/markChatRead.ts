@@ -1,6 +1,6 @@
 import { apiFetch, readAccessToken } from '@/shared/api';
 
-const CHAT_READ_PATH = '/api/chat/messages/read';
+const CHAT_READ_PATH = '/bff/chat/messages/read';
 
 export interface MarkChatReadRequest {
   chat_id: number;

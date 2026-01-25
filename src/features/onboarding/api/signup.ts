@@ -2,7 +2,7 @@ import { apiFetch } from '@/shared/api';
 
 import type { SignupRequest } from '@/entities/onboarding';
 
-const SIGNUP_PATH = '/api/auth/signup';
+const SIGNUP_PATH = '/bff/auth/signup';
 
 type SignupResult = {
   userId: number;

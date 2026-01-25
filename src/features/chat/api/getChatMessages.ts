@@ -1,7 +1,7 @@
 import { apiFetch, readAccessToken } from '@/shared/api';
 import type { ChatMessageListData } from '@/entities/chat';
 
-const CHAT_MESSAGES_PATH = '/api/chat';
+const CHAT_MESSAGES_PATH = '/bff/chat';
 
 export interface ChatMessagesParams {
   chatId: number;

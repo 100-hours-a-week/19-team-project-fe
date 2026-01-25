@@ -1,7 +1,7 @@
 import { apiFetch, readAccessToken } from '@/shared/api';
 import type { ChatCreateRequest, ChatCreatedData } from '@/entities/chat';
 
-const CHAT_PATH = '/api/chat';
+const CHAT_PATH = '/bff/chat';
 
 export async function createChat(payload: ChatCreateRequest): Promise<ChatCreatedData> {
   const accessToken = readAccessToken();

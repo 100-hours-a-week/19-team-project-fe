@@ -1,7 +1,7 @@
 import { apiFetch, readAccessToken } from '@/shared/api';
 import type { ChatListData } from '@/entities/chat';
 
-const CHAT_LIST_PATH = '/api/chat';
+const CHAT_LIST_PATH = '/bff/chat';
 
 export interface ChatListParams {
   status?: 'ACTIVE' | 'CLOSED';

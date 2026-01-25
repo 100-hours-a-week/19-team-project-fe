@@ -31,7 +31,7 @@ export default function KakaoCallbackClient() {
     }
 
     kakaoLogin(code)
-      .then(async () => {
+      .then(async (result) => {
         /**
          * result 예시:
          * {
@@ -42,6 +42,15 @@ export default function KakaoCallbackClient() {
          * 토큰 없음
          * 쿠키는 이미 서버에서 설정됨
          */
+
+        if (result.status === 'SIGNUP_REQUIRED') {
+          sessionStorage.setItem(
+            'kakaoLoginResult',
+            JSON.stringify({ signup_required: result.signup_required }),
+          );
+          router.replace('/onboarding');
+          return;
+        }
 
         try {
           const wsUrl = process.env.NEXT_PUBLIC_WS_URL;

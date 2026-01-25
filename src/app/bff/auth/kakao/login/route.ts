@@ -1,4 +1,3 @@
-// app/api/auth/kakao/login/route.ts
 import { NextResponse } from 'next/server';
 import { kakaoLogin } from '@/features/auth.server';
 
@@ -7,7 +6,15 @@ export async function POST(req: Request) {
 
   const result = await kakaoLogin(code);
 
+  if (result.status === 'SIGNUP_REQUIRED') {
+    return NextResponse.json({
+      status: 'SIGNUP_REQUIRED',
+      signup_required: result.signupRequired,
+    });
+  }
+
   const response = NextResponse.json({
+    status: 'LOGIN_SUCCESS',
     userId: result.userId,
     userType: result.userType,
     accessToken: result.accessToken,
