@@ -10,11 +10,12 @@ export async function POST(req: Request) {
   const response = NextResponse.json({
     userId: result.userId,
     userType: result.userType,
+    accessToken: result.accessToken,
   });
 
   // 쿠키는 반드시 여기서 설정
   response.cookies.set('access_token', result.accessToken, {
-    httpOnly: true,
+    httpOnly: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
@@ -22,7 +23,15 @@ export async function POST(req: Request) {
   });
 
   response.cookies.set('refresh_token', result.refreshToken, {
-    httpOnly: true,
+    httpOnly: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 14,
+  });
+
+  response.cookies.set('user_id', String(result.userId), {
+    httpOnly: false,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',

@@ -19,7 +19,12 @@ export async function GET(req: Request) {
         ? Number(sizeParam)
         : undefined;
 
-    const data = await getChatList({ status, cursor, size });
+    const authHeader = req.headers.get('authorization');
+    const rawToken = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : (authHeader ?? undefined);
+    const accessToken = rawToken?.trim() || undefined;
+    const data = await getChatList({ status, cursor, size, accessToken });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: '',
@@ -59,7 +64,12 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
-    const data = await createChat(payload);
+    const authHeader = req.headers.get('authorization');
+    const rawToken = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : (authHeader ?? undefined);
+    const accessToken = rawToken?.trim() || undefined;
+    const data = await createChat(payload, accessToken);
     const response: ApiResponse<typeof data> = {
       code: 'CREATED',
       message: 'create_success',

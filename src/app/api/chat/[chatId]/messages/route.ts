@@ -11,7 +11,8 @@ export async function GET(req: Request, context: { params: Params }) {
   try {
     const pathnameParts = new URL(req.url).pathname.split('/').filter(Boolean);
     const fallbackChatId = pathnameParts.length >= 2 ? pathnameParts[pathnameParts.length - 2] : '';
-    const rawChatId = context.params?.chatId ?? fallbackChatId;
+    const params = await context.params;
+    const rawChatId = params?.chatId ?? fallbackChatId;
     const chatId = Number(rawChatId);
     if (Number.isNaN(chatId)) {
       const response: ApiResponse<null> = {
@@ -34,7 +35,12 @@ export async function GET(req: Request, context: { params: Params }) {
         ? Number(sizeParam)
         : undefined;
 
-    const data = await getChatMessages({ chatId, cursor, size });
+    const authHeader = req.headers.get('authorization');
+    const rawToken = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : (authHeader ?? undefined);
+    const accessToken = rawToken?.trim() || undefined;
+    const data = await getChatMessages({ chatId, cursor, size, accessToken });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: '',
