@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
@@ -273,7 +274,11 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
   return (
     <main className="flex min-h-screen flex-col bg-[#F7F7F7] px-6 pb-10 pt-4 text-text-body">
-      <header className="relative"></header>
+      <header className="relative flex items-center">
+        <Link href="/onboarding" className="text-2xl text-neutral-700">
+          ←
+        </Link>
+      </header>
 
       <section className="onboarding-form-stagger mt-10 flex flex-1 flex-col gap-6">
         <div className="onboarding-form-stagger__item">
