@@ -15,6 +15,16 @@ export async function apiFetch<T>(input: RequestInfo, init?: ApiFetchOptions): P
   });
 
   if (!res.ok) {
+    try {
+      const errorBody = (await res.json()) as ApiResponse<unknown>;
+      if (errorBody && typeof errorBody.code === 'string') {
+        throw new BusinessError(errorBody.code, errorBody.message, errorBody.data);
+      }
+    } catch (parseError) {
+      if (parseError instanceof BusinessError) {
+        throw parseError;
+      }
+    }
     throw new HttpError(res.status, res.statusText, res.url);
   }
 
