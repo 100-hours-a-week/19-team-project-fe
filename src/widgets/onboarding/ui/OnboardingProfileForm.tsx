@@ -31,7 +31,7 @@ type OnboardingProfileFormProps = {
 };
 
 const nicknameLimit = 10;
-const introductionLimit = 500;
+const introductionLimit = 100;
 
 const roleTitle: Record<RoleId, string> = {
   seeker: '구직자',
