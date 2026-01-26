@@ -150,46 +150,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
-    const debugPayload = (() => {
-      let oauthId = '';
-      let fallbackNickname = '';
-      const email = 'tre@naver.com';
-      const raw = sessionStorage.getItem('kakaoLoginResult');
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as {
-            signup_required?: {
-              oauth_provider?: string;
-              oauth_id?: string;
-              email?: string | null;
-              nickname?: string | null;
-            };
-          };
-          const signupRequired = parsed.signup_required;
-          if (signupRequired) {
-            oauthId = signupRequired.oauth_id ?? '';
-            fallbackNickname = signupRequired.nickname ?? '';
-          }
-        } catch {
-          // Ignore debug parse errors.
-        }
-      }
-
-      return {
-        oauth_provider: 'KAKAO',
-        oauth_id: oauthId,
-        email: 'tttt@naver.com',
-        nickname: nickname.trim() || fallbackNickname,
-        user_type: 'JOB_SEEKER',
-        career_level_id: selectedCareer?.id ?? null,
-        job_ids: selectedJob ? [selectedJob.id] : [],
-        skills: selectedTech.map((skill, index) => ({
-          skill_id: skill.id,
-          display_order: index + 1,
-        })),
-        introduction: introduction.trim(),
-      };
-    })();
 
     if (!selectedJob || !selectedCareer || selectedTech.length === 0) {
       setSubmitError('직무, 경력, 기술스택을 모두 선택해 주세요.');
