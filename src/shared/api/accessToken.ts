@@ -7,3 +7,13 @@ export function readAccessToken(): string | null {
     ?.split('=')[1];
   return value ? decodeURIComponent(value) : null;
 }
+
+export function readRefreshToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const value = document.cookie
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith('refresh_token='))
+    ?.split('=')[1];
+  return value ? decodeURIComponent(value) : null;
+}

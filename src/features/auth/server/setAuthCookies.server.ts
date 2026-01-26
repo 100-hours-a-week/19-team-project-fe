@@ -16,7 +16,6 @@ export async function setAuthCookies({
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 15,
   });
 
   cookieStore.set('refresh_token', refreshToken, {
@@ -24,7 +23,6 @@ export async function setAuthCookies({
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 14,
   });
 
   if (userId !== null && userId !== undefined) {
@@ -33,7 +31,6 @@ export async function setAuthCookies({
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 14,
     });
   }
 }

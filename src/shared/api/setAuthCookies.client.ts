@@ -6,6 +6,7 @@ type AuthCookiePayload = {
 
 export function setAuthCookies({ accessToken, refreshToken, userId }: AuthCookiePayload) {
   if (typeof document === 'undefined') return;
+  if (process.env.NODE_ENV === 'production') return;
   const base = 'path=/; SameSite=Lax';
   const secure = location.protocol === 'https:' ? '; Secure' : '';
 

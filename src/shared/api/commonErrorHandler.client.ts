@@ -4,12 +4,14 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useToast } from '@/shared/ui/toast';
+import { refreshAuthTokens } from './refreshTokens.client';
 import { BusinessError, HttpError } from './errors';
 import type { CommonErrorCode } from './types';
 
 const COMMON_ERROR_MESSAGES: Record<CommonErrorCode, string> = {
   INVALID_CURSOR: '요청이 만료됐어요. 다시 시도해 주세요.',
   AUTH_UNAUTHORIZED: '로그인이 필요해요.',
+  AUTH_TOKEN_EXPIRED: '로그인이 만료됐어요. 다시 로그인해 주세요.',
   AUTH_INVALID_TOKEN: '로그인이 만료됐어요. 다시 로그인해 주세요.',
   AUTH_INVALID_REQUEST: '로그인 요청이 올바르지 않아요.',
   AUTH_INVALID_CREDENTIALS: '로그인 정보가 올바르지 않아요.',
@@ -29,6 +31,7 @@ const COMMON_ERROR_MESSAGES: Record<CommonErrorCode, string> = {
 const COMMON_ERROR_CODES = new Set<CommonErrorCode>([
   'INVALID_CURSOR',
   'AUTH_UNAUTHORIZED',
+  'AUTH_TOKEN_EXPIRED',
   'AUTH_INVALID_TOKEN',
   'AUTH_INVALID_REQUEST',
   'AUTH_INVALID_CREDENTIALS',
@@ -62,23 +65,31 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
   return useCallback(
     async (error: unknown): Promise<boolean> => {
       if (error instanceof BusinessError && isCommonErrorCode(error.code)) {
-        pushToast(COMMON_ERROR_MESSAGES[error.code]);
         if (error.code === 'AUTH_UNAUTHORIZED') {
+          pushToast(COMMON_ERROR_MESSAGES[error.code]);
           router.replace(redirectTo);
+          return true;
         }
-        if (error.code === 'AUTH_INVALID_TOKEN') {
-          const handled = onInvalidToken ? await onInvalidToken() : false;
+        if (error.code === 'AUTH_INVALID_TOKEN' || error.code === 'AUTH_TOKEN_EXPIRED') {
+          const handled = onInvalidToken
+            ? await onInvalidToken()
+            : await refreshAuthTokens().catch(() => false);
           if (!handled) {
+            pushToast(COMMON_ERROR_MESSAGES[error.code]);
             router.replace(redirectTo);
           }
+          return true;
         }
         if (
           error.code === 'AUTH_INVALID_REQUEST' ||
           error.code === 'AUTH_INVALID_CREDENTIALS' ||
           error.code === 'AUTH_FORBIDDEN'
         ) {
+          pushToast(COMMON_ERROR_MESSAGES[error.code]);
           router.replace(redirectTo);
+          return true;
         }
+        pushToast(COMMON_ERROR_MESSAGES[error.code]);
         return true;
       }
 

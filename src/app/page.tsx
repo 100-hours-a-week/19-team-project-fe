@@ -3,12 +3,14 @@ import { Header } from '@/widgets/header';
 import { SearchBar } from '@/widgets/search-bar';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
+import { SignupConfetti } from '@/widgets/home';
 
 export default function Home() {
   return (
     <>
       <PageTransition>
         <SplashGate>
+          <SignupConfetti />
           <div className="min-h-screen bg-[#D2DEEA]">
             <Header />
             <div className="flex min-h-[calc(100vh-var(--app-header-height))] flex-col">
