@@ -7,6 +7,7 @@ export interface ApiResponse<T> {
 export type CommonErrorCode =
   | 'INVALID_CURSOR'
   | 'AUTH_UNAUTHORIZED'
+  | 'AUTH_TOKEN_EXPIRED'
   | 'AUTH_INVALID_TOKEN'
   | 'AUTH_INVALID_REQUEST'
   | 'AUTH_INVALID_CREDENTIALS'
