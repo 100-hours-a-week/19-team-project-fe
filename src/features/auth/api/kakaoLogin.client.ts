@@ -33,7 +33,7 @@ export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
       email: string | null;
       nickname: string | null;
     } | null;
-  }>('/app/bff/auth/kakao/login', {
+  }>('/bff/auth/kakao/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code }),
