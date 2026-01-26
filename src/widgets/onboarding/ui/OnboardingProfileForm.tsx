@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
-import { getCareerLevels, getJobs, getSkills, signup } from '@/features/onboarding';
+import { checkNickname, getCareerLevels, getJobs, getSkills, signup } from '@/features/onboarding';
 import {
   BusinessError,
   readAccessToken,
@@ -48,6 +48,14 @@ const signupErrorMessages: Record<string, string> = {
 
 const defaultSignupErrorMessage = '회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 
+const nicknameValidationMessages: Record<string, string> = {
+  NICKNAME_EMPTY: '닉네임을 입력해 주세요.',
+  NICKNAME_TOO_SHORT: '닉네임이 너무 짧아요.',
+  NICKNAME_TOO_LONG: '닉네임이 너무 길어요.',
+  NICKNAME_INVALID_CHARACTERS: '닉네임에 사용할 수 없는 문자가 포함되어 있어요.',
+  NICKNAME_CONTAINS_WHITESPACE: '닉네임에 공백을 포함할 수 없어요.',
+};
+
 export default function OnboardingProfileForm({ role }: OnboardingProfileFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,7 +82,21 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   const [introduction, setIntroduction] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [nicknameCheckMessage, setNicknameCheckMessage] = useState<{
+    tone: 'success' | 'error';
+    text: string;
+  } | null>(null);
+  const [isNicknameChecking, setIsNicknameChecking] = useState(false);
+  const [checkedNickname, setCheckedNickname] = useState<string | null>(null);
   const handleCommonApiError = useCommonApiErrorHandler();
+
+  useEffect(() => {
+    const trimmed = nickname.trim();
+    if (checkedNickname && trimmed !== checkedNickname) {
+      setCheckedNickname(null);
+      setNicknameCheckMessage(null);
+    }
+  }, [checkedNickname, nickname]);
 
   useEffect(() => {
     let isMounted = true;
@@ -265,6 +287,46 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     }
   };
 
+  const handleNicknameCheck = async () => {
+    if (isNicknameChecking) return;
+    const trimmed = nickname.trim();
+
+    setIsNicknameChecking(true);
+    setNicknameCheckMessage(null);
+
+    try {
+      const data = await checkNickname(trimmed);
+      setCheckedNickname(trimmed);
+      if (data.available) {
+        setNicknameCheckMessage({ tone: 'success', text: '사용 가능한 닉네임입니다.' });
+      } else {
+        setNicknameCheckMessage({ tone: 'error', text: '이미 사용 중인 닉네임입니다.' });
+      }
+    } catch (error: unknown) {
+      if (await handleCommonApiError(error)) {
+        return;
+      }
+      if (error instanceof BusinessError) {
+        setNicknameCheckMessage({
+          tone: 'error',
+          text:
+            nicknameValidationMessages[error.code] ??
+            error.message ??
+            '닉네임 확인에 실패했습니다.',
+        });
+      } else if (error instanceof Error) {
+        setNicknameCheckMessage({ tone: 'error', text: error.message });
+      } else {
+        setNicknameCheckMessage({ tone: 'error', text: '닉네임 확인에 실패했습니다.' });
+      }
+    } finally {
+      setIsNicknameChecking(false);
+    }
+  };
+
+  const isNicknameCheckDisabled =
+    isNicknameChecking || nickname.trim().length === 0 || nickname.trim().length >= nicknameLimit;
+
   const isSubmitDisabled =
     isSubmitting ||
     !selectedJob ||
@@ -325,12 +387,14 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
               </div>
               <button
                 type="button"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 text-neutral-700"
+                onClick={handleNicknameCheck}
+                disabled={isNicknameCheckDisabled}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 bg-neutral-100 text-neutral-400 enabled:border-[var(--color-primary-main)] enabled:bg-[var(--color-primary-main)] enabled:text-white"
               >
                 <svg
                   data-slot="icon"
                   fill="none"
-                  strokeWidth={1.5}
+                  strokeWidth={2.5}
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
@@ -345,6 +409,15 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                 </svg>
               </button>
             </div>
+            {nicknameCheckMessage ? (
+              <p
+                className={`mt-2 text-xs ${
+                  nicknameCheckMessage.tone === 'success' ? 'text-green-600' : 'text-red-500'
+                }`}
+              >
+                {nicknameCheckMessage.text}
+              </p>
+            ) : null}
           </Input.Root>
         </div>
 
