@@ -82,8 +82,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         if (!isMounted) return;
         setSkills(data.skills);
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (!isMounted) return;
+        if (await handleCommonApiError(error)) return;
         setSkillsError(error instanceof Error ? error.message : '스킬 목록을 불러오지 못했습니다.');
       })
       .finally(() => {
@@ -103,8 +104,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         if (!isMounted) return;
         setJobs(data.jobs);
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (!isMounted) return;
+        if (await handleCommonApiError(error)) return;
         setJobsError(error instanceof Error ? error.message : '직무 목록을 불러오지 못했습니다.');
       })
       .finally(() => {
@@ -124,8 +126,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         if (!isMounted) return;
         setCareerLevels(data.career_levels);
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (!isMounted) return;
+        if (await handleCommonApiError(error)) return;
         setCareerError(error instanceof Error ? error.message : '경력 목록을 불러오지 못했습니다.');
       })
       .finally(() => {
