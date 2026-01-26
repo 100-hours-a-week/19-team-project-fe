@@ -1,3 +1,6 @@
+import { BusinessError, HttpError } from '@/shared/api';
+import type { ApiResponse } from '@/shared/api/types';
+
 export type KakaoLoginBackendResponse = {
   status: 'LOGIN_SUCCESS' | 'SIGNUP_REQUIRED';
   login_success: {
@@ -37,11 +40,14 @@ type SignupResponsePayload = {
 };
 
 export async function loginWithKakao(code: string): Promise<KakaoLoginBackendResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/kakao/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code }),
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/kakao/login/local`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    },
+  );
 
   if (!res.ok) {
     throw new Error('KAKAO_LOGIN_FAILED');
@@ -59,10 +65,23 @@ export async function signup(payload: SignupRequestPayload): Promise<SignupRespo
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) {
-    throw new Error('SIGNUP_FAILED');
+  let body: ApiResponse<SignupResponsePayload> | null = null;
+  try {
+    body = (await res.json()) as ApiResponse<SignupResponsePayload>;
+  } catch {
+    body = null;
   }
 
-  const body = await res.json();
-  return body.data as SignupResponsePayload;
+  if (body && typeof body.code === 'string') {
+    if (body.code === 'OK' || body.code === 'SUCCESS' || body.code === 'CREATED') {
+      return body.data as SignupResponsePayload;
+    }
+    throw new BusinessError(body.code, body.message, body.data);
+  }
+
+  if (!res.ok) {
+    throw new HttpError(res.status, res.statusText, res.url);
+  }
+
+  throw new Error('Invalid signup response');
 }
