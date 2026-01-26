@@ -199,7 +199,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
       let oauthId = '';
       let fallbackNickname = '';
-      const email = 'tre@naver.com';
+      let email = '';
 
       try {
         const parsed = JSON.parse(raw) as {
@@ -214,6 +214,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         if (signupRequired) {
           oauthId = signupRequired.oauth_id ?? '';
           fallbackNickname = signupRequired.nickname ?? '';
+          email = signupRequired.email ?? '';
         }
       } catch {
         setSubmitError('로그인 정보 파싱에 실패했습니다. 다시 로그인해 주세요.');
@@ -227,6 +228,10 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       }
       if (!resolvedNickname) {
         setSubmitError('닉네임을 입력해 주세요.');
+        return;
+      }
+      if (!email) {
+        setSubmitError('이메일 정보가 없습니다. 다시 로그인해 주세요.');
         return;
       }
 
