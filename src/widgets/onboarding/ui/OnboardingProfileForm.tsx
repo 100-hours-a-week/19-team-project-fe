@@ -310,17 +310,40 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         <div className="onboarding-form-stagger__item rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
           <div className="text-base font-semibold text-black">닉네임</div>
           <Input.Root className="mt-2">
-            <div className="relative">
-              <Input.Field
-                placeholder="닉네임을 입력해 주세요"
-                value={nickname}
-                onChange={(event) => setNickname(event.target.value)}
-                maxLength={nicknameLimit}
-                className="rounded-none pr-14 text-base text-black"
-              />
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-caption">
-                {nickname.length} / {nicknameLimit}
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Input.Field
+                  placeholder="닉네임을 입력해 주세요"
+                  value={nickname}
+                  onChange={(event) => setNickname(event.target.value)}
+                  maxLength={nicknameLimit}
+                  className="rounded-none border-0 border-b-2 border-black bg-transparent px-0 py-2 pr-14 text-base text-black shadow-none focus:border-black focus:ring-0 disabled:border-black disabled:bg-transparent"
+                />
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-caption">
+                  {nickname.length} / {nicknameLimit}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 text-neutral-700"
+              >
+                <svg
+                  data-slot="icon"
+                  fill="none"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                  />
+                </svg>
+              </button>
             </div>
           </Input.Root>
         </div>
