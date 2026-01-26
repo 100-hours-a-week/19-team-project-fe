@@ -8,6 +8,7 @@ import { KakaoLoginButton, getMe } from '@/features/auth';
 import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
+import { useCommonApiErrorHandler } from '@/shared/api';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
@@ -44,6 +45,7 @@ export default function ChatList() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [authStatus, setAuthStatus] = useState<'checking' | 'authed' | 'guest'>('checking');
+  const handleCommonApiError = useCommonApiErrorHandler();
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +82,10 @@ export default function ChatList() {
         setLoadError(null);
       } catch (error) {
         if (cancelled) return;
+        if (await handleCommonApiError(error)) {
+          setIsLoading(false);
+          return;
+        }
         setLoadError(error instanceof Error ? error.message : '채팅 목록을 불러오지 못했습니다.');
       } finally {
         if (cancelled) return;
@@ -90,7 +96,7 @@ export default function ChatList() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [handleCommonApiError]);
 
   const handleAuthSheetClose = () => {
     router.replace('/');

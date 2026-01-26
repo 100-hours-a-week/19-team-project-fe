@@ -6,7 +6,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 import { getCareerLevels, getJobs, getSkills, signup } from '@/features/onboarding';
-import { BusinessError, readAccessToken, setAuthCookies } from '@/shared/api';
+import {
+  BusinessError,
+  readAccessToken,
+  setAuthCookies,
+  useCommonApiErrorHandler,
+} from '@/shared/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import iconCareer from '@/shared/icons/icon_career.png';
@@ -68,6 +73,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   const [introduction, setIntroduction] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const handleCommonApiError = useCommonApiErrorHandler();
 
   useEffect(() => {
     let isMounted = true;
@@ -76,8 +82,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         if (!isMounted) return;
         setSkills(data.skills);
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (!isMounted) return;
+        if (await handleCommonApiError(error)) return;
         setSkillsError(error instanceof Error ? error.message : '스킬 목록을 불러오지 못했습니다.');
       })
       .finally(() => {
@@ -88,7 +95,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [handleCommonApiError]);
 
   useEffect(() => {
     let isMounted = true;
@@ -97,8 +104,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         if (!isMounted) return;
         setJobs(data.jobs);
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (!isMounted) return;
+        if (await handleCommonApiError(error)) return;
         setJobsError(error instanceof Error ? error.message : '직무 목록을 불러오지 못했습니다.');
       })
       .finally(() => {
@@ -109,7 +117,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [handleCommonApiError]);
 
   useEffect(() => {
     let isMounted = true;
@@ -118,8 +126,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         if (!isMounted) return;
         setCareerLevels(data.career_levels);
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (!isMounted) return;
+        if (await handleCommonApiError(error)) return;
         setCareerError(error instanceof Error ? error.message : '경력 목록을 불러오지 못했습니다.');
       })
       .finally(() => {
@@ -130,7 +139,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [handleCommonApiError]);
 
   const filteredTech = useMemo(() => {
     const query = techQuery.trim().toLowerCase();
@@ -150,46 +159,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
-    const debugPayload = (() => {
-      let oauthId = '';
-      let fallbackNickname = '';
-      const email = 'tre@naver.com';
-      const raw = sessionStorage.getItem('kakaoLoginResult');
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as {
-            signup_required?: {
-              oauth_provider?: string;
-              oauth_id?: string;
-              email?: string | null;
-              nickname?: string | null;
-            };
-          };
-          const signupRequired = parsed.signup_required;
-          if (signupRequired) {
-            oauthId = signupRequired.oauth_id ?? '';
-            fallbackNickname = signupRequired.nickname ?? '';
-          }
-        } catch {
-          // Ignore debug parse errors.
-        }
-      }
-
-      return {
-        oauth_provider: 'KAKAO',
-        oauth_id: oauthId,
-        email: 'tttt@naver.com',
-        nickname: nickname.trim() || fallbackNickname,
-        user_type: 'JOB_SEEKER',
-        career_level_id: selectedCareer?.id ?? null,
-        job_ids: selectedJob ? [selectedJob.id] : [],
-        skills: selectedTech.map((skill, index) => ({
-          skill_id: skill.id,
-          display_order: index + 1,
-        })),
-        introduction: introduction.trim(),
-      };
-    })();
 
     if (!selectedJob || !selectedCareer || selectedTech.length === 0) {
       setSubmitError('직무, 경력, 기술스택을 모두 선택해 주세요.');
@@ -278,6 +247,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       }
       router.replace('/');
     } catch (error: unknown) {
+      if (await handleCommonApiError(error)) {
+        return;
+      }
       if (error instanceof BusinessError) {
         setSubmitError(
           signupErrorMessages[error.code] ?? error.message ?? defaultSignupErrorMessage,
