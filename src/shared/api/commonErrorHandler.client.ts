@@ -11,6 +11,9 @@ const COMMON_ERROR_MESSAGES: Record<CommonErrorCode, string> = {
   INVALID_CURSOR: '요청이 만료됐어요. 다시 시도해 주세요.',
   AUTH_UNAUTHORIZED: '로그인이 필요해요.',
   AUTH_INVALID_TOKEN: '로그인이 만료됐어요. 다시 로그인해 주세요.',
+  AUTH_INVALID_REQUEST: '로그인 요청이 올바르지 않아요.',
+  AUTH_INVALID_CREDENTIALS: '로그인 정보가 올바르지 않아요.',
+  AUTH_FORBIDDEN: '접근 권한이 없어요.',
   FORBIDDEN: '권한이 없어요.',
   INTERNAL_SERVER_ERROR: '잠시 후 다시 시도해 주세요.',
 };
@@ -19,6 +22,9 @@ const COMMON_ERROR_CODES = new Set<CommonErrorCode>([
   'INVALID_CURSOR',
   'AUTH_UNAUTHORIZED',
   'AUTH_INVALID_TOKEN',
+  'AUTH_INVALID_REQUEST',
+  'AUTH_INVALID_CREDENTIALS',
+  'AUTH_FORBIDDEN',
   'FORBIDDEN',
   'INTERNAL_SERVER_ERROR',
 ]);
@@ -49,6 +55,13 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
           if (!handled) {
             router.replace(redirectTo);
           }
+        }
+        if (
+          error.code === 'AUTH_INVALID_REQUEST' ||
+          error.code === 'AUTH_INVALID_CREDENTIALS' ||
+          error.code === 'AUTH_FORBIDDEN'
+        ) {
+          router.replace(redirectTo);
         }
         return true;
       }
