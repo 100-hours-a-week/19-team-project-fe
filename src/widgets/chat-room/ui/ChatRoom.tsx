@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 
-import { readAccessToken } from '@/shared/api';
+import { readAccessToken, useCommonApiErrorHandler } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 import { getChatMessages, markChatRead, sendChatMessage, subscribeChat } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
@@ -57,6 +57,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [draft, setDraft] = useState('');
   const [isWsReady, setIsWsReady] = useState(stompManager.isConnected());
   const currentUserId = useMemo(() => readCurrentUserId(), []);
+  const handleCommonApiError = useCommonApiErrorHandler();
 
   useEffect(() => {
     alert(`chatId prop: ${chatId}`);
@@ -81,6 +82,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         }
       } catch (error) {
         if (cancelled) return;
+        if (await handleCommonApiError(error)) {
+          return;
+        }
         console.warn('Chat messages load failed:', error);
       }
     })();
@@ -88,7 +92,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     return () => {
       cancelled = true;
     };
-  }, [chatId, currentUserId]);
+  }, [chatId, currentUserId, handleCommonApiError]);
 
   /**
    * STOMP 연결 + 구독

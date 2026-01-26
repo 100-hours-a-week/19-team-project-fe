@@ -37,6 +37,9 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         if (isMounted) setExpert(data);
       } catch (error) {
         if (isMounted) {
+          if (await handleCommonApiError(error)) {
+            return;
+          }
           const message = error instanceof Error ? error.message : '알 수 없는 오류';
           setErrorMessage(message);
           setExpert(null);
@@ -79,6 +82,9 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
             return;
           }
         } catch (listError) {
+          if (await handleCommonApiError(listError)) {
+            return;
+          }
           console.error('[Chat List Error]', listError);
         }
         alert('이미 채팅방이 존재하지만 이동할 수 없습니다.');

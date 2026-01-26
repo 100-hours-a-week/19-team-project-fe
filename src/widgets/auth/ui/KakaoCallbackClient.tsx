@@ -4,12 +4,13 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { kakaoLogin } from '@/features/auth';
-import { readAccessToken, setAuthCookies } from '@/shared/api';
+import { readAccessToken, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 
 export default function KakaoCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const handleCommonApiError = useCommonApiErrorHandler();
 
   useEffect(() => {
     const code = searchParams.get('code');
@@ -75,11 +76,12 @@ export default function KakaoCallbackClient() {
 
         router.replace('/');
       })
-      .catch((err) => {
+      .catch(async (err) => {
         console.error('[KAKAO][ERROR] login failed', err);
+        if (await handleCommonApiError(err)) return;
         router.replace('/login?error=server');
       });
-  }, [router, searchParams]);
+  }, [handleCommonApiError, router, searchParams]);
 
   return <p className="p-6 text-sm text-gray-600">카카오 로그인 처리 중입니다…</p>;
 }

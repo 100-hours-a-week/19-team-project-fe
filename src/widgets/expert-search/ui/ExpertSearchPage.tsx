@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getExperts, type Expert } from '@/entities/experts';
+import { useCommonApiErrorHandler } from '@/shared/api';
 import profileBasic from '@/shared/icons/profile_basic.png';
 import ExpertSearchHeader from './ExpertSearchHeader';
 
@@ -15,6 +16,7 @@ export default function ExpertSearchPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const handleCommonApiError = useCommonApiErrorHandler();
 
   const loadExperts = useCallback(async (nextKeyword?: string, size = 5) => {
     setIsLoading(true);
@@ -23,14 +25,17 @@ export default function ExpertSearchPage() {
       const data = await getExperts({ keyword: nextKeyword, size });
       setExperts(data.experts);
       return data;
-    } catch (_error) {
+    } catch (error) {
+      if (await handleCommonApiError(error)) {
+        return undefined;
+      }
       setExperts([]);
       setErrorMessage('네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
       return undefined;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [handleCommonApiError]);
 
   useEffect(() => {
     if (submitted) return;
