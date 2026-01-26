@@ -16,7 +16,6 @@ type SignupResult = {
 
 export async function signup(payload: SignupRequest): Promise<SignupResult> {
   const data = await apiFetch<SignupBackendResponse>('/bff/auth/signup', {
-
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
