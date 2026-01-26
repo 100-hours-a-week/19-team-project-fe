@@ -1,8 +1,6 @@
-import { apiFetch, buildApiUrl } from '@/shared/api';
+import { apiFetch } from '@/shared/api';
 
 import type { SignupRequest } from '@/entities/onboarding';
-
-const SIGNUP_PATH = '/api/v1/auth/signup';
 
 type SignupBackendResponse = {
   user_id: number;
@@ -17,7 +15,7 @@ type SignupResult = {
 };
 
 export async function signup(payload: SignupRequest): Promise<SignupResult> {
-  const data = await apiFetch<SignupBackendResponse>(buildApiUrl(SIGNUP_PATH), {
+  const data = await apiFetch<SignupBackendResponse>('/app/bff/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
