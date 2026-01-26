@@ -3,7 +3,7 @@ import { Header } from '@/widgets/header';
 import { SearchBar } from '@/widgets/search-bar';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
-import SignupConfetti from '@/widgets/home/ui/SignupConfetti';
+import { SignupConfetti } from '@/widgets/home';
 
 export default function Home() {
   return (
