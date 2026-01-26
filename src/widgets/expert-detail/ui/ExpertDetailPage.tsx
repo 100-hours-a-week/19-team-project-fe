@@ -52,7 +52,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
     return () => {
       isMounted = false;
     };
-  }, [userId]);
+  }, [handleCommonApiError, userId]);
 
   const handleChatRequestClick = async () => {
     if (isCheckingAuth) return;

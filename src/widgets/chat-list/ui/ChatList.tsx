@@ -96,7 +96,7 @@ export default function ChatList() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [handleCommonApiError]);
 
   const handleAuthSheetClose = () => {
     router.replace('/');

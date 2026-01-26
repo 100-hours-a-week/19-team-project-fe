@@ -18,24 +18,27 @@ export default function ExpertSearchPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const handleCommonApiError = useCommonApiErrorHandler();
 
-  const loadExperts = useCallback(async (nextKeyword?: string, size = 5) => {
-    setIsLoading(true);
-    setErrorMessage('');
-    try {
-      const data = await getExperts({ keyword: nextKeyword, size });
-      setExperts(data.experts);
-      return data;
-    } catch (error) {
-      if (await handleCommonApiError(error)) {
+  const loadExperts = useCallback(
+    async (nextKeyword?: string, size = 5) => {
+      setIsLoading(true);
+      setErrorMessage('');
+      try {
+        const data = await getExperts({ keyword: nextKeyword, size });
+        setExperts(data.experts);
+        return data;
+      } catch (error) {
+        if (await handleCommonApiError(error)) {
+          return undefined;
+        }
+        setExperts([]);
+        setErrorMessage('네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
         return undefined;
+      } finally {
+        setIsLoading(false);
       }
-      setExperts([]);
-      setErrorMessage('네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
-      return undefined;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [handleCommonApiError]);
+    },
+    [handleCommonApiError],
+  );
 
   useEffect(() => {
     if (submitted) return;

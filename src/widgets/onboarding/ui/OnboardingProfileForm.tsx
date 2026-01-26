@@ -95,7 +95,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [handleCommonApiError]);
 
   useEffect(() => {
     let isMounted = true;
@@ -117,7 +117,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [handleCommonApiError]);
 
   useEffect(() => {
     let isMounted = true;
@@ -139,7 +139,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [handleCommonApiError]);
 
   const filteredTech = useMemo(() => {
     const query = techQuery.trim().toLowerCase();
