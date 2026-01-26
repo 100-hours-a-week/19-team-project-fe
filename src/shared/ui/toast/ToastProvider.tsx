@@ -55,7 +55,7 @@ export function ToastProvider({ children }: PropsWithChildren) {
     <ToastContext.Provider value={{ pushToast }}>
       {children}
       <div
-        className="pointer-events-none fixed inset-x-0 bottom-6 z-[999] flex justify-center"
+        className="pointer-events-none fixed inset-x-0 bottom-12 z-[999] flex justify-center"
         role="status"
         aria-live="polite"
       >
@@ -63,7 +63,7 @@ export function ToastProvider({ children }: PropsWithChildren) {
           {toasts.map((toast) => (
             <div
               key={toast.id}
-              className="pointer-events-auto animate-fade-in rounded-full bg-[var(--color-bg-toast)] px-4 py-2 text-sm text-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
+              className="pointer-events-auto animate-fade-in rounded-full bg-red-600/85 px-4 py-2 text-sm text-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
             >
               {toast.message}
             </div>
