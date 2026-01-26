@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { KakaoLoginButton, getMe } from '@/features/auth';
 import { createChat, getChatList } from '@/features/chat';
 import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
-import { BusinessError, HttpError } from '@/shared/api';
+import { BusinessError, useCommonApiErrorHandler } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import profileBasic from '@/shared/icons/profile_basic.png';
@@ -25,6 +25,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const [authSheetOpen, setAuthSheetOpen] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const handleCommonApiError = useCommonApiErrorHandler();
 
   useEffect(() => {
     let isMounted = true;
@@ -83,12 +84,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         alert('이미 채팅방이 존재하지만 이동할 수 없습니다.');
         return;
       }
-      if (error instanceof BusinessError && error.code === 'AUTH_UNAUTHORIZED') {
-        setAuthSheetOpen(true);
-        return;
-      }
-      if (error instanceof HttpError && error.status === 401) {
-        setAuthSheetOpen(true);
+      if (await handleCommonApiError(error)) {
         return;
       }
       console.error('[Chat Request Error]', error);

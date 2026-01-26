@@ -6,7 +6,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 import { getCareerLevels, getJobs, getSkills, signup } from '@/features/onboarding';
-import { BusinessError, readAccessToken, setAuthCookies } from '@/shared/api';
+import {
+  BusinessError,
+  readAccessToken,
+  setAuthCookies,
+  useCommonApiErrorHandler,
+} from '@/shared/api';
 import iconMark from '@/shared/icons/icon-mark.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import iconCareer from '@/shared/icons/icon_career.png';
@@ -68,6 +73,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   const [introduction, setIntroduction] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const handleCommonApiError = useCommonApiErrorHandler();
 
   useEffect(() => {
     let isMounted = true;
@@ -238,6 +244,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       }
       router.replace('/');
     } catch (error: unknown) {
+      if (await handleCommonApiError(error)) {
+        return;
+      }
       if (error instanceof BusinessError) {
         setSubmitError(
           signupErrorMessages[error.code] ?? error.message ?? defaultSignupErrorMessage,
