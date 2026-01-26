@@ -7,7 +7,7 @@ type RefreshTokenResponse = {
 };
 
 export async function refreshAuthTokens(): Promise<boolean> {
-  const data = await apiFetch<RefreshTokenResponse>('/app/bff/auth/tokens', {
+  const data = await apiFetch<RefreshTokenResponse>('/bff/auth/tokens', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

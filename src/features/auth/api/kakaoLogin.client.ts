@@ -1,4 +1,4 @@
-import { apiFetch, buildApiUrl } from '@/shared/api';
+import { apiFetch } from '@/shared/api';
 
 type KakaoLoginResult =
   | {
@@ -33,7 +33,7 @@ export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
       email: string | null;
       nickname: string | null;
     } | null;
-  }>(buildApiUrl('/api/v1/auth/oauth/kakao/login'), {
+  }>('/bff/auth/kakao/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code }),
