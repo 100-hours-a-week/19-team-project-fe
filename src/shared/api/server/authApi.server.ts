@@ -18,8 +18,9 @@ type SignupRequestPayload = {
   oauth_provider: 'KAKAO';
   oauth_id: string;
   email: string;
+  company_email?: string;
   nickname: string;
-  user_type: 'JOB_SEEKER';
+  user_type: 'JOB_SEEKER' | 'EXPERT';
   career_level_id: number;
   job_ids: number[];
   skills: Array<{
