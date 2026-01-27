@@ -28,9 +28,31 @@ export async function POST() {
     });
     return response;
   } catch {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { code: 'AUTH_UNAUTHORIZED', message: 'token_refresh_failed', data: null },
       { status: 401 },
     );
+    response.cookies.set('access_token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: new Date(0),
+    });
+    response.cookies.set('refresh_token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: new Date(0),
+    });
+    response.cookies.set('user_id', '', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: new Date(0),
+    });
+    return response;
   }
 }
