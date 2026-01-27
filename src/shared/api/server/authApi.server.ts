@@ -40,14 +40,11 @@ type SignupResponsePayload = {
 };
 
 export async function loginWithKakao(code: string): Promise<KakaoLoginBackendResponse> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/kakao/login/local`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    },
-  );
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/kakao/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
 
   if (!res.ok) {
     throw new Error('KAKAO_LOGIN_FAILED');
