@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 
-import { readAccessToken, useCommonApiErrorHandler } from '@/shared/api';
+import { useCommonApiErrorHandler } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 import { getChatMessages, markChatRead, sendChatMessage, subscribeChat } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
@@ -63,8 +63,39 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     alert(`chatId prop: ${chatId}`);
   }, [chatId, currentUserId]);
 
+  useEffect(() => {
+    if (!chatId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const data = await getChatMessages({ chatId });
+        alert(JSON.stringify(data, null, 2));
+        if (cancelled) return;
+        const sorted = sortMessagesByTime(data.messages);
+        setMessages(sorted);
+        const latest = sorted[sorted.length - 1];
+        if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
+          markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch((readError) => {
+            console.warn('Mark chat read failed:', readError);
+          });
+        }
+      } catch (error) {
+        if (cancelled) return;
+        if (await handleCommonApiError(error)) {
+          return;
+        }
+        console.warn('Chat messages load failed:', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chatId, currentUserId, handleCommonApiError]);
+
   /**
-   * STOMP 연결 + 구독 -> REST 동기화
+   * STOMP 연결 + 구독
    */
   useEffect(() => {
     if (!chatId) return;
@@ -73,16 +104,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     setIsWsReady(stompManager.isConnected());
 
     (async () => {
-      const accessToken = readAccessToken();
-      if (!accessToken) {
-        setIsWsReady(stompManager.isConnected());
-        return;
-      }
-
       try {
-        await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!, {
-          connectHeaders: { Authorization: `Bearer ${accessToken}` },
-        });
+        await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!);
       } catch (e) {
         console.warn('WS connect failed:', e);
         return; // UI는 살려둠
@@ -105,25 +128,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           });
         }
       });
-
-      try {
-        const data = await getChatMessages({ chatId });
-        if (cancelled) return;
-        const sorted = sortMessagesByTime(data.messages);
-        setMessages(sorted);
-        const latest = sorted[sorted.length - 1];
-        if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
-          markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch((readError) => {
-            console.warn('Mark chat read failed:', readError);
-          });
-        }
-      } catch (error) {
-        if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          return;
-        }
-        console.warn('Chat messages load failed:', error);
-      }
     })();
 
     return () => {
@@ -131,7 +135,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       setIsWsReady(false);
       unsubscribe?.();
     };
-  }, [chatId, currentUserId, handleCommonApiError]);
+  }, [chatId, currentUserId]);
 
   /**
    * 최신 메시지 위치로 포커스
