@@ -122,17 +122,18 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       if (cancelled) return;
       setIsWsReady(true);
 
-      unsubscribe = subscribeChat<ChatMessageItem>(chatId, (response) => {
-        if (response.code !== 'CREATED' || response.data === null || response.data === undefined)
-          return;
+      unsubscribe = subscribeChat<ChatMessageItem>(chatId, (message) => {
+        console.log('[WS RECEIVED]', message);
 
-        setMessages((prev) => sortMessagesByTime([...prev, response.data]));
-        if (currentUserId !== null && response.data.sender.user_id !== currentUserId) {
-          markChatRead({ chat_id: chatId, message_id: response.data.message_id }).catch(
-            (readError) => {
-              console.warn('Mark chat read failed:', readError);
-            },
-          );
+        setMessages((prev) => sortMessagesByTime([...prev, message]));
+
+        if (currentUserId !== null && message.sender.user_id !== currentUserId) {
+          markChatRead({
+            chat_id: chatId,
+            message_id: message.message_id,
+          }).catch((err) => {
+            console.warn('Mark chat read failed:', err);
+          });
         }
       });
     })();
