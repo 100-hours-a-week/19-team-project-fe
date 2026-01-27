@@ -1,5 +1,4 @@
 import { stompManager } from '@/shared/ws';
-import type { ChatResponse } from '@/entities/chat';
 
 /**
  * 채팅 응답 구독
@@ -8,13 +7,10 @@ import type { ChatResponse } from '@/entities/chat';
  * @param handler 서버 응답 핸들러
  * @returns unsubscribe 함수
  */
-export function subscribeChat<T>(
-  chatId: number,
-  handler: (response: ChatResponse<T>) => void,
-): () => void {
+export function subscribeChat<T>(chatId: number, handler: (payload: T) => void): () => void {
   const destination = `/queue/chat.${chatId}`;
 
-  return stompManager.subscribe<ChatResponse<T>>(
+  return stompManager.subscribe<T>(
     destination,
     (payload) => {
       handler(payload);
