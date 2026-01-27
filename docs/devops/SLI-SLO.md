@@ -59,7 +59,7 @@
 | 페이지 로드   | LCP (Largest Contentful Paint) | web-vitals          | High   |
 | 페이지 로드   | FCP (First Contentful Paint)   | web-vitals          | High   |
 | 페이지 로드   | CLS (Cumulative Layout Shift)  | web-vitals          | High   |
-| 페이지 로드   | FID (First Input Delay)        | web-vitals          | Medium |
+| 페이지 로드   | INP (Interaction to Next Paint) | web-vitals          | Medium |
 | 페이지 로드   | TTFB (Time To First Byte)      | web-vitals          | Medium |
 | 이력서 업로드 | 클라이언트 업로드 시간         | Performance API     | High   |
 | 이력서 업로드 | 파일 사전 검증 시간            | Performance API     | Low    |
@@ -103,14 +103,14 @@
 | **Good 기준** | ≤ 0.1                                                         |
 | **Poor 기준** | > 0.25                                                        |
 
-### 3.1.4 FID (First Input Delay)
+### 3.1.4 INP (Interaction to Next Paint)
 
-| 항목          | 내용                                                  |
-| ------------- | ----------------------------------------------------- |
-| **정의**      | 사용자의 첫 인터랙션과 브라우저 응답 사이의 지연 시간 |
-| **측정 대상** | 모든 페이지                                           |
-| **Good 기준** | ≤ 100ms                                               |
-| **Poor 기준** | > 300ms                                               |
+| 항목          | 내용                                                        |
+| ------------- | ----------------------------------------------------------- |
+| **정의**      | 페이지의 전체 수명 동안 발생하는 모든 상호작용의 응답 시간  |
+| **측정 대상** | 모든 페이지                                                 |
+| **Good 기준** | ≤ 200ms                                                     |
+| **Poor 기준** | > 500ms                                                     |
 
 ### 3.1.5 TTFB (Time To First Byte)
 
@@ -237,7 +237,7 @@
 | 페이지 로드   | LCP                      | < 1.5s  | < 2.5s  | < 4s    |
 | 페이지 로드   | FCP                      | < 1s    | < 1.8s  | < 3s    |
 | 페이지 로드   | CLS                      | < 0.05  | < 0.1   | < 0.15  |
-| 페이지 로드   | FID                      | < 50ms  | < 100ms | < 200ms |
+| 페이지 로드   | INP                      | < 100ms | < 200ms | < 400ms |
 | 이력서 업로드 | 클라이언트 업로드 (≤5MB) | < 500ms | < 1s    | < 2s    |
 | 이력서 파싱   | 폼 렌더링                | < 200ms | < 500ms | < 1s    |
 | 현직자 목록   | 렌더링 시간              | < 100ms | < 300ms | < 500ms |
@@ -284,7 +284,7 @@ npm install web-vitals
 
 ```tsx
 // lib/webVitals.ts
-import { onLCP, onFCP, onCLS, onFID, onTTFB, Metric } from 'web-vitals';
+import { onLCP, onFCP, onCLS, onINP, onTTFB, Metric } from 'web-vitals';
 
 interface MetricPayload {
   name: string;
@@ -316,7 +316,7 @@ export const initWebVitals = () => {
   onLCP(sendToAnalytics);
   onFCP(sendToAnalytics);
   onCLS(sendToAnalytics);
-  onFID(sendToAnalytics);
+  onINP(sendToAnalytics);
   onTTFB(sendToAnalytics);
 };
 ```
@@ -920,7 +920,7 @@ web_vitals_${data.name.toLowerCase()}{rating="${data.rating}",path="${data.pathn
 
 | 패널                 | 메트릭             | 시각화                              |
 | -------------------- | ------------------ | ----------------------------------- |
-| Core Web Vitals 현황 | LCP, FCP, CLS, FID | Gauge (Good/Needs Improvement/Poor) |
+| Core Web Vitals 현황 | LCP, FCP, CLS, INP | Gauge (Good/Needs Improvement/Poor) |
 | LCP 추이             | LCP p50, p95, p99  | Time Series                         |
 | FCP 추이             | FCP p50, p95, p99  | Time Series                         |
 | CLS 분포             | CLS 값 분포        | Histogram                           |

@@ -1,4 +1,4 @@
-import { onLCP, onFCP, onCLS, onFID, onTTFB, type Metric } from 'web-vitals';
+import { onLCP, onFCP, onCLS, onINP, onTTFB, type Metric } from 'web-vitals';
 
 const sendToAnalytics = async (metric: Metric) => {
   const payload = {
@@ -22,6 +22,6 @@ export const initWebVitals = () => {
   onLCP(sendToAnalytics);
   onFCP(sendToAnalytics);
   onCLS(sendToAnalytics);
-  onFID(sendToAnalytics);
+  onINP(sendToAnalytics);
   onTTFB(sendToAnalytics);
 };

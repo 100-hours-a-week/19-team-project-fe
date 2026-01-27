@@ -61,7 +61,7 @@ pnpm add web-vitals @aws-sdk/client-cloudwatch
 ```
 
 **주요 패키지:**
-- `web-vitals`: Core Web Vitals 측정 (LCP, FCP, CLS, FID, TTFB)
+- `web-vitals`: Core Web Vitals 측정 (LCP, FCP, CLS, INP, TTFB)
 - `@aws-sdk/client-cloudwatch`: CloudWatch 메트릭 전송
 
 #### 1.2 메트릭 수집 모듈 생성 (FSD 패턴)
@@ -176,7 +176,7 @@ if (typeof window !== 'undefined') {
 
 **`src/shared/metrics/web-vitals.ts`** - Core Web Vitals 수집
 ```typescript
-import { onLCP, onFCP, onCLS, onFID, onTTFB, Metric } from 'web-vitals';
+import { onLCP, onFCP, onCLS, onINP, onTTFB, Metric } from 'web-vitals';
 
 const sendToAnalytics = async (metric: Metric) => {
   const payload = {
@@ -200,7 +200,7 @@ export const initWebVitals = () => {
   onLCP(sendToAnalytics);
   onFCP(sendToAnalytics);
   onCLS(sendToAnalytics);
-  onFID(sendToAnalytics);
+  onINP(sendToAnalytics);
   onTTFB(sendToAnalytics);
 };
 ```
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
     await cloudwatch.send(new PutMetricDataCommand({
       Namespace: 'ReFit/Frontend',
       MetricData: [{
-        MetricName: metric.name, // LCP, FCP, CLS, FID, TTFB
+        MetricName: metric.name, // LCP, FCP, CLS, INP, TTFB
         Value: metric.value,
         Unit: metric.name === 'CLS' ? 'None' : 'Milliseconds',
         Timestamp: new Date(),
