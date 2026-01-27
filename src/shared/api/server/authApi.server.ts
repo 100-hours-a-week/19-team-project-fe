@@ -1,4 +1,4 @@
-import { BusinessError, HttpError } from '@/shared/api';
+import { BusinessError, HttpError, buildApiUrl } from '@/shared/api';
 import type { ApiResponse } from '@/shared/api/types';
 
 export type KakaoLoginBackendResponse = {
@@ -40,7 +40,7 @@ type SignupResponsePayload = {
 };
 
 export async function loginWithKakao(code: string): Promise<KakaoLoginBackendResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/kakao/login`, {
+  const res = await fetch(buildApiUrl('/api/v1/auth/oauth/kakao/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code }),
@@ -56,7 +56,7 @@ export async function loginWithKakao(code: string): Promise<KakaoLoginBackendRes
 
 /* ✅ 여기 추가 */
 export async function signup(payload: SignupRequestPayload): Promise<SignupResponsePayload> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/signup`, {
+  const res = await fetch(buildApiUrl('/api/v1/auth/signup'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
