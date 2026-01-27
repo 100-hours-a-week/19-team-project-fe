@@ -59,10 +59,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const currentUserId = useMemo(() => readCurrentUserId(), []);
   const handleCommonApiError = useCommonApiErrorHandler();
 
-  useEffect(() => {
-    alert(`chatId prop: ${chatId}`);
-  }, [chatId, currentUserId]);
-
   /**
    * STOMP 연결 + 구독 -> REST 동기화
    */
@@ -145,17 +141,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     const trimmed = draft.trim();
     if (!trimmed) return;
     if (!isWsReady || !stompManager.isConnected()) {
-      alert('채팅 연결이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
       return;
     }
-
-    alert(
-      `sendChatMessage payload: ${JSON.stringify({
-        chat_id: chatId,
-        content: trimmed,
-        message_type: 'TEXT',
-      })}`,
-    );
 
     try {
       const now = new Date();
@@ -179,7 +166,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       });
     } catch (error) {
       console.warn('Send message failed:', error);
-      alert('메시지 전송에 실패했습니다.');
     }
 
     setDraft('');
