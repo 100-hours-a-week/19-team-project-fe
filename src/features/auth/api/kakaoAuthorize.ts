@@ -10,7 +10,7 @@
 //   return `${baseUrl}${separator}redirect_uri=${encodeURIComponent(redirectUri)}`;
 // }
 
-const KAKAO_AUTHORIZE_PATH = '/api/v1/auth/oauth/kakao/authorize';
+const KAKAO_AUTHORIZE_PATH = '/api/v1/auth/oauth/kakao/authorize/local';
 
 export function getKakaoAuthorizeUrl(): string {
   const baseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${KAKAO_AUTHORIZE_PATH}`;

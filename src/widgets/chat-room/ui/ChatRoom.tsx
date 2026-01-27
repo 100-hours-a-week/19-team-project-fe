@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 
-import { readAccessToken, useCommonApiErrorHandler } from '@/shared/api';
+import { useCommonApiErrorHandler } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 import { getChatMessages, markChatRead, sendChatMessage, subscribeChat } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
@@ -73,16 +73,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     setIsWsReady(stompManager.isConnected());
 
     (async () => {
-      const accessToken = readAccessToken();
-      if (!accessToken) {
-        setIsWsReady(stompManager.isConnected());
-        return;
-      }
-
       try {
-        await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!, {
-          connectHeaders: { Authorization: `Bearer ${accessToken}` },
-        });
+        await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!);
       } catch (e) {
         console.warn('WS connect failed:', e);
         return; // UI는 살려둠
