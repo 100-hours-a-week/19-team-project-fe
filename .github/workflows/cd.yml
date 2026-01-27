@@ -417,6 +417,7 @@ jobs:
 
           # SLO 검증 실행
           if bash build-output/scripts/verify-slo-cloudwatch.sh "${SLO_MODE}"; then
+
             echo "slo_status=passed" >> $GITHUB_OUTPUT
           else
             echo "slo_status=failed" >> $GITHUB_OUTPUT

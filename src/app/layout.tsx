@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { pretendard } from '../shared/config/font';
 import { ToastProvider } from '@/shared/ui/toast';
+import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${pretendard.variable} app-shell antialiased`}>
+        <MetricsInitializer />
         <ToastProvider>
           <div className="app-frame">{children}</div>
         </ToastProvider>
