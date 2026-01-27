@@ -7,8 +7,9 @@ import { useRouter } from 'next/navigation';
 import { KakaoLoginButton, getMe } from '@/features/auth';
 import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';
-import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { useCommonApiErrorHandler } from '@/shared/api';
+import { AuthGateSheet } from '@/shared/ui/auth-gate';
+import { useAuthGate } from '@/shared/lib/useAuthGate';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
@@ -44,23 +45,23 @@ export default function ChatList() {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [authStatus, setAuthStatus] = useState<'checking' | 'authed' | 'guest'>('checking');
+  const { status: authStatus } = useAuthGate(getMe);
   const handleCommonApiError = useCommonApiErrorHandler();
 
   useEffect(() => {
+    if (authStatus === 'checking') {
+      setIsLoading(true);
+      return;
+    }
+    if (authStatus === 'guest') {
+      setIsLoading(false);
+      return;
+    }
+
     let cancelled = false;
 
     (async () => {
       try {
-        const auth = await getMe();
-        if (cancelled) return;
-        if (!auth.authenticated) {
-          setAuthStatus('guest');
-          setIsLoading(false);
-          return;
-        }
-
-        setAuthStatus('authed');
         const data = await getChatList();
         if (cancelled) return;
         const normalized = data.chats
@@ -95,7 +96,7 @@ export default function ChatList() {
     return () => {
       cancelled = true;
     };
-  }, [handleCommonApiError]);
+  }, [authStatus, handleCommonApiError]);
 
   const handleAuthSheetClose = () => {
     router.replace('/');
@@ -157,20 +158,14 @@ export default function ChatList() {
         )}
       </ul>
 
-      <BottomSheet
+      <AuthGateSheet
         open={authStatus === 'guest'}
         title="로그인이 필요합니다"
+        description="채팅을 보려면 로그인해 주세요."
         onClose={handleAuthSheetClose}
       >
-        <div className="flex h-full flex-col gap-4">
-          <div>
-            <p className="mt-2 text-sm text-text-caption">채팅을 보려면 로그인해 주세요.</p>
-          </div>
-          <div className="mt-auto">
-            <KakaoLoginButton />
-          </div>
-        </div>
-      </BottomSheet>
+        <KakaoLoginButton />
+      </AuthGateSheet>
     </div>
   );
 }
