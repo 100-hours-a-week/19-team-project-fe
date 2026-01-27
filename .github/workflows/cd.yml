@@ -216,9 +216,22 @@ jobs:
           fi
           
           # 기존 .next 백업
+          # 기존 .next 백업
           if [ -d "${FE_DIR}/.next" ]; then
-            echo "기존 .next 백업 중..."
-            cp -r "${FE_DIR}/.next" "${BACKUP_DIR}/next_${TIMESTAMP}"
+            echo "기존 파일 백업 중..."
+            mkdir -p "${BACKUP_DIR}/next_${TIMESTAMP}"
+            
+            # .next 백업
+            cp -r "${FE_DIR}/.next" "${BACKUP_DIR}/next_${TIMESTAMP}/"
+            
+            # 환경 설정 및 의존성 파일 백업
+            [ -f "${FE_DIR}/package.json" ] && cp "${FE_DIR}/package.json" "${BACKUP_DIR}/next_${TIMESTAMP}/"
+            [ -f "${FE_DIR}/pnpm-lock.yaml" ] && cp "${FE_DIR}/pnpm-lock.yaml" "${BACKUP_DIR}/next_${TIMESTAMP}/"
+            [ -f "${FE_DIR}/next.config.ts" ] && cp "${FE_DIR}/next.config.ts" "${BACKUP_DIR}/next_${TIMESTAMP}/"
+            
+            # public 폴더 백업
+            [ -d "${FE_DIR}/public" ] && cp -r "${FE_DIR}/public" "${BACKUP_DIR}/next_${TIMESTAMP}/"
+            
             echo "✅ 백업 완료: ${BACKUP_DIR}/next_${TIMESTAMP}"
           fi
           
