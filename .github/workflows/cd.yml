@@ -380,6 +380,81 @@ jobs:
           done
           exit 1
 
+      - name: Wait for Metrics Collection
+        if: success()
+        run: |
+          echo "⏳ 실제 사용자 메트릭 수집 대기 중..."
+          echo "   배포 후 충분한 데이터 수집을 위해 5분 대기"
+          sleep 300
+
+      - name: Configure AWS Credentials for SLO Check
+        if: success()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Verify SLO Compliance (CloudWatch)
+        if: success()
+        id: slo_check
+        continue-on-error: true
+        env:
+          SLO_MODE: normal
+        run: |
+          echo "🔍 SLO 검증 시작 (CloudWatch)..."
+
+          # 스크립트에 실행 권한 부여
+          chmod +x scripts/verify-slo-cloudwatch.sh
+
+          # SLO 검증 실행
+          if bash scripts/verify-slo-cloudwatch.sh "${SLO_MODE}"; then
+            echo "slo_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "slo_status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Report SLO Results to Discord
+        if: success() && steps.slo_check.conclusion != 'skipped'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          SLO_STATUS: ${{ steps.slo_check.outputs.slo_status }}
+          BRANCH: ${{ inputs.branch }}
+          SHA: ${{ steps.deploy-vars.outputs.sha }}
+          CLOUDWATCH_DASHBOARD_URL: ${{ secrets.CLOUDWATCH_DASHBOARD_URL }}
+        run: |
+          if [ "$SLO_STATUS" = "failed" ]; then
+            COLOR=16776960
+            EMOJI="⚠️"
+            TITLE="SLO 위반 감지 (경고)"
+            MESSAGE="배포는 완료되었으나 일부 SLO 목표를 충족하지 못했습니다. CloudWatch 대시보드를 확인하세요."
+          else
+            COLOR=3066993
+            EMOJI="✅"
+            TITLE="SLO 검증 통과"
+            MESSAGE="모든 성능 목표를 충족했습니다."
+          fi
+
+          payload=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "$EMOJI $TITLE",
+              "description": "$MESSAGE",
+              "color": $COLOR,
+              "fields": [
+                {"name": "브랜치", "value": "\`$BRANCH\`", "inline": true},
+                {"name": "커밋", "value": "\`$SHA\`", "inline": true},
+                {"name": "CloudWatch", "value": "[대시보드 보기](${CLOUDWATCH_DASHBOARD_URL:-https://console.aws.amazon.com/cloudwatch})", "inline": false}
+              ],
+              "footer": { "text": "Re-Fit SLO Monitor (CloudWatch)" },
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            }]
+          }
+          EOF
+          )
+
+          curl -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK"
+
       - name: Notify Discord on Result
         if: always()
         env:
