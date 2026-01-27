@@ -105,9 +105,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: next-build-artifact-${{ steps.deploy-vars.outputs.sha }}
-          path: build-output/.next
+          path: build-output
           github-token: ${{ secrets.PAT }}
           run-id: ${{ steps.deploy-vars.outputs.run_id }}
+
+      - name: Extract Build Artifact
+        run: |
+          cd build-output
+          tar -xzf next-build.tar.gz
+          rm next-build.tar.gz
+          echo "✅ Build artifacts extracted"
+          ls -la
 
       - name: Download Deployment Files
         uses: actions/download-artifact@v4
@@ -149,14 +157,14 @@ jobs:
           cd build-output
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           ARCHIVE_NAME="frontend-build-${TIMESTAMP}.tar.gz"
-          
+
           # .next, package.json, pnpm-lock.yaml, next.config.ts, public/ 등을 tar로 압축
           tar -czf "${ARCHIVE_NAME}" .next package.json pnpm-lock.yaml next.config.ts public/ 2>/dev/null || \
           tar -czf "${ARCHIVE_NAME}" .next package.json 2>/dev/null || exit 1
-          
+
           # 파일 크기 검증 (100KB 이상)
           [ $(stat -f%z "${ARCHIVE_NAME}" 2>/dev/null || stat -c%s "${ARCHIVE_NAME}" 2>/dev/null || echo 0) -gt 100000 ] || exit 1
-          
+
           aws s3 cp "${ARCHIVE_NAME}" s3://${{ secrets.S3_ARTIFACTS_BUCKET }}/artifacts/frontend/${ARCHIVE_NAME}
           echo "s3_key=artifacts/frontend/${ARCHIVE_NAME}" >> $GITHUB_OUTPUT
 
@@ -170,14 +178,14 @@ jobs:
           S3_KEY: ${{ steps.s3_upload.outputs.s3_key }}
         run: |
           set -euo pipefail
-          
+
           BASE_PATH="$SERVER_BASE_PATH"
           FE_DIR="${BASE_PATH}/app/frontend"
           BACKUP_DIR="${BASE_PATH}/backups/frontend"
           TEMP_DIR="${BASE_PATH}/app/frontend_deploy_temp"
           ARCHIVE_PATH="${TEMP_DIR}/frontend-build.tar.gz"
           PM2_CONFIG="${BASE_PATH}/infra/pm2/ecosystem.config.js"
-          
+
           DEPLOY_SCRIPT=$(cat <<'SCRIPT_END'
           set -euo pipefail
           BASE_PATH="$1"
@@ -189,32 +197,32 @@ jobs:
           S3_BUCKET="$7"
           S3_KEY="$8"
           HEALTH_CHECK_URL="$9"
-          
+
           APP_NAME="frontend"
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          
+
           trap 'sudo -u ubuntu pm2 status || true; exit $?' ERR
-          
+
           echo "============================================"
           echo "Re-Fit FE 배포 시작: $(date)"
           echo "============================================"
-          
+
           # 디렉토리 준비
           mkdir -p "${BACKUP_DIR}" "${TEMP_DIR}"
-          
+
           # S3에서 압축된 아티팩트 다운로드
           aws s3 cp "s3://${S3_BUCKET}/${S3_KEY}" "${ARCHIVE_PATH}" --region ap-northeast-2
-          
+
           # 아카이브 파일 크기 검증 (100KB 이상)
           [ $(stat -f%z "${ARCHIVE_PATH}" 2>/dev/null || stat -c%s "${ARCHIVE_PATH}" 2>/dev/null || echo 0) -gt 100000 ] || exit 1
-          
+
           # 환경 변수 체크 (선택적)
           if [ -f "${FE_DIR}/.env.production" ]; then
             echo "✅ .env.production 파일 발견 (런타임 환경 변수 사용)"
           else
             echo "ℹ️  .env.production 파일 없음 (빌드 시점 환경 변수 사용)"
           fi
-          
+
           # 기존 .next 백업
           # 기존 .next 백업
           if [ -d "${FE_DIR}/.next" ]; then
@@ -234,54 +242,54 @@ jobs:
             
             echo "✅ 백업 완료: ${BACKUP_DIR}/next_${TIMESTAMP}"
           fi
-          
+
           # 임시 디렉토리에 압축 해제
           cd "${TEMP_DIR}"
           tar -xzf "${ARCHIVE_PATH}"
           rm -f "${ARCHIVE_PATH}"
-          
+
           # 파일 검증
           if [ ! -d "${TEMP_DIR}/.next" ]; then
             echo "❌ 에러: 빌드 아티팩트(.next)가 없습니다."
             rm -rf "${TEMP_DIR}"
             exit 1
           fi
-          
+
           if [ ! -f "${TEMP_DIR}/package.json" ]; then
             echo "❌ 에러: package.json이 없습니다."
             rm -rf "${TEMP_DIR}"
             exit 1
           fi
-          
+
           # Atomic Switch: 새 빌드로 교체
           echo "새 빌드 파일 교체 중..."
           rm -rf "${FE_DIR}/.next"
           mv "${TEMP_DIR}/.next" "${FE_DIR}/.next"
-          
+
           # 필수 파일 업데이트
           cp "${TEMP_DIR}/package.json" "${FE_DIR}/package.json"
           [ -f "${TEMP_DIR}/pnpm-lock.yaml" ] && cp "${TEMP_DIR}/pnpm-lock.yaml" "${FE_DIR}/pnpm-lock.yaml" || true
           [ -f "${TEMP_DIR}/next.config.ts" ] && cp "${TEMP_DIR}/next.config.ts" "${FE_DIR}/next.config.ts" || true
-          
+
           # public 폴더 업데이트
           if [ -d "${TEMP_DIR}/public" ]; then
             rm -rf "${FE_DIR}/public"
             mv "${TEMP_DIR}/public" "${FE_DIR}/public"
           fi
-          
+
           # 임시 디렉토리 정리
           rm -rf "${TEMP_DIR}"
-          
+
           # 권한 설정
           sudo chown -R ubuntu:ubuntu "${FE_DIR}" 2>/dev/null || true
-          
+
           # 프로덕션 의존성 설치
           echo "프로덕션 의존성 설치 중..."
           cd "${FE_DIR}"
-          
+
           # 프로덕션 의존성만 설치
           sudo -u ubuntu pnpm install --prod --frozen-lockfile --ignore-scripts || exit 1
-          
+
           # PM2로 애플리케이션 재시작 또는 시작
           if sudo -u ubuntu pm2 describe ${APP_NAME} > /dev/null 2>&1; then
             echo "기존 프로세스 재시작 (Reload)..."
@@ -290,14 +298,14 @@ jobs:
             echo "신규 프로세스 시작..."
             sudo -u ubuntu pm2 start ${PM2_CONFIG} --only ${APP_NAME} --env production || exit 1
           fi
-          
+
           sleep 2
           sudo -u ubuntu pm2 describe ${APP_NAME} > /dev/null || exit 1
-          
+
           # Caddy 리로드
           systemctl is-active --quiet caddy && sudo systemctl reload caddy 2>/dev/null || true
           sleep 15
-          
+
           # 헬스체크 (최대 5회 재시도)
           for i in {1..5}; do
             HTTP_STATUS=$(timeout 5 curl -s -o /dev/null -w "%{http_code}" "${HEALTH_CHECK_URL}" 2>/dev/null || echo "000")
@@ -312,7 +320,7 @@ jobs:
             fi
             [ $i -lt 5 ] && sleep 3
           done
-          
+
           # 헬스체크 실패 시 롤백
           echo "⚠️  헬스체크 실패, 롤백 시도 중..."
           BACKUP_DIR_PATH="${BACKUP_DIR}/next_${TIMESTAMP}"
@@ -333,12 +341,12 @@ jobs:
           exit 1
           SCRIPT_END
           )
-          
+
           # SSM 명령 실행 (base64 인코딩으로 특수문자 이스케이프 문제 방지)
           DEPLOY_SCRIPT_ENCODED=$(echo "$DEPLOY_SCRIPT" | base64 -w 0)
           SSM_COMMAND="bash -c \"echo '$DEPLOY_SCRIPT_ENCODED' | base64 -d | bash -s -- '$BASE_PATH' '$FE_DIR' '$BACKUP_DIR' '$TEMP_DIR' '$ARCHIVE_PATH' '$PM2_CONFIG' '$S3_BUCKET' '$S3_KEY' '$HEALTH_CHECK_URL'\""
           PARAMETERS_JSON=$(jq -n --arg cmd "$SSM_COMMAND" '{commands: [$cmd]}')
-          
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
@@ -347,9 +355,9 @@ jobs:
             --region ap-northeast-2 \
             --query 'Command.CommandId' \
             --output text)
-          
+
           [ -n "$COMMAND_ID" ] || exit 1
-          
+
           # SSM 명령 실행 상태 확인 (최대 60회, 5분)
           for i in {1..60}; do
             STATUS=$(aws ssm get-command-invocation \
@@ -379,6 +387,81 @@ jobs:
             sleep 5
           done
           exit 1
+
+      - name: Wait for Metrics Collection
+        if: success()
+        run: |
+          echo "⏳ 실제 사용자 메트릭 수집 대기 중..."
+          echo "   배포 후 충분한 데이터 수집을 위해 5분 대기"
+          sleep 300
+
+      - name: Configure AWS Credentials for SLO Check
+        if: success()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Verify SLO Compliance (CloudWatch)
+        if: success()
+        id: slo_check
+        continue-on-error: true
+        env:
+          SLO_MODE: normal
+        run: |
+          echo "🔍 SLO 검증 시작 (CloudWatch)..."
+
+          # 스크립트에 실행 권한 부여
+          chmod +x build-output/scripts/verify-slo-cloudwatch.sh
+
+          # SLO 검증 실행
+          if bash build-output/scripts/verify-slo-cloudwatch.sh "${SLO_MODE}"; then
+            echo "slo_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "slo_status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Report SLO Results to Discord
+        if: success() && steps.slo_check.conclusion != 'skipped'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          SLO_STATUS: ${{ steps.slo_check.outputs.slo_status }}
+          BRANCH: ${{ inputs.branch }}
+          SHA: ${{ steps.deploy-vars.outputs.sha }}
+          CLOUDWATCH_DASHBOARD_URL: ${{ secrets.CLOUDWATCH_DASHBOARD_URL }}
+        run: |
+          if [ "$SLO_STATUS" = "failed" ]; then
+            COLOR=16776960
+            EMOJI="⚠️"
+            TITLE="SLO 위반 감지 (경고)"
+            MESSAGE="배포는 완료되었으나 일부 SLO 목표를 충족하지 못했습니다. CloudWatch 대시보드를 확인하세요."
+          else
+            COLOR=3066993
+            EMOJI="✅"
+            TITLE="SLO 검증 통과"
+            MESSAGE="모든 성능 목표를 충족했습니다."
+          fi
+
+          payload=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "$EMOJI $TITLE",
+              "description": "$MESSAGE",
+              "color": $COLOR,
+              "fields": [
+                {"name": "브랜치", "value": "\`$BRANCH\`", "inline": true},
+                {"name": "커밋", "value": "\`$SHA\`", "inline": true},
+                {"name": "CloudWatch", "value": "[대시보드 보기](${CLOUDWATCH_DASHBOARD_URL:-https://console.aws.amazon.com/cloudwatch})", "inline": false}
+              ],
+              "footer": { "text": "Re-Fit SLO Monitor (CloudWatch)" },
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            }]
+          }
+          EOF
+          )
+
+          curl -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK"
 
       - name: Notify Discord on Result
         if: always()

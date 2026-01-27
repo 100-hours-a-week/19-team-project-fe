@@ -124,14 +124,20 @@ jobs:
             exit 1
           fi
 
+      - name: Compress Build Artifacts
+        if: success()
+        run: |
+          tar -czf next-build.tar.gz .next/
+          echo "✅ Build artifacts compressed"
+          ls -lh next-build.tar.gz
+
       - name: Archive Build Artifacts
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: next-build-artifact-${{ github.sha }}
-          path: .next/
+          path: next-build.tar.gz
           retention-days: 7
-          include-hidden-files: true
 
       - name: Archive Deployment Files
         if: success()
@@ -143,6 +149,7 @@ jobs:
             pnpm-lock.yaml
             next.config.ts
             public/
+            scripts/
           retention-days: 7
 
       - name: Create Release Tag
