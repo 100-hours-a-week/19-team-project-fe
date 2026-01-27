@@ -63,39 +63,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     alert(`chatId prop: ${chatId}`);
   }, [chatId, currentUserId]);
 
-  useEffect(() => {
-    if (!chatId) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const data = await getChatMessages({ chatId });
-        alert(JSON.stringify(data, null, 2));
-        if (cancelled) return;
-        const sorted = sortMessagesByTime(data.messages);
-        setMessages(sorted);
-        const latest = sorted[sorted.length - 1];
-        if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
-          markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch((readError) => {
-            console.warn('Mark chat read failed:', readError);
-          });
-        }
-      } catch (error) {
-        if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          return;
-        }
-        console.warn('Chat messages load failed:', error);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [chatId, currentUserId, handleCommonApiError]);
-
   /**
-   * STOMP 연결 + 구독
+   * STOMP 연결 + 구독 -> REST 동기화
    */
   useEffect(() => {
     if (!chatId) return;
@@ -128,6 +97,25 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           });
         }
       });
+
+      try {
+        const data = await getChatMessages({ chatId });
+        if (cancelled) return;
+        const sorted = sortMessagesByTime(data.messages);
+        setMessages(sorted);
+        const latest = sorted[sorted.length - 1];
+        if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
+          markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch((readError) => {
+            console.warn('Mark chat read failed:', readError);
+          });
+        }
+      } catch (error) {
+        if (cancelled) return;
+        if (await handleCommonApiError(error)) {
+          return;
+        }
+        console.warn('Chat messages load failed:', error);
+      }
     })();
 
     return () => {
@@ -135,7 +123,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       setIsWsReady(false);
       unsubscribe?.();
     };
-  }, [chatId, currentUserId]);
+  }, [chatId, currentUserId, handleCommonApiError]);
 
   /**
    * 최신 메시지 위치로 포커스
