@@ -46,6 +46,13 @@ const sortMessagesByTime = (items: ChatMessageItem[]) =>
     return timeA - timeB;
   });
 
+const mergeMessagesById = (base: ChatMessageItem[], incoming: ChatMessageItem[]) => {
+  const map = new Map<number, ChatMessageItem>();
+  base.forEach((message) => map.set(message.message_id, message));
+  incoming.forEach((message) => map.set(message.message_id, message));
+  return sortMessagesByTime(Array.from(map.values()));
+};
+
 interface ChatRoomProps {
   chatId: number;
 }
@@ -82,7 +89,14 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       unsubscribe = subscribeChat<ChatMessageItem>(chatId, (message) => {
         console.log('[WS RECEIVED]', message);
 
-        setMessages((prev) => sortMessagesByTime([...prev, message]));
+        setMessages((prev) => {
+          if (message.message_id > 0) {
+            if (prev.some((item) => item.message_id === message.message_id)) {
+              return prev;
+            }
+          }
+          return sortMessagesByTime([...prev, message]);
+        });
 
         if (currentUserId !== null && message.sender.user_id !== currentUserId) {
           markChatRead({
@@ -97,8 +111,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       try {
         const data = await getChatMessages({ chatId });
         if (cancelled) return;
+        setMessages((prev) => mergeMessagesById(prev, data.messages));
         const sorted = sortMessagesByTime(data.messages);
-        setMessages(sorted);
         const latest = sorted[sorted.length - 1];
         if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
           markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch((readError) => {
