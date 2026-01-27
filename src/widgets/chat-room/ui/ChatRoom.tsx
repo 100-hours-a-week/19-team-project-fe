@@ -46,6 +46,13 @@ const sortMessagesByTime = (items: ChatMessageItem[]) =>
     return timeA - timeB;
   });
 
+const mergeMessagesById = (base: ChatMessageItem[], incoming: ChatMessageItem[]) => {
+  const map = new Map<number, ChatMessageItem>();
+  base.forEach((message) => map.set(message.message_id, message));
+  incoming.forEach((message) => map.set(message.message_id, message));
+  return sortMessagesByTime(Array.from(map.values()));
+};
+
 interface ChatRoomProps {
   chatId: number;
 }
@@ -58,10 +65,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [isWsReady, setIsWsReady] = useState(stompManager.isConnected());
   const currentUserId = useMemo(() => readCurrentUserId(), []);
   const handleCommonApiError = useCommonApiErrorHandler();
-
-  useEffect(() => {
-    alert(`chatId prop: ${chatId}`);
-  }, [chatId, currentUserId]);
 
   /**
    * STOMP 연결 + 구독 -> REST 동기화
@@ -86,7 +89,14 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       unsubscribe = subscribeChat<ChatMessageItem>(chatId, (message) => {
         console.log('[WS RECEIVED]', message);
 
-        setMessages((prev) => sortMessagesByTime([...prev, message]));
+        setMessages((prev) => {
+          if (message.message_id > 0) {
+            if (prev.some((item) => item.message_id === message.message_id)) {
+              return prev;
+            }
+          }
+          return sortMessagesByTime([...prev, message]);
+        });
 
         if (currentUserId !== null && message.sender.user_id !== currentUserId) {
           markChatRead({
@@ -101,8 +111,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       try {
         const data = await getChatMessages({ chatId });
         if (cancelled) return;
+        setMessages((prev) => mergeMessagesById(prev, data.messages));
         const sorted = sortMessagesByTime(data.messages);
-        setMessages(sorted);
         const latest = sorted[sorted.length - 1];
         if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
           markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch((readError) => {
@@ -145,17 +155,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     const trimmed = draft.trim();
     if (!trimmed) return;
     if (!isWsReady || !stompManager.isConnected()) {
-      alert('채팅 연결이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
       return;
     }
-
-    alert(
-      `sendChatMessage payload: ${JSON.stringify({
-        chat_id: chatId,
-        content: trimmed,
-        message_type: 'TEXT',
-      })}`,
-    );
 
     try {
       const now = new Date();
@@ -179,7 +180,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       });
     } catch (error) {
       console.warn('Send message failed:', error);
-      alert('메시지 전송에 실패했습니다.');
     }
 
     setDraft('');

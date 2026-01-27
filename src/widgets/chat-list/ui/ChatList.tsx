@@ -63,7 +63,6 @@ export default function ChatList() {
         setAuthStatus('authed');
         const data = await getChatList();
         if (cancelled) return;
-        alert(JSON.stringify(data, null, 2));
         const normalized = data.chats
           .map((chat) => {
             const rawChatId = chat.chat_id ?? chat.chatId ?? null;
