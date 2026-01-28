@@ -5,7 +5,7 @@ export default function KakaoLoginButton() {
   const kakaoAuthUrl = getKakaoAuthorizeUrl();
 
   return (
-    <a href={kakaoAuthUrl} className="block w-full transition active:scale-[0.100]">
+    <a href={kakaoAuthUrl} className="block w-full transition duration-150 active:scale-[0.985]">
       <Image
         src="/icons/kakao_login_large_wide.png"
         alt="카카오로 로그인"
