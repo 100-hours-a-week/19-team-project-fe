@@ -103,7 +103,12 @@ export default function ResumePage() {
 
             {resumes.length === 0 ? (
               <div className="mt-6 flex flex-1 items-center justify-center">
-                <Image src={charResume} alt="이력서" className="h-72 w-auto animate-float" priority />
+                <Image
+                  src={charResume}
+                  alt="이력서"
+                  className="h-72 w-auto animate-float"
+                  priority
+                />
               </div>
             ) : (
               <div className="mt-6 flex flex-col gap-3">
@@ -114,7 +119,13 @@ export default function ResumePage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-base font-semibold text-text-title">{resume.title}</p>
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/resume/${resume.resumeId}`)}
+                          className="text-left text-base font-semibold text-text-title"
+                        >
+                          {resume.title}
+                        </button>
                         <p className="mt-1 text-xs text-text-caption">
                           {resume.isFresher ? '신입' : '경력'} ·{' '}
                           {resume.educationLevel || '학력 정보 없음'}

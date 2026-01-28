@@ -419,7 +419,10 @@ export default function ResumeEditPage() {
               <h2 className="text-lg font-semibold text-black">수상 내역</h2>
               <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
                 {awards.map((item, index) => (
-                  <div key={item.id} className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}>
+                  <div
+                    key={item.id}
+                    className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}
+                  >
                     <input
                       placeholder="텍스트를 입력해 주세요."
                       value={item.value}
@@ -459,7 +462,10 @@ export default function ResumeEditPage() {
               <h2 className="text-lg font-semibold text-black">자격증</h2>
               <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
                 {certificates.map((item, index) => (
-                  <div key={item.id} className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}>
+                  <div
+                    key={item.id}
+                    className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}
+                  >
                     <input
                       placeholder="텍스트를 입력해 주세요."
                       value={item.value}
@@ -501,7 +507,10 @@ export default function ResumeEditPage() {
               <h2 className="text-lg font-semibold text-black">대외 활동 / 기타</h2>
               <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
                 {activities.map((item, index) => (
-                  <div key={item.id} className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}>
+                  <div
+                    key={item.id}
+                    className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}
+                  >
                     <input
                       placeholder="텍스트를 입력해 주세요."
                       value={item.value}
