@@ -13,6 +13,7 @@ export default function Footer() {
 
   return (
     <footer className="fixed bottom-0 left-1/2 z-10 flex h-[calc(var(--app-footer-height)+4px)] w-full max-w-[600px] -translate-x-1/2 items-center justify-between rounded-t-2xl border-t border-neutral-200 bg-white px-6 pb-2">
+
       <Link
         href="/resume"
         className={`flex flex-col items-center gap-1 text-[10px] ${
