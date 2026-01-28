@@ -1,11 +1,11 @@
 import Image from 'next/image';
 
-import logo from '@/shared/icons/logo.png';
+import logoHeader from '@/shared/icons/logo_header.png';
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-10 flex h-app-header w-full items-center justify-between bg-white/80 px-6">
-      <Image src={logo} alt="re-fit" width={64} height={16} priority />
+    <header className="sticky top-0 z-10 flex h-app-header w-full items-center justify-between bg-white px-6">
+      <Image src={logoHeader} alt="re-fit" className="h-10 w-auto" priority />
       <div />
     </header>
   );
