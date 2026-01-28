@@ -27,7 +27,9 @@ type BlurTextProps = {
 };
 
 const sanitizeSnapshot = (snapshot: RawAnimationSnapshot): AnimationSnapshot =>
-  Object.fromEntries(Object.entries(snapshot).filter(([, value]) => value !== undefined)) as AnimationSnapshot;
+  Object.fromEntries(
+    Object.entries(snapshot).filter(([, value]) => value !== undefined),
+  ) as AnimationSnapshot;
 
 const buildKeyframes = (from: AnimationSnapshot, steps: AnimationSnapshot[]) => {
   const keys = new Set([...Object.keys(from), ...steps.flatMap((s) => Object.keys(s))]);
