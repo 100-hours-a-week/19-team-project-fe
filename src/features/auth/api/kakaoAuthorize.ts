@@ -10,7 +10,7 @@ import { buildApiUrl } from '@/shared/api';
 //   return `${baseUrl}${separator}redirect_uri=${encodeURIComponent(redirectUri)}`;
 // }
 
-const KAKAO_AUTHORIZE_PATH = '/api/v1/auth/oauth/kakao/authorize/local';
+const KAKAO_AUTHORIZE_PATH = '/api/v1/auth/oauth/kakao/authorize';
 
 export function getKakaoAuthorizeUrl(): string {
   const baseUrl = buildApiUrl(KAKAO_AUTHORIZE_PATH);
