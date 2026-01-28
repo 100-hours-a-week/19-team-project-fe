@@ -9,12 +9,13 @@ export default function Footer() {
   const isChat = pathname === '/chat';
   const isMyPage = pathname === '/me';
   const isResume = pathname === '/resume';
+  const isReport = pathname === '/report';
 
   return (
-    <footer className="fixed bottom-0 left-1/2 z-10 flex h-[calc(var(--app-footer-height)+8px)] w-full max-w-[600px] -translate-x-1/2 items-center justify-between rounded-t-2xl border-t border-neutral-200 bg-white/80 px-4 pb-2">
+    <footer className="fixed bottom-0 left-1/2 z-10 flex h-[calc(var(--app-footer-height)+8px)] w-full max-w-[600px] -translate-x-1/2 items-center justify-between rounded-t-2xl border-t border-neutral-200 bg-white px-8 pb-10">
       <Link
         href="/resume"
-        className={`flex flex-col items-center gap-1 text-xs ${
+        className={`flex flex-col items-center gap-1 text-[10px] ${
           isResume ? 'text-primary-main' : 'text-text-caption'
         }`}
       >
@@ -26,7 +27,7 @@ export default function Footer() {
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
-          className="h-5 w-5"
+          className="h-6 w-6"
         >
           <path
             strokeLinecap="round"
@@ -36,7 +37,12 @@ export default function Footer() {
         </svg>
         이력서
       </Link>
-      <button type="button" className="flex flex-col items-center gap-1 text-xs text-text-caption">
+      <Link
+        href="/report"
+        className={`flex flex-col items-center gap-1 text-[10px] ${
+          isReport ? 'text-primary-main' : 'text-text-caption'
+        }`}
+      >
         <svg
           data-slot="icon"
           fill="none"
@@ -45,7 +51,7 @@ export default function Footer() {
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
-          className="h-5 w-5"
+          className="h-6 w-6"
         >
           <path
             strokeLinecap="round"
@@ -54,10 +60,10 @@ export default function Footer() {
           />
         </svg>
         레포트
-      </button>
+      </Link>
       <Link
         href="/"
-        className={`flex flex-col items-center gap-1 text-xs ${
+        className={`flex flex-col items-center gap-1 text-[10px] ${
           isHome ? 'text-primary-main' : 'text-text-caption'
         }`}
       >
@@ -69,7 +75,7 @@ export default function Footer() {
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
-          className="h-5 w-5"
+          className="h-6 w-6"
         >
           <path
             strokeLinecap="round"
@@ -81,7 +87,7 @@ export default function Footer() {
       </Link>
       <Link
         href="/chat"
-        className={`flex flex-col items-center gap-1 text-xs ${
+        className={`flex flex-col items-center gap-1 text-[10px] ${
           isChat ? 'text-primary-main' : 'text-text-caption'
         }`}
       >
@@ -93,7 +99,7 @@ export default function Footer() {
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
-          className="h-5 w-5"
+          className="h-6 w-6"
         >
           <path
             strokeLinecap="round"
@@ -105,7 +111,7 @@ export default function Footer() {
       </Link>
       <Link
         href="/me"
-        className={`flex flex-col items-center gap-1 text-xs ${
+        className={`flex flex-col items-center gap-1 text-[10px] ${
           isMyPage ? 'text-primary-main' : 'text-text-caption'
         }`}
       >
@@ -117,7 +123,7 @@ export default function Footer() {
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
-          className="h-5 w-5"
+          className="h-6 w-6"
         >
           <path
             strokeLinecap="round"
@@ -125,7 +131,7 @@ export default function Footer() {
             d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
           />
         </svg>
-        마이 페이지
+        MY
       </Link>
     </footer>
   );

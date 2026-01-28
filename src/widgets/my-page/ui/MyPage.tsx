@@ -12,6 +12,7 @@ import { useCommonApiErrorHandler } from '@/shared/api';
 import defaultUserImage from '@/shared/icons/char_main.png';
 import iconCertification from '@/shared/icons/icon_certification.png';
 import iconInquiry from '@/shared/icons/icon_inquiry.png';
+import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
@@ -67,8 +68,6 @@ export default function MyPage() {
       <Header />
 
       <section className="px-6 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
-        <h1 className="text-2xl font-semibold text-black">마이 페이지</h1>
-
         {authStatus === 'checking' ? (
           <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
             <p className="text-base text-neutral-700">불러오는 중...</p>
@@ -92,7 +91,10 @@ export default function MyPage() {
                 type="button"
                 className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#3b5bcc] text-white shadow-md"
                 aria-label="프로필 수정"
-                onClick={() => router.push('/me/edit')}
+                onClick={() => {
+                  sessionStorage.setItem('nav-direction', 'forward');
+                  router.push('/me/edit');
+                }}
               >
                 <svg
                   data-slot="icon"
@@ -157,13 +159,19 @@ export default function MyPage() {
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => router.push('/me/verify')}
+                onClick={() => {
+                  sessionStorage.setItem('nav-direction', 'forward');
+                  router.push('/me/verify');
+                }}
                 className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
               >
                 <div className="flex items-center gap-3">
                   <Image src={iconCertification} alt="현직자 인증하기" width={40} height={40} />
                   <div className="text-left">
-                    <span className="text-base font-semibold text-text-body">현직자 인증하기</span>
+                    <span className="flex items-center gap-1 text-base font-semibold text-text-body">
+                      <Image src={iconMarkB} alt="" width={18} height={18} />
+                      현직자 인증하기
+                    </span>
                     <p className="mt-1 text-xs text-text-caption">인증을 진행해 주세요</p>
                   </div>
                 </div>
@@ -177,7 +185,10 @@ export default function MyPage() {
                 <div className="flex items-center gap-3">
                   <Image src={iconInquiry} alt="문의하기" width={40} height={40} />
                   <div className="text-left">
-                    <span className="text-base font-semibold text-text-body">문의하기</span>
+                    <span className="flex items-center gap-1 text-base font-semibold text-text-body">
+                      <Image src={iconMarkB} alt="" width={18} height={18} />
+                      문의하기
+                    </span>
                     <p className="mt-1 text-xs text-text-caption">궁금한 점을 남겨 주세요</p>
                   </div>
                 </div>

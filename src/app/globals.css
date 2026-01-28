@@ -181,7 +181,9 @@
 }
 
 .onboarding-stack__screen {
-  will-change: transform;
+  position: relative;
+  left: 0;
+  will-change: left;
   animation-duration: 240ms;
   animation-timing-function: ease-out;
 }
@@ -196,19 +198,19 @@
 
 @keyframes onboarding-slide-in-left {
   from {
-    transform: translateX(100%);
+    left: 100%;
   }
   to {
-    transform: translateX(0%);
+    left: 0%;
   }
 }
 
 @keyframes onboarding-slide-in-right {
   from {
-    transform: translateX(-100%);
+    left: -100%;
   }
   to {
-    transform: translateX(0%);
+    left: 0%;
   }
 }
 

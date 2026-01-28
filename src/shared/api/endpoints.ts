@@ -5,10 +5,17 @@ export const API_PATH_SUFFIX_TARGETS = (process.env.NEXT_PUBLIC_API_PATH_SUFFIX_
   .map((item) => item.trim())
   .filter(Boolean);
 
+const NO_SUFFIX_PATH_PREFIXES = [
+  '/api/v1/auth/oauth/kakao/authorize',
+  '/api/v1/auth/oauth/kakao/login',
+  '/api/v1/auth/signup',
+];
+
 const shouldApplySuffix = (path: string) => {
   if (!API_PATH_SUFFIX) return false;
-  if (API_PATH_SUFFIX_TARGETS.length === 0) return true;
   const base = path.split('?')[0];
+  if (NO_SUFFIX_PATH_PREFIXES.some((prefix) => base.startsWith(prefix))) return false;
+  if (API_PATH_SUFFIX_TARGETS.length === 0) return true;
   return API_PATH_SUFFIX_TARGETS.some((target) => {
     const normalized = target.startsWith('/') ? target : `/${target}`;
     return base.startsWith(normalized);

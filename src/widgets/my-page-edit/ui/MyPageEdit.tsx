@@ -349,7 +349,10 @@ export default function MyPageEdit() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={() => {
+              sessionStorage.setItem('nav-direction', 'back');
+              router.back();
+            }}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm"
             aria-label="뒤로 가기"
           >
@@ -366,7 +369,6 @@ export default function MyPageEdit() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
           </button>
-          <h1 className="text-2xl font-semibold text-black">프로필 수정</h1>
         </div>
 
         <div className="mt-8 flex flex-col gap-4">
