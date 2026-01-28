@@ -101,38 +101,94 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <ExpertDetailHeader />
-      <section className="px-6 pt-[calc(var(--app-header-height)+16px)]">
+      <section className="px-6 pt-6 pb-[calc(96px+24px)]">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm"
+            aria-label="뒤로 가기"
+          >
+            <svg
+              data-slot="icon"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              className="h-4 w-4"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+        </div>
+
         {isLoading ? (
-          <p className="text-sm text-text-hint-main">불러오는 중...</p>
+          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+            <p className="text-base text-neutral-700">불러오는 중...</p>
+          </div>
         ) : errorMessage ? (
-          <p className="text-sm text-red-500">에러: {errorMessage}</p>
+          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+            <p className="text-base text-red-500">에러: {errorMessage}</p>
+          </div>
         ) : expert ? (
-          <div className="flex flex-col gap-6 pb-[calc(96px+24px)]">
-            <div className="flex items-center gap-4">
-              <Image
-                src={defaultUserImage}
-                alt={`${expert.nickname} 프로필`}
-                width={72}
-                height={72}
-                className="h-[72px] w-[72px] rounded-full object-cover"
-              />
-              <div className="flex flex-col gap-1">
-                <span className="text-lg font-semibold text-text-body">{expert.nickname}</span>
-                <span className="text-sm text-text-caption">
+          <div className="mt-6 flex flex-col gap-6">
+            <div className="rounded-3xl bg-white px-6 py-6 text-center shadow-sm">
+              <div className="flex flex-col items-center">
+                <Image
+                  src={defaultUserImage}
+                  alt={`${expert.nickname} 프로필`}
+                  width={112}
+                  height={112}
+                  className="h-24 w-24 rounded-full object-cover"
+                />
+                <div className="mt-3 flex items-center gap-2">
+                  <p className="text-lg font-semibold text-[#3b5bcc]">{expert.nickname}</p>
+                  {expert.verified ? (
+                    <span className="rounded-full bg-[#edf4ff] px-2 py-0.5 text-xs font-semibold text-[#2b4b7e]">
+                      인증됨
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-sm text-text-caption">
                   {expert.company_name} · {expert.jobs[0]?.name ?? '직무 정보 없음'}
-                </span>
-                <span className="text-xs text-text-hint-main">{expert.career_level.level}</span>
+                </p>
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                    {expert.career_level.level}
+                  </span>
+                  {expert.skills.length > 0 ? (
+                    expert.skills.map((skill) => (
+                      <span
+                        key={skill.id}
+                        className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]"
+                      >
+                        {skill.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                      기술 스택 없음
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="rounded-2xl bg-[#f7f7f7] p-4 text-sm text-text-body">
-              {expert.introduction || '소개가 아직 없어요.'}
+            <div className="rounded-3xl bg-white px-6 py-5 shadow-sm">
+              <p className="text-base font-semibold text-text-title">자기 소개</p>
+              <p className="mt-3 text-sm text-text-body whitespace-pre-line">
+                {expert.introduction || '소개가 아직 없어요.'}
+              </p>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-text-hint-main">현직자 정보를 찾을 수 없어요.</p>
+          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+            <p className="text-base text-neutral-700">현직자 정보를 찾을 수 없어요.</p>
+          </div>
         )}
       </section>
 
