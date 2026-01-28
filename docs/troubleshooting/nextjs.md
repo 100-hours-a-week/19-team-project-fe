@@ -132,3 +132,33 @@
 
 - `export default async function`으로 전환
 - `const { id } = await params` 후 `userId` 파싱
+
+---
+
+## 2026.01.28 BlurText 빌드 타입 에러 (JSX / children / motion keyframes)
+
+### 증상
+
+- `Cannot find namespace 'JSX'`
+- `children prop expects type 'never'`
+- `Type 'AnimationSnapshot' is not assignable to type 'TargetAndTransition'`
+
+### 발생 위치
+
+- `src/shared/ui/blur-text/BlurText.tsx`
+
+### 원인
+
+- `JSX` 네임스페이스가 전역으로 잡히지 않는 환경에서 `keyof JSX.IntrinsicElements` 사용
+- `as` 타입이 `children`을 허용하지 않아 `Component` JSX 타입 추론 실패
+- `motion` keyframes에 `undefined` 값이 섞여 타입이 충돌
+
+### 해결
+
+- `as` 타입을 `ElementType<{ children?: ReactNode }>`로 변경해 children 허용
+- `undefined` 값을 제거하는 sanitize 로직 추가 후 `initial/animate`에 전달
+
+### 적용한 수정 요약
+
+- `ElementType`/`ReactNode` 타입으로 `as`와 `Component` 정의 수정
+- `sanitizeSnapshot` 도입 후 `fromSnapshot`/`toSnapshots` 정제

@@ -1,11 +1,13 @@
 'use client';
 
 import { motion } from 'motion/react';
+import type { ElementType, ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-type KeyframeValue = string | number | undefined;
+type KeyframeValue = string | number;
 
 type AnimationSnapshot = Record<string, KeyframeValue>;
+type RawAnimationSnapshot = Record<string, KeyframeValue | undefined>;
 
 type BlurTextProps = {
   text?: string;
@@ -15,14 +17,17 @@ type BlurTextProps = {
   direction?: 'top' | 'bottom';
   threshold?: number;
   rootMargin?: string;
-  animationFrom?: AnimationSnapshot;
-  animationTo?: AnimationSnapshot[];
+  animationFrom?: RawAnimationSnapshot;
+  animationTo?: RawAnimationSnapshot[];
   easing?: (t: number) => number;
   onAnimationComplete?: () => void;
   stepDuration?: number;
-  as?: keyof JSX.IntrinsicElements;
+  as?: ElementType<{ children?: ReactNode }>;
   inline?: boolean;
 };
+
+const sanitizeSnapshot = (snapshot: RawAnimationSnapshot): AnimationSnapshot =>
+  Object.fromEntries(Object.entries(snapshot).filter(([, value]) => value !== undefined)) as AnimationSnapshot;
 
 const buildKeyframes = (from: AnimationSnapshot, steps: AnimationSnapshot[]) => {
   const keys = new Set([...Object.keys(from), ...steps.flatMap((s) => Object.keys(s))]);
@@ -91,8 +96,8 @@ export default function BlurText({
     [direction],
   );
 
-  const fromSnapshot = animationFrom ?? defaultFrom;
-  const toSnapshots = animationTo ?? defaultTo;
+  const fromSnapshot = sanitizeSnapshot(animationFrom ?? defaultFrom);
+  const toSnapshots = (animationTo ?? defaultTo).map(sanitizeSnapshot);
 
   const animateKeyframes = useMemo(
     () => buildKeyframes(fromSnapshot, toSnapshots),
@@ -105,7 +110,7 @@ export default function BlurText({
     stepCount === 1 ? 0 : i / (stepCount - 1),
   );
 
-  const Component = as as keyof JSX.IntrinsicElements;
+  const Component = (as ?? 'p') as ElementType<{ children?: ReactNode }>;
 
   return (
     <Component
