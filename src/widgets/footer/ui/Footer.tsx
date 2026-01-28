@@ -11,7 +11,7 @@ export default function Footer() {
   const isResume = pathname === '/resume';
 
   return (
-    <footer className="fixed bottom-4 left-1/2 z-10 flex h-app-footer w-full max-w-[600px] -translate-x-1/2 items-center justify-between rounded-t-2xl border-t border-neutral-200 bg-white/80 px-4">
+    <footer className="fixed bottom-0 left-1/2 z-10 flex h-[calc(var(--app-footer-height)+8px)] w-full max-w-[600px] -translate-x-1/2 items-center justify-between rounded-t-2xl border-t border-neutral-200 bg-white/80 px-4 pb-2">
       <Link
         href="/resume"
         className={`flex flex-col items-center gap-1 text-xs ${
