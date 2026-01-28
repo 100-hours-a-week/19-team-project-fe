@@ -159,7 +159,7 @@ jobs:
           ARCHIVE_NAME="frontend-build-${TIMESTAMP}.tar.gz"
 
           # .next, package.json, pnpm-lock.yaml, next.config.ts, public/ 등을 tar로 압축
-          tar -czf "${ARCHIVE_NAME}" .next package.json pnpm-lock.yaml next.config.ts public/ 2>/dev/null || \
+          tar -czf "${ARCHIVE_NAME}" .next package.json pnpm-lock.yaml next.config.mjs public/ 2>/dev/null || \
           tar -czf "${ARCHIVE_NAME}" .next package.json 2>/dev/null || exit 1
 
           # 파일 크기 검증 (100KB 이상)
@@ -235,7 +235,7 @@ jobs:
             # 환경 설정 및 의존성 파일 백업
             [ -f "${FE_DIR}/package.json" ] && cp "${FE_DIR}/package.json" "${BACKUP_DIR}/next_${TIMESTAMP}/"
             [ -f "${FE_DIR}/pnpm-lock.yaml" ] && cp "${FE_DIR}/pnpm-lock.yaml" "${BACKUP_DIR}/next_${TIMESTAMP}/"
-            [ -f "${FE_DIR}/next.config.ts" ] && cp "${FE_DIR}/next.config.ts" "${BACKUP_DIR}/next_${TIMESTAMP}/"
+            [ -f "${FE_DIR}/next.config.mjs" ] && cp "${FE_DIR}/next.config.mjs" "${BACKUP_DIR}/next_${TIMESTAMP}/"
             
             # public 폴더 백업
             [ -d "${FE_DIR}/public" ] && cp -r "${FE_DIR}/public" "${BACKUP_DIR}/next_${TIMESTAMP}/"
@@ -269,7 +269,7 @@ jobs:
           # 필수 파일 업데이트
           cp "${TEMP_DIR}/package.json" "${FE_DIR}/package.json"
           [ -f "${TEMP_DIR}/pnpm-lock.yaml" ] && cp "${TEMP_DIR}/pnpm-lock.yaml" "${FE_DIR}/pnpm-lock.yaml" || true
-          [ -f "${TEMP_DIR}/next.config.ts" ] && cp "${TEMP_DIR}/next.config.ts" "${FE_DIR}/next.config.ts" || true
+          [ -f "${TEMP_DIR}/next.config.mjs" ] && cp "${TEMP_DIR}/next.config.mjs" "${FE_DIR}/next.config.mjs" || true
 
           # public 폴더 업데이트
           if [ -d "${TEMP_DIR}/public" ]; then
