@@ -67,6 +67,14 @@
   }
 }
 
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 @keyframes sheet-up {
   from {
     transform: translateY(100%);
