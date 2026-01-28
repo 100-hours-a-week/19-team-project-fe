@@ -392,6 +392,34 @@ jobs:
           done
           exit 1
 
+      - name: Notify Discord - Deployment Complete
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          BRANCH: ${{ inputs.branch }}
+          SHA: ${{ steps.deploy-vars.outputs.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          payload=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "🚀 FE 배포 완료",
+              "description": "배포가 성공적으로 완료되었습니다. SLO 검증을 진행합니다.",
+              "color": 3066993,
+              "fields": [
+                {"name": "서비스", "value": "Re-Fit Frontend", "inline": true},
+                {"name": "브랜치", "value": "\`$BRANCH\`", "inline": true},
+                {"name": "커밋 SHA", "value": "\`$SHA\`", "inline": false},
+                {"name": "워크플로우", "value": "[상세 보기](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)", "inline": false}
+              ],
+              "footer": { "text": "Re-Fit Deployment System" },
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            }]
+          }
+          EOF
+          )
+          curl -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK"
+
       - name: Wait for Metrics Collection
         if: success()
         run: |
@@ -427,20 +455,173 @@ jobs:
             echo "slo_status=failed" >> $GITHUB_OUTPUT
           fi
 
+      - name: Rollback on SLO Failure
+        if: success() && steps.slo_check.outputs.slo_status == 'failed'
+        id: slo_rollback
+        continue-on-error: true
+        env:
+          SERVER_BASE_PATH: ${{ secrets.SERVER_BASE_PATH }}
+          EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          HEALTH_CHECK_URL: ${{ secrets.HEALTH_CHECK_URL }}
+        run: |
+          set -euo pipefail
+          echo "🔄 SLO 위반으로 인해 이전 배포로 롤백 시작..."
+
+          BASE_PATH="$SERVER_BASE_PATH"
+          FE_DIR="${BASE_PATH}/app/frontend"
+          BACKUP_DIR="${BASE_PATH}/backups/frontend"
+
+          ROLLBACK_SCRIPT=$(cat <<'SCRIPT_END'
+          set -euo pipefail
+          BASE_PATH="$1"
+          FE_DIR="$2"
+          BACKUP_DIR="$3"
+          HEALTH_CHECK_URL="$4"
+          APP_NAME="frontend"
+
+          echo "============================================"
+          echo "🔄 SLO 실패로 인한 롤백 시작: $(date)"
+          echo "============================================"
+
+          # 최근 백업 찾기
+          LATEST_BACKUP=$(ls -td "${BACKUP_DIR}"/next_* 2>/dev/null | head -1)
+          if [ -z "$LATEST_BACKUP" ]; then
+            echo "❌ 복원할 백업을 찾을 수 없습니다."
+            exit 1
+          fi
+          echo "🔍 복원 대상 백업: $LATEST_BACKUP"
+
+          # Safety backup: 롤백 전 현재 상태를 별도로 저장
+          SAFETY_BACKUP="${BACKUP_DIR}/safety_before_slo_rollback_$(date +%Y%m%d%H%M%S)"
+          if [ -d "${FE_DIR}/.next" ]; then
+            mkdir -p "${SAFETY_BACKUP}"
+            cp -r "${FE_DIR}/.next" "${SAFETY_BACKUP}/"
+            [ -f "${FE_DIR}/package.json" ] && cp "${FE_DIR}/package.json" "${SAFETY_BACKUP}/"
+            echo "ℹ️ Safety backup created: ${SAFETY_BACKUP}"
+          fi
+
+          # .next 복원
+          rm -rf "${FE_DIR}/.next"
+          cp -r "${LATEST_BACKUP}/.next" "${FE_DIR}/.next" 2>/dev/null || cp -r "${LATEST_BACKUP}" "${FE_DIR}/.next"
+
+          # 기타 파일 복원
+          [ -f "${LATEST_BACKUP}/package.json" ] && cp "${LATEST_BACKUP}/package.json" "${FE_DIR}/package.json" || true
+          [ -f "${LATEST_BACKUP}/pnpm-lock.yaml" ] && cp "${LATEST_BACKUP}/pnpm-lock.yaml" "${FE_DIR}/pnpm-lock.yaml" || true
+          [ -f "${LATEST_BACKUP}/next.config.mjs" ] && cp "${LATEST_BACKUP}/next.config.mjs" "${FE_DIR}/next.config.mjs" || true
+          [ -d "${LATEST_BACKUP}/public" ] && rm -rf "${FE_DIR}/public" && cp -r "${LATEST_BACKUP}/public" "${FE_DIR}/public" || true
+
+          sudo chown -R ubuntu:ubuntu "${FE_DIR}" 2>/dev/null || true
+
+          # 의존성 설치
+          cd "${FE_DIR}"
+          sudo -u ubuntu pnpm install --prod --frozen-lockfile --ignore-scripts || exit 1
+
+          # PM2 재시작
+          if sudo -u ubuntu pm2 describe ${APP_NAME} > /dev/null 2>&1; then
+            sudo -u ubuntu pm2 reload ${APP_NAME} --update-env || {
+              sudo -u ubuntu pm2 delete ${APP_NAME}
+              sudo -u ubuntu pm2 start ${BASE_PATH}/infra/pm2/ecosystem.config.js --only ${APP_NAME} --env production
+            }
+          fi
+          sleep 3
+
+          # PM2 프로세스 확인
+          sudo -u ubuntu pm2 describe ${APP_NAME} > /dev/null || {
+            echo "❌ PM2 프로세스가 실행되지 않음"
+            exit 1
+          }
+
+          # Caddy 리로드
+          systemctl is-active --quiet caddy && sudo systemctl reload caddy 2>/dev/null || true
+          sleep 10
+
+          # 롤백 후 헬스체크
+          for i in {1..5}; do
+            HTTP_STATUS=$(timeout 5 curl -s -o /dev/null -w "%{http_code}" "${HEALTH_CHECK_URL}" 2>/dev/null || echo "000")
+            if [ "${HTTP_STATUS}" = "200" ]; then
+              echo "✅ 롤백 성공! (HTTP ${HTTP_STATUS})"
+              sudo -u ubuntu pm2 save 2>/dev/null || true
+              exit 0
+            fi
+            echo "⚠️ Attempt $i/5: HTTP ${HTTP_STATUS}"
+            [ $i -lt 5 ] && sleep 3
+          done
+
+          echo "❌ 롤백 후 헬스체크 실패"
+          sudo -u ubuntu pm2 logs ${APP_NAME} --lines 20 --nostream || true
+          exit 1
+          SCRIPT_END
+          )
+
+          ROLLBACK_SCRIPT_ENCODED=$(echo "$ROLLBACK_SCRIPT" | base64 -w 0)
+          SSM_COMMAND="bash -c \"echo '$ROLLBACK_SCRIPT_ENCODED' | base64 -d | bash -s -- '$BASE_PATH' '$FE_DIR' '$BACKUP_DIR' '$HEALTH_CHECK_URL'\""
+          PARAMETERS_JSON=$(jq -n --arg cmd "$SSM_COMMAND" '{commands: [$cmd]}')
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "$PARAMETERS_JSON" \
+            --timeout-seconds 300 \
+            --region ap-northeast-2 \
+            --query 'Command.CommandId' \
+            --output text)
+
+          [ -n "$COMMAND_ID" ] || exit 1
+
+          for i in {1..60}; do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id "$COMMAND_ID" \
+              --instance-id "$EC2_INSTANCE_ID" \
+              --region ap-northeast-2 \
+              --query 'Status' \
+              --output text 2>/dev/null || echo "InProgress")
+
+            if [ "$STATUS" = "Success" ]; then
+              aws ssm get-command-invocation \
+                --command-id "$COMMAND_ID" \
+                --instance-id "$EC2_INSTANCE_ID" \
+                --region ap-northeast-2 \
+                --query 'StandardOutputContent' \
+                --output text
+              echo "rollback_status=success" >> $GITHUB_OUTPUT
+              exit 0
+            elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
+              aws ssm get-command-invocation \
+                --command-id "$COMMAND_ID" \
+                --instance-id "$EC2_INSTANCE_ID" \
+                --region ap-northeast-2 \
+                --query 'StandardErrorContent' \
+                --output text
+              echo "rollback_status=failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "rollback_status=failed" >> $GITHUB_OUTPUT
+          exit 1
+
       - name: Report SLO Results to Discord
-        if: success() && steps.slo_check.conclusion != 'skipped'
+        if: steps.slo_check.conclusion != 'skipped'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           SLO_STATUS: ${{ steps.slo_check.outputs.slo_status }}
+          ROLLBACK_STATUS: ${{ steps.slo_rollback.outputs.rollback_status }}
           BRANCH: ${{ inputs.branch }}
           SHA: ${{ steps.deploy-vars.outputs.sha }}
           CLOUDWATCH_DASHBOARD_URL: ${{ secrets.CLOUDWATCH_DASHBOARD_URL }}
         run: |
           if [ "$SLO_STATUS" = "failed" ]; then
-            COLOR=16776960
-            EMOJI="⚠️"
-            TITLE="SLO 위반 감지 (경고)"
-            MESSAGE="배포는 완료되었으나 일부 SLO 목표를 충족하지 못했습니다. CloudWatch 대시보드를 확인하세요."
+            if [ "${ROLLBACK_STATUS:-}" = "success" ]; then
+              COLOR=16776960
+              EMOJI="⚠️"
+              TITLE="SLO 위반 → 자동 롤백 완료"
+              MESSAGE="SLO 목표를 충족하지 못하여 이전 배포로 자동 롤백되었습니다. CloudWatch 대시보드를 확인하세요."
+            else
+              COLOR=15158332
+              EMOJI="🚨"
+              TITLE="SLO 위반 → 롤백 실패"
+              MESSAGE="SLO 목표를 충족하지 못했고 롤백도 실패했습니다. 즉시 수동 대응이 필요합니다."
+            fi
           else
             COLOR=3066993
             EMOJI="✅"
@@ -468,30 +649,20 @@ jobs:
 
           curl -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK"
 
-      - name: Notify Discord on Result
-        if: always()
+      - name: Notify Discord on Deploy Failure
+        if: failure()
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          STATUS: ${{ job.status }}
           BRANCH: ${{ inputs.branch }}
           SHA: ${{ steps.deploy-vars.outputs.sha }}
           RUN_ID: ${{ github.run_id }}
         run: |
-          # 상태에 따른 색상 및 이모지 설정
-          if [ "$STATUS" = "success" ]; then
-            COLOR=3066993
-            EMOJI="✅"
-          else
-            COLOR=15158332
-            EMOJI="🚨"
-          fi
-
-          # JSON 페이로드 생성
           payload=$(cat <<EOF
           {
             "embeds": [{
-              "title": "$EMOJI FE 배포 결과: $STATUS",
-              "color": $COLOR,
+              "title": "🚨 FE 배포 실패",
+              "description": "배포 프로세스가 실패했습니다. 워크플로우 로그를 확인하세요.",
+              "color": 15158332,
               "fields": [
                 {"name": "서비스", "value": "Re-Fit Frontend", "inline": true},
                 {"name": "브랜치", "value": "\`$BRANCH\`", "inline": true},
@@ -505,5 +676,4 @@ jobs:
           EOF
           )
 
-          # 전송
           curl -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK"
