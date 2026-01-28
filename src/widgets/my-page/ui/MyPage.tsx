@@ -9,10 +9,9 @@ import { getUserMe, type UserMe } from '@/features/users';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
-import profileBasic from '@/shared/icons/profile_basic.png';
+import defaultUserImage from '@/shared/icons/char_main.png';
 import iconCertification from '@/shared/icons/icon_certification.png';
 import iconInquiry from '@/shared/icons/icon_inquiry.png';
-import iconResume from '@/shared/icons/icon_resume.png';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
@@ -115,7 +114,7 @@ export default function MyPage() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <Image
-                    src={profileBasic}
+                    src={defaultUserImage}
                     alt="기본 프로필"
                     width={112}
                     height={112}

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import profileBasic from '@/shared/icons/profile_basic.png';
+import defaultUserImage from '@/shared/icons/char_main.png';
 const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)';
 
 const ANIMATION_CONFIG = {
@@ -507,7 +507,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               {showAvatarPlaceholder || !avatarUrl ? (
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                   <Image
-                    src={profileBasic}
+                    src={defaultUserImage}
                     alt="기본 프로필 이미지"
                     width={64}
                     height={64}

@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { getExperts, type Expert } from '@/entities/experts';
 import { useCommonApiErrorHandler } from '@/shared/api';
-import profileBasic from '@/shared/icons/profile_basic.png';
+import defaultUserImage from '@/shared/icons/char_main.png';
 import ExpertSearchHeader from './ExpertSearchHeader';
 
 export default function ExpertSearchPage() {
@@ -127,7 +127,7 @@ export default function ExpertSearchPage() {
                 >
                   <span className="text-sm font-semibold text-text-body">{expert.nickname}</span>
                   <Image
-                    src={profileBasic}
+                    src={defaultUserImage}
                     alt={`${expert.nickname} 프로필`}
                     width={72}
                     height={72}
@@ -146,7 +146,7 @@ export default function ExpertSearchPage() {
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <Image
-                      src={profileBasic}
+                      src={defaultUserImage}
                       alt={`${expert.nickname} 프로필`}
                       width={40}
                       height={40}

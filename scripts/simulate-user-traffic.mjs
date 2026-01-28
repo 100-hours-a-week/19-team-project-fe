@@ -73,7 +73,7 @@ async function simulateVisit(browser, visitNumber) {
         let count = 0;
         const total = 5; // LCP, FCP, CLS, INP, TTFB
 
-        const onMetric = (metric) => {
+        const _onMetric = (metric) => {
           results[metric.name] = {
             value: metric.value,
             rating: metric.rating,
