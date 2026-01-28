@@ -206,8 +206,8 @@ export default function ExpertSearchPage() {
                         <p className="text-[13px] font-semibold text-text-title">검색 실행</p>
                       </div>
                       <p className="mt-2 text-[12px] text-text-caption">
-                        <span className="font-semibold text-text-body">[검색] 버튼</span>을 클릭하여 조건에 맞는
-                        현직자를 조회합니다.
+                        <span className="font-semibold text-text-body">[검색] 버튼</span>을 클릭하여
+                        조건에 맞는 현직자를 조회합니다.
                       </p>
                     </div>
 
@@ -216,11 +216,13 @@ export default function ExpertSearchPage() {
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf4ff] text-[11px] font-semibold text-[#2b4b7e]">
                           3
                         </span>
-                        <p className="text-[13px] font-semibold text-text-title">현직자 리스트 확인</p>
+                        <p className="text-[13px] font-semibold text-text-title">
+                          현직자 리스트 확인
+                        </p>
                       </div>
                       <p className="mt-2 text-[12px] text-text-caption">
-                        검색 조건에 맞는 현직자 목록이 노출되며, 주요 정보(직무, 경력, 기술 스택 등)를 확인할 수
-                        있습니다.
+                        검색 조건에 맞는 현직자 목록이 노출되며, 주요 정보(직무, 경력, 기술 스택
+                        등)를 확인할 수 있습니다.
                       </p>
                     </div>
                   </div>
@@ -233,8 +235,8 @@ export default function ExpertSearchPage() {
                       <p className="text-[13px] font-semibold text-text-title">현직자 상세 보기</p>
                     </div>
                     <p className="mt-2 text-[12px] text-text-caption">
-                      관심 있는 현직자를 선택하여 상세 페이지로 이동하고, 경력/직무 정보/커피챗 가능 여부를
-                      확인할 수 있습니다.
+                      관심 있는 현직자를 선택하여 상세 페이지로 이동하고, 경력/직무 정보/커피챗 가능
+                      여부를 확인할 수 있습니다.
                     </p>
                   </div>
                 </div>
@@ -272,8 +274,9 @@ export default function ExpertSearchPage() {
                       <p className="text-[13px] font-semibold text-text-title">채팅 요청</p>
                     </div>
                     <p className="mt-2 text-[12px] text-text-caption">
-                      <span className="font-semibold text-text-body">[채팅 요청하기] 버튼</span>을 클릭하여 현직자에게
-                      커피챗을 요청합니다. 요청 완료 후, 현직자의 수락 시 채팅이 시작됩니다.
+                      <span className="font-semibold text-text-body">[채팅 요청하기] 버튼</span>을
+                      클릭하여 현직자에게 커피챗을 요청합니다. 요청 완료 후, 현직자의 수락 시 채팅이
+                      시작됩니다.
                     </p>
                   </div>
                 </div>
