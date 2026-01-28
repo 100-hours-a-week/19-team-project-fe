@@ -4,8 +4,12 @@ on:
   pull_request:
     branches: [develop, main]
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/workflows/**'
   push:
     branches: [develop, main]
+    paths-ignore:
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       job_to_run:
