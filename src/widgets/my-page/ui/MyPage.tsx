@@ -162,21 +162,6 @@ export default function MyPage() {
                 className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
               >
                 <div className="flex items-center gap-3">
-                  <Image src={iconResume} alt="이력서 관리" width={40} height={40} />
-                  <div className="text-left">
-                    <span className="text-base font-semibold text-text-body">이력서 관리</span>
-                    <p className="mt-1 text-xs text-text-caption">이력서를 업데이트해 보세요</p>
-                  </div>
-                </div>
-                <span className="text-xl text-gray-300">›</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => router.push('/me/verify')}
-                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
-              >
-                <div className="flex items-center gap-3">
                   <Image src={iconCertification} alt="현직자 인증하기" width={40} height={40} />
                   <div className="text-left">
                     <span className="text-base font-semibold text-text-body">현직자 인증하기</span>
