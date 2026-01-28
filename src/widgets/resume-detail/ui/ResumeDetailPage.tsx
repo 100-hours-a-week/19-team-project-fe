@@ -84,7 +84,7 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
 
   const content = normalizeContent(resume?.contentJson ?? null);
   const careers = toArray(content?.careers);
-  const projects = Array.isArray(content?.projects) ? content?.projects ?? [] : [];
+  const projects = Array.isArray(content?.projects) ? (content?.projects ?? []) : [];
   const education = toArray(content?.education);
   const awards = toArray(content?.awards);
   const certificates = toArray(content?.certificates);

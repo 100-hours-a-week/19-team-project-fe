@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
-import { getResumes, type Resume } from '@/entities/resumes';
+import { deleteResume, getResumes, type Resume } from '@/entities/resumes';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
@@ -21,6 +21,8 @@ export default function ResumePage() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [isDeletingId, setIsDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (authStatus !== 'authed') {
@@ -115,7 +117,7 @@ export default function ResumePage() {
                 {resumes.map((resume) => (
                   <div
                     key={resume.resumeId}
-                    className="rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                    className="relative rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -131,20 +133,93 @@ export default function ResumePage() {
                           {resume.educationLevel || '학력 정보 없음'}
                         </p>
                       </div>
-                      {resume.fileUrl ? (
-                        <a
-                          href={resume.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs font-semibold text-primary-main"
+                      <div className="flex items-start gap-2">
+                        {resume.fileUrl ? (
+                          <a
+                            href={resume.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-semibold text-primary-main"
+                          >
+                            파일 보기
+                          </a>
+                        ) : null}
+                        <button
+                          type="button"
+                          aria-label="이력서 옵션"
+                          onClick={() =>
+                            setOpenMenuId((prev) => (prev === resume.resumeId ? null : resume.resumeId))
+                          }
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-100 text-gray-500"
                         >
-                          파일 보기
-                        </a>
-                      ) : null}
+                          <svg
+                            data-slot="icon"
+                            fill="none"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                            className="h-4 w-4"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                     <p className="mt-3 text-xs text-text-caption">
                       {new Date(resume.createdAt).toLocaleDateString('ko-KR')} 등록
                     </p>
+
+                    {openMenuId === resume.resumeId ? (
+                      <div className="absolute right-4 top-10 z-10 w-28 rounded-xl border border-gray-100 bg-white py-2 shadow-lg">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            router.push(`/resume/${resume.resumeId}`);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            if (isDeletingId) return;
+                            const confirmed = window.confirm('이력서를 삭제할까요?');
+                            if (!confirmed) return;
+                            setIsDeletingId(resume.resumeId);
+
+                            (async () => {
+                              try {
+                                await deleteResume(resume.resumeId);
+                                setResumes((prev) =>
+                                  prev.filter((item) => item.resumeId !== resume.resumeId),
+                                );
+                              } catch (error) {
+                                if (await handleCommonApiError(error)) return;
+                                const message =
+                                  error instanceof Error
+                                    ? error.message
+                                    : '이력서 삭제에 실패했습니다.';
+                                setLoadError(message);
+                              } finally {
+                                setIsDeletingId(null);
+                              }
+                            })();
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-red-50"
+                        >
+                          {isDeletingId === resume.resumeId ? '삭제 중...' : '삭제'}
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </div>
