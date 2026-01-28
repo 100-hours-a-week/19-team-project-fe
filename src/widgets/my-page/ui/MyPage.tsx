@@ -12,7 +12,6 @@ import { useCommonApiErrorHandler } from '@/shared/api';
 import defaultUserImage from '@/shared/icons/char_main.png';
 import iconCertification from '@/shared/icons/icon_certification.png';
 import iconInquiry from '@/shared/icons/icon_inquiry.png';
-import iconResume from '@/shared/icons/icon_resume.png';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
