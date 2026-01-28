@@ -293,7 +293,11 @@ jobs:
           # PM2로 애플리케이션 재시작 또는 시작
           if sudo -u ubuntu pm2 describe ${APP_NAME} > /dev/null 2>&1; then
             echo "기존 프로세스 재시작 (Reload)..."
-            sudo -u ubuntu pm2 reload ${APP_NAME} --update-env || sudo -u ubuntu pm2 delete ${APP_NAME}
+            if ! sudo -u ubuntu pm2 reload ${APP_NAME} --update-env; then
+              echo "Reload 실패, 프로세스 삭제 후 새로 시작..."
+              sudo -u ubuntu pm2 delete ${APP_NAME}
+              sudo -u ubuntu pm2 start ${PM2_CONFIG} --only ${APP_NAME} --env production || exit 1
+            fi
           else
             echo "신규 프로세스 시작..."
             sudo -u ubuntu pm2 start ${PM2_CONFIG} --only ${APP_NAME} --env production || exit 1
