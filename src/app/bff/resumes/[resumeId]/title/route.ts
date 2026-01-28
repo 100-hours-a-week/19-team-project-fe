@@ -3,10 +3,7 @@ import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ resumeId: string }> },
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ resumeId: string }> }) {
   try {
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
