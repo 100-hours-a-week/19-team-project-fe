@@ -94,17 +94,7 @@ export default function ResumeEditPage() {
         activities: activities.map((item) => item.value).filter(Boolean),
       },
     }),
-    [
-      title,
-      isFresher,
-      fileUrl,
-      careers,
-      projects,
-      education,
-      awards,
-      certificates,
-      activities,
-    ],
+    [title, isFresher, fileUrl, careers, projects, education, awards, certificates, activities],
   );
 
   const handleAuthSheetClose = () => {
@@ -201,7 +191,11 @@ export default function ResumeEditPage() {
                         type="button"
                         onClick={() => {
                           const next = careers.filter((item) => item.id !== career.id);
-                          setCareers(next.length ? next : [{ id: createId(), company: '', period: '', role: '', title: '' }]);
+                          setCareers(
+                            next.length
+                              ? next
+                              : [{ id: createId(), company: '', period: '', role: '', title: '' }],
+                          );
                         }}
                         className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-xl text-gray-500"
                         aria-label="경력 삭제"
