@@ -241,7 +241,7 @@ environment: ${{ (github.ref == 'refs/heads/main' || github.ref_name == 'main') 
    - `deploy-files-<commit-sha>`: 배포 필수 파일
      - `package.json`
      - `pnpm-lock.yaml`
-     - `next.config.ts`
+     - `next.config.mjs`
      - `public/`
 
    **보관 정책:** 7일간 보관
@@ -384,7 +384,7 @@ mv $TEMP_DIR/.next $FE_DIR/.next
 ```bash
 cp $TEMP_DIR/package.json $FE_DIR/package.json
 cp $TEMP_DIR/pnpm-lock.yaml $FE_DIR/pnpm-lock.yaml
-cp $TEMP_DIR/next.config.ts $FE_DIR/next.config.ts
+cp $TEMP_DIR/next.config.mjs $FE_DIR/next.config.mjs
 mv $TEMP_DIR/public $FE_DIR/public
 ```
 

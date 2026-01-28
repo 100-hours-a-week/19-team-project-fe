@@ -108,9 +108,9 @@ jobs:
                cp "${TARGET_BACKUP}/pnpm-lock.yaml" "${FE_DIR}/pnpm-lock.yaml"
                echo "✅ pnpm-lock.yaml restored"
             fi
-            if [ -f "${TARGET_BACKUP}/next.config.ts" ]; then
-               cp "${TARGET_BACKUP}/next.config.ts" "${FE_DIR}/next.config.ts"
-               echo "✅ next.config.ts restored"
+            if [ -f "${TARGET_BACKUP}/next.config.mjs" ]; then
+               cp "${TARGET_BACKUP}/next.config.mjs" "${FE_DIR}/next.config.mjs"
+               echo "✅ next.config.mjs restored"
             fi
 
             # public 폴더 복구

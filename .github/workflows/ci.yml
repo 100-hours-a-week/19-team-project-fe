@@ -4,8 +4,12 @@ on:
   pull_request:
     branches: [develop, main]
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/workflows/**'
   push:
     branches: [develop, main]
+    paths-ignore:
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       job_to_run:
@@ -124,14 +128,20 @@ jobs:
             exit 1
           fi
 
+      - name: Compress Build Artifacts
+        if: success()
+        run: |
+          tar -czf next-build.tar.gz .next/
+          echo "✅ Build artifacts compressed"
+          ls -lh next-build.tar.gz
+
       - name: Archive Build Artifacts
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: next-build-artifact-${{ github.sha }}
-          path: .next/
+          path: next-build.tar.gz
           retention-days: 7
-          include-hidden-files: true
 
       - name: Archive Deployment Files
         if: success()
@@ -141,8 +151,9 @@ jobs:
           path: |
             package.json
             pnpm-lock.yaml
-            next.config.ts
+            next.config.mjs
             public/
+            scripts/
           retention-days: 7
 
       - name: Create Release Tag
