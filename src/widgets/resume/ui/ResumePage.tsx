@@ -119,59 +119,68 @@ export default function ResumePage() {
                     key={resume.resumeId}
                     className="relative rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() => router.push(`/resume/${resume.resumeId}`)}
-                          className="text-left text-base font-semibold text-text-title"
-                        >
-                          {resume.title}
-                        </button>
-                        <p className="mt-1 text-xs text-text-caption">
-                          {resume.isFresher ? '신입' : '경력'} ·{' '}
-                          {resume.educationLevel || '학력 정보 없음'}
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        {resume.fileUrl ? (
-                          <a
-                            href={resume.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs font-semibold text-primary-main"
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => router.push(`/resume/${resume.resumeId}`)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          router.push(`/resume/${resume.resumeId}`);
+                        }
+                      }}
+                      className="w-full cursor-pointer text-left"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[14px] font-semibold text-text-title">
+                            {resume.title}
+                          </p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          {resume.fileUrl ? (
+                            <a
+                              href={resume.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-semibold text-primary-main"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              파일 보기
+                            </a>
+                          ) : null}
+                          <button
+                            type="button"
+                            aria-label="이력서 옵션"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setOpenMenuId((prev) =>
+                                prev === resume.resumeId ? null : resume.resumeId,
+                              );
+                            }}
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-100 text-gray-500"
                           >
-                            파일 보기
-                          </a>
-                        ) : null}
-                        <button
-                          type="button"
-                          aria-label="이력서 옵션"
-                          onClick={() =>
-                            setOpenMenuId((prev) => (prev === resume.resumeId ? null : resume.resumeId))
-                          }
-                          className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-100 text-gray-500"
-                        >
-                          <svg
-                            data-slot="icon"
-                            fill="none"
-                            strokeWidth="1.5"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            className="h-4 w-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
-                            />
-                          </svg>
-                        </button>
+                            <svg
+                              data-slot="icon"
+                              fill="none"
+                              strokeWidth="1.5"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                              aria-hidden="true"
+                              className="h-4 w-4"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                              />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <p className="mt-3 text-xs text-text-caption">
+                    <p className="mt-1 text-xs text-text-caption">
                       {new Date(resume.createdAt).toLocaleDateString('ko-KR')} 등록
                     </p>
 
@@ -181,7 +190,7 @@ export default function ResumePage() {
                           type="button"
                           onClick={() => {
                             setOpenMenuId(null);
-                            router.push(`/resume/${resume.resumeId}`);
+                            router.push(`/resume/edit?resumeId=${resume.resumeId}`);
                           }}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                         >

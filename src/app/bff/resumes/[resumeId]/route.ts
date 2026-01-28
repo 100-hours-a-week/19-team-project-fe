@@ -80,10 +80,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ resumeId
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ resumeId: string }> },
-) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ resumeId: string }> }) {
   try {
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
