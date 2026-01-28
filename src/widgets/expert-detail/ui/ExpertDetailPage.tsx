@@ -10,7 +10,7 @@ import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
 import { BusinessError, useCommonApiErrorHandler } from '@/shared/api';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
-import profileBasic from '@/shared/icons/profile_basic.png';
+import defaultUserImage from '@/shared/icons/char_main.png';
 import iconMark from '@/shared/icons/icon-mark.png';
 import ExpertDetailHeader from './ExpertDetailHeader';
 
@@ -112,7 +112,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
           <div className="flex flex-col gap-6 pb-[calc(96px+24px)]">
             <div className="flex items-center gap-4">
               <Image
-                src={profileBasic}
+                src={defaultUserImage}
                 alt={`${expert.nickname} 프로필`}
                 width={72}
                 height={72}
