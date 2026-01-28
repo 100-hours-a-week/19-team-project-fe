@@ -9,6 +9,7 @@ export default function Footer() {
   const isChat = pathname === '/chat';
   const isMyPage = pathname === '/me';
   const isResume = pathname === '/resume';
+  const isReport = pathname === '/report';
 
   return (
     <footer className="fixed bottom-0 left-1/2 z-10 flex h-[calc(var(--app-footer-height)+8px)] w-full max-w-[600px] -translate-x-1/2 items-center justify-between rounded-t-2xl border-t border-neutral-200 bg-white px-8 pb-10">
@@ -36,9 +37,11 @@ export default function Footer() {
         </svg>
         이력서
       </Link>
-      <button
-        type="button"
-        className="flex flex-col items-center gap-1 text-[10px] text-text-caption"
+      <Link
+        href="/report"
+        className={`flex flex-col items-center gap-1 text-[10px] ${
+          isReport ? 'text-primary-main' : 'text-text-caption'
+        }`}
       >
         <svg
           data-slot="icon"
@@ -57,7 +60,7 @@ export default function Footer() {
           />
         </svg>
         레포트
-      </button>
+      </Link>
       <Link
         href="/"
         className={`flex flex-col items-center gap-1 text-[10px] ${
