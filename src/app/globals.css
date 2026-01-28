@@ -3,8 +3,8 @@
 
 @layer base {
   :root {
-    --app-header-height: 56px;
-    --app-footer-height: 90px;
+    --app-header-height: 36px;
+    --app-footer-height: 72px;
 
     /* ========== Primary ========== */
     --color-primary-main: #35558b;
