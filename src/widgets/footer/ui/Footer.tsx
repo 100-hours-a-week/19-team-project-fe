@@ -7,6 +7,7 @@ export default function Footer() {
   const pathname = usePathname();
   const isHome = pathname === '/';
   const isChat = pathname === '/chat';
+  const isMyPage = pathname === '/me';
 
   return (
     <footer className="fixed bottom-0 left-1/2 z-10 flex h-app-footer w-full max-w-[600px] -translate-x-1/2 items-center justify-between bg-white/80 px-4">
@@ -96,7 +97,12 @@ export default function Footer() {
         </svg>
         채팅
       </Link>
-      <button type="button" className="flex flex-col items-center gap-1 text-xs text-text-caption">
+      <Link
+        href="/me"
+        className={`flex flex-col items-center gap-1 text-xs ${
+          isMyPage ? 'text-primary-main' : 'text-text-caption'
+        }`}
+      >
         <svg
           data-slot="icon"
           fill="none"
@@ -114,7 +120,7 @@ export default function Footer() {
           />
         </svg>
         마이 페이지
-      </button>
+      </Link>
     </footer>
   );
 }

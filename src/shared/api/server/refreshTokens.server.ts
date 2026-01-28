@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { buildApiUrl } from '@/shared/api';
 
 type RefreshTokenResponse = {
   access_token: string;
@@ -15,7 +16,7 @@ export async function refreshAuthTokens(): Promise<{
     throw new Error('REFRESH_TOKEN_MISSING');
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/tokens`, {
+  const res = await fetch(buildApiUrl('/api/v1/auth/tokens'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

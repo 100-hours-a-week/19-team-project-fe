@@ -1,4 +1,4 @@
-// import { buildApiUrl } from '@/shared/api';
+import { buildApiUrl } from '@/shared/api';
 
 // export const KAKAO_AUTHORIZE_PATH = '/api/v1/auth/oauth/kakao/authorize';
 
@@ -13,7 +13,7 @@
 const KAKAO_AUTHORIZE_PATH = '/api/v1/auth/oauth/kakao/authorize';
 
 export function getKakaoAuthorizeUrl(): string {
-  const baseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${KAKAO_AUTHORIZE_PATH}`;
+  const baseUrl = buildApiUrl(KAKAO_AUTHORIZE_PATH);
 
   const redirectUri = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URL?.trim();
   if (!redirectUri) return baseUrl;
