@@ -1,11 +1,11 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
-import { createResume } from '@/entities/resumes';
+import { createResume, getResumeDetail, updateResumeTitle } from '@/entities/resumes';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { useCommonApiErrorHandler } from '@/shared/api';
@@ -29,6 +29,13 @@ type ProjectItem = {
   description: string;
 };
 
+type ContentProjectItem = {
+  title?: string;
+  start_date?: string;
+  end_date?: string;
+  description?: string;
+};
+
 type SimpleItem = {
   id: string;
   value: string;
@@ -40,8 +47,13 @@ const inlineFieldClass =
 
 export default function ResumeEditPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { status: authStatus } = useAuthGate(getMe);
   const handleCommonApiError = useCommonApiErrorHandler({ redirectTo: '/resume' });
+
+  const resumeIdParam = searchParams.get('resumeId');
+  const resumeId = resumeIdParam ? Number(resumeIdParam) : null;
+  const isEditMode = Boolean(resumeId && Number.isFinite(resumeId));
 
   const [title, setTitle] = useState('');
   const [isFresher, setIsFresher] = useState(false);
@@ -59,6 +71,7 @@ export default function ResumeEditPage() {
   const [awards, setAwards] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
   const [certificates, setCertificates] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
   const [activities, setActivities] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
+  const [isLoadingResume, setIsLoadingResume] = useState(false);
 
   const payload = useMemo(
     () => ({
@@ -90,6 +103,102 @@ export default function ResumeEditPage() {
     [title, isFresher, fileUrl, careers, projects, education, awards, certificates, activities],
   );
 
+  useEffect(() => {
+    if (!isEditMode || authStatus !== 'authed' || !resumeId) return;
+
+    let cancelled = false;
+    setIsLoadingResume(true);
+
+    (async () => {
+      try {
+        const data = await getResumeDetail(resumeId);
+        if (cancelled) return;
+
+        setTitle(data.title ?? '');
+        setIsFresher(Boolean(data.isFresher));
+        setFileUrl(data.fileUrl ?? '');
+
+        const content = data.contentJson ?? {};
+        const careersValue = Array.isArray((content as { careers?: string[] }).careers)
+          ? ((content as { careers?: string[] }).careers ?? [])
+          : [];
+        const projectsValue = Array.isArray(
+          (content as { projects?: ContentProjectItem[] }).projects,
+        )
+          ? ((content as { projects?: ContentProjectItem[] }).projects ?? []).map((project) => ({
+              id: createId(),
+              title: project.title ?? '',
+              period: [project.start_date, project.end_date].filter(Boolean).join(' - '),
+              description: project.description ?? '',
+            }))
+          : [];
+        const educationValue = Array.isArray((content as { education?: string[] }).education)
+          ? ((content as { education?: string[] }).education ?? [])
+          : [];
+        const awardsValue = Array.isArray((content as { awards?: string[] }).awards)
+          ? ((content as { awards?: string[] }).awards ?? [])
+          : [];
+        const certificatesValue = Array.isArray(
+          (content as { certificates?: string[] }).certificates,
+        )
+          ? ((content as { certificates?: string[] }).certificates ?? [])
+          : [];
+        const activitiesValue = Array.isArray((content as { activities?: string[] }).activities)
+          ? ((content as { activities?: string[] }).activities ?? [])
+          : [];
+
+        setCareers(
+          careersValue.length
+            ? careersValue.map((item) => {
+                const [company = '', period = '', role = '', titleValue = ''] = item
+                  .split('|')
+                  .map((entry) => entry.trim());
+                return { id: createId(), company, period, role, title: titleValue };
+              })
+            : [{ id: createId(), company: '', period: '', role: '', title: '' }],
+        );
+        setProjects(
+          projectsValue.length
+            ? projectsValue
+            : [{ id: createId(), title: '', period: '', description: '' }],
+        );
+        setEducation(
+          educationValue.length
+            ? [{ id: createId(), value: educationValue[0] ?? '' }]
+            : [{ id: createId(), value: '' }],
+        );
+        setAwards(
+          awardsValue.length
+            ? awardsValue.map((item) => ({ id: createId(), value: item }))
+            : [{ id: createId(), value: '' }],
+        );
+        setCertificates(
+          certificatesValue.length
+            ? certificatesValue.map((item) => ({ id: createId(), value: item }))
+            : [{ id: createId(), value: '' }],
+        );
+        setActivities(
+          activitiesValue.length
+            ? activitiesValue.map((item) => ({ id: createId(), value: item }))
+            : [{ id: createId(), value: '' }],
+        );
+      } catch (error) {
+        if (cancelled) return;
+        if (await handleCommonApiError(error)) {
+          setIsLoadingResume(false);
+          return;
+        }
+        setSubmitError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
+      } finally {
+        if (cancelled) return;
+        setIsLoadingResume(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authStatus, handleCommonApiError, isEditMode, resumeId]);
   const handleAuthSheetClose = () => {
     router.replace('/resume');
   };
@@ -114,20 +223,30 @@ export default function ResumeEditPage() {
 
     (async () => {
       try {
-        await createResume({
-          title: trimmedTitle,
-          is_fresher: isFresher,
-          education_level: educationLevel,
-          file_url: fileUrl?.trim() ? fileUrl.trim() : null,
-          content_json: payload.content_json,
-        });
+        if (isEditMode && resumeId) {
+          await updateResumeTitle(resumeId, { title: trimmedTitle });
+        } else {
+          await createResume({
+            title: trimmedTitle,
+            is_fresher: isFresher,
+            education_level: educationLevel,
+            file_url: fileUrl?.trim() ? fileUrl.trim() : null,
+            content_json: payload.content_json,
+          });
+        }
         router.replace('/resume');
       } catch (error) {
         if (await handleCommonApiError(error)) {
           setIsSubmitting(false);
           return;
         }
-        setSubmitError(error instanceof Error ? error.message : '이력서 생성에 실패했습니다.');
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : isEditMode
+              ? '이력서 수정에 실패했습니다.'
+              : '이력서 생성에 실패했습니다.',
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -159,6 +278,9 @@ export default function ResumeEditPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
           </button>
+          <h1 className="text-2xl font-semibold text-black">
+            {isEditMode ? '이력서 수정' : '이력서 생성'}
+          </h1>
         </div>
 
         {authStatus === 'checking' ? (
@@ -168,6 +290,10 @@ export default function ResumeEditPage() {
         ) : authStatus !== 'authed' ? (
           <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
             <p className="text-base text-neutral-700">로그인이 필요합니다.</p>
+          </div>
+        ) : isEditMode && isLoadingResume ? (
+          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+            <p className="text-base text-neutral-700">이력서를 불러오는 중...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 flex flex-1 flex-col gap-6">
@@ -561,7 +687,13 @@ export default function ResumeEditPage() {
             </section>
 
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '이력서 생성 중...' : '이력서 생성'}
+              {isSubmitting
+                ? isEditMode
+                  ? '이력서 수정 중...'
+                  : '이력서 생성 중...'
+                : isEditMode
+                  ? '이력서 수정'
+                  : '이력서 생성'}
             </Button>
           </form>
         )}
