@@ -8,10 +8,16 @@ export default function Footer() {
   const isHome = pathname === '/';
   const isChat = pathname === '/chat';
   const isMyPage = pathname === '/me';
+  const isResume = pathname === '/resume';
 
   return (
     <footer className="fixed bottom-4 left-1/2 z-10 flex h-app-footer w-full max-w-[600px] -translate-x-1/2 items-center justify-between rounded-t-2xl border-t border-neutral-200 bg-white/80 px-4">
-      <button type="button" className="flex flex-col items-center gap-1 text-xs text-text-caption">
+      <Link
+        href="/resume"
+        className={`flex flex-col items-center gap-1 text-xs ${
+          isResume ? 'text-primary-main' : 'text-text-caption'
+        }`}
+      >
         <svg
           data-slot="icon"
           fill="none"
@@ -29,7 +35,7 @@ export default function Footer() {
           />
         </svg>
         이력서
-      </button>
+      </Link>
       <button type="button" className="flex flex-col items-center gap-1 text-xs text-text-caption">
         <svg
           data-slot="icon"
