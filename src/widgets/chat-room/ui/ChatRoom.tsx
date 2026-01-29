@@ -77,7 +77,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   useEffect(() => {
     const prev = prevWsStatusRef.current;
     if (prev && prev !== 'disconnected' && wsStatus === 'disconnected') {
-      alert('실시간 연결이 끊어졌어요. 재연결 중입니다…');
+      alert('실시간 연결이 끊어졌어요. 재연결 중입니다.');
     }
     prevWsStatusRef.current = wsStatus;
   }, [wsStatus]);
