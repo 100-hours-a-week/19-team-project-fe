@@ -1,10 +1,11 @@
 'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type { ChatDetailData, ChatParticipant } from '@/entities/chat';
+import { getResumeDetail, type ResumeDetail } from '@/entities/resumes';
 import { closeChat } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
@@ -63,11 +64,38 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
   const [status, setStatus] = useState(detail.status);
   const [isClosing, setIsClosing] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
+  const [resumeDetail, setResumeDetail] = useState<ResumeDetail | null>(null);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [isLoadingResume, setIsLoadingResume] = useState(false);
   const participants: Array<{ title: string; data: ChatParticipant }> = [
     { title: '요청자', data: detail.requester },
     { title: '수신자', data: detail.receiver },
   ];
   const isClosed = useMemo(() => status === 'CLOSED', [status]);
+
+  useEffect(() => {
+    if (!detail.resume_id) return;
+    let cancelled = false;
+    setIsLoadingResume(true);
+    setResumeError(null);
+
+    (async () => {
+      try {
+        const data = await getResumeDetail(detail.resume_id);
+        if (cancelled) return;
+        setResumeDetail(data);
+      } catch (error) {
+        if (cancelled) return;
+        setResumeError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
+      } finally {
+        if (!cancelled) setIsLoadingResume(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [detail.resume_id]);
 
   const handleCloseChat = async () => {
     if (isClosed || isClosing) return;
@@ -139,24 +167,55 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
           <h2 className="text-sm font-semibold text-neutral-700">채팅 정보</h2>
           <div className="mt-4 flex flex-col gap-3">
             <DetailRow label="상태" value={detail.status === 'ACTIVE' ? '진행 중' : '종료'} />
-            <DetailRow label="이력서 ID" value={detail.resume_id} />
-            <DetailRow
-              label="채용 공고"
-              value={
-                detail.job_post_url ? (
-                  <a
-                    href={detail.job_post_url}
-                    className="text-sm font-semibold text-neutral-800 underline decoration-neutral-300 underline-offset-4"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    공고 링크 열기
-                  </a>
-                ) : (
-                  '—'
-                )
-              }
-            />
+            <DetailRow label="이력서 ID" value={detail.resume_id || '—'} />
+          </div>
+        </section>
+
+        <section className="rounded-2xl bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-neutral-700">첨부 자료</h2>
+          <div className="mt-4 flex flex-col gap-4">
+            <div className="flex flex-col gap-1 text-sm">
+              <span className="text-neutral-500">채용 공고</span>
+              {detail.job_post_url ? (
+                <a
+                  href={detail.job_post_url}
+                  className="text-sm font-semibold text-neutral-800 underline decoration-neutral-300 underline-offset-4"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  채용공고 링크
+                </a>
+              ) : (
+                <span className="text-neutral-900">—</span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2 text-sm">
+              <span className="text-neutral-500">이력서</span>
+              {isLoadingResume ? (
+                <span className="text-neutral-700">이력서를 불러오는 중...</span>
+              ) : resumeError ? (
+                <span className="text-red-500">{resumeError}</span>
+              ) : resumeDetail ? (
+                <div className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-neutral-800">
+                  <span className="text-sm font-semibold">{resumeDetail.title || '제목 없음'}</span>
+                  {resumeDetail.fileUrl ? (
+                    <a
+                      href={resumeDetail.fileUrl}
+                      className="text-xs font-semibold text-neutral-800 underline decoration-neutral-300 underline-offset-4"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      파일 열기
+                    </a>
+                  ) : (
+                    <span className="text-xs text-neutral-500">파일 없음</span>
+                  )}
+                </div>
+              ) : (
+                <span className="text-neutral-900">—</span>
+              )}
+            </div>
             <DetailRow label="생성 일시" value={formatDateTime(detail.created_at)} />
           </div>
         </section>

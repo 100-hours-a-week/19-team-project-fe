@@ -5,9 +5,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
+import { getResumeDetail, getResumes, type Resume } from '@/entities/resumes';
 import { createChat, getChatList } from '@/features/chat';
 import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
 import { BusinessError, useCommonApiErrorHandler } from '@/shared/api';
+import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import defaultUserImage from '@/shared/icons/char_icon.png';
@@ -25,7 +27,13 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const [authSheetOpen, setAuthSheetOpen] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [resumeError, setResumeError] = useState('');
+  const [isLoadingResumes, setIsLoadingResumes] = useState(false);
+  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
+  const [jobPostUrl, setJobPostUrl] = useState('');
   const handleCommonApiError = useCommonApiErrorHandler();
+  const { status: authStatus } = useAuthGate(getMe);
 
   useEffect(() => {
     let isMounted = true;
@@ -54,6 +62,126 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
     };
   }, [handleCommonApiError, userId]);
 
+  useEffect(() => {
+    if (authStatus !== 'authed') {
+      setResumes([]);
+      setSelectedResumeId(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingResumes(true);
+    setResumeError('');
+
+    (async () => {
+      try {
+        const data = await getResumes();
+        if (cancelled) return;
+        setResumes(data.resumes);
+        if (data.resumes.length > 0) {
+          setSelectedResumeId((prev) => prev ?? data.resumes[0].resumeId);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setResumeError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
+        setResumes([]);
+      } finally {
+        if (cancelled) return;
+        setIsLoadingResumes(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authStatus]);
+
+  const buildInitialMessage = (resume: Awaited<ReturnType<typeof getResumeDetail>>) => {
+    const lines: string[] = [];
+    lines.push(`공고 링크: ${jobPostUrl.trim()}`);
+
+    lines.push('');
+    lines.push('이력서 정보');
+    lines.push(`- 제목: ${resume.title || '제목 없음'}`);
+    lines.push(`- 구분: ${resume.isFresher ? '신입' : '경력'}`);
+    if (resume.educationLevel) {
+      lines.push(`- 학력: ${resume.educationLevel}`);
+    }
+    if (resume.fileUrl) {
+      lines.push(`- 파일: ${resume.fileUrl}`);
+    }
+
+    const content = resume.contentJson ?? {};
+    const careers = Array.isArray((content as { careers?: string[] }).careers)
+      ? ((content as { careers?: string[] }).careers ?? [])
+      : [];
+    const projects = Array.isArray(
+      (content as { projects?: Array<Record<string, string>> }).projects,
+    )
+      ? ((content as { projects?: Array<Record<string, string>> }).projects ?? [])
+      : [];
+    const education = Array.isArray((content as { education?: string[] }).education)
+      ? ((content as { education?: string[] }).education ?? [])
+      : [];
+    const awards = Array.isArray((content as { awards?: string[] }).awards)
+      ? ((content as { awards?: string[] }).awards ?? [])
+      : [];
+    const certificates = Array.isArray((content as { certificates?: string[] }).certificates)
+      ? ((content as { certificates?: string[] }).certificates ?? [])
+      : [];
+    const activities = Array.isArray((content as { activities?: string[] }).activities)
+      ? ((content as { activities?: string[] }).activities ?? [])
+      : [];
+
+    if (education.length > 0) {
+      lines.push('');
+      lines.push('학력');
+      education.forEach((item) => lines.push(`- ${item}`));
+    }
+
+    if (careers.length > 0) {
+      lines.push('');
+      lines.push('경력');
+      careers.forEach((item) => lines.push(`- ${item}`));
+    }
+
+    if (projects.length > 0) {
+      lines.push('');
+      lines.push('프로젝트');
+      projects.forEach((project) => {
+        const title = project.title ?? '제목 없음';
+        const start = project.start_date ?? '';
+        const end = project.end_date ?? '';
+        const period = [start, end].filter(Boolean).join(' - ');
+        const description = project.description ?? '';
+        lines.push(`- ${title}${period ? ` (${period})` : ''}`);
+        if (description) {
+          lines.push(`  ${description}`);
+        }
+      });
+    }
+
+    if (awards.length > 0) {
+      lines.push('');
+      lines.push('수상');
+      awards.forEach((item) => lines.push(`- ${item}`));
+    }
+
+    if (certificates.length > 0) {
+      lines.push('');
+      lines.push('자격증');
+      certificates.forEach((item) => lines.push(`- ${item}`));
+    }
+
+    if (activities.length > 0) {
+      lines.push('');
+      lines.push('활동');
+      activities.forEach((item) => lines.push(`- ${item}`));
+    }
+
+    return lines.join('\n');
+  };
+
   const handleChatRequestClick = async () => {
     if (isCheckingAuth) return;
     setIsCheckingAuth(true);
@@ -63,21 +191,41 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         setAuthSheetOpen(true);
         return;
       }
+      if (!selectedResumeId) {
+        alert('이력서를 선택해 주세요.');
+        return;
+      }
+      if (!jobPostUrl.trim()) {
+        alert('공고 링크를 입력해 주세요.');
+        return;
+      }
+      const resumeDetail = await getResumeDetail(selectedResumeId);
+      const initialMessage = buildInitialMessage(resumeDetail);
       const data = await createChat({
         receiver_id: userId,
-        resume_id: 1,
-        job_post_url: 'https://example.com/job/123',
+        resume_id: selectedResumeId,
+        job_post_url: jobPostUrl.trim(),
         request_type: 'COFFEE_CHAT',
       });
+      sessionStorage.setItem(`pending-chat-message:${data.chat_id}`, initialMessage);
       router.push(`/chat/${data.chat_id}`);
     } catch (error) {
-      if (error instanceof BusinessError && error.code === 'CHAT_ROOM_ALREADY_EXISTS') {
+      if (
+        error instanceof BusinessError &&
+        (error.code === 'CHAT_ROOM_ALREADY_EXISTS' || error.code === 'CONFLICT')
+      ) {
         try {
           const list = await getChatList({ status: 'ACTIVE' });
           const matched = list.chats.find(
             (chat) => chat.receiver.user_id === userId || chat.requester.user_id === userId,
           );
           if (matched) {
+            const fallbackResumeId = selectedResumeId ?? resumes[0]?.resumeId ?? null;
+            if (fallbackResumeId && jobPostUrl.trim()) {
+              const resumeDetail = await getResumeDetail(fallbackResumeId);
+              const initialMessage = buildInitialMessage(resumeDetail);
+              sessionStorage.setItem(`pending-chat-message:${matched.chat_id}`, initialMessage);
+            }
             router.push(`/chat/${matched.chat_id}`);
             return;
           }
@@ -184,6 +332,51 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
               <p className="mt-3 text-sm text-text-body whitespace-pre-line">
                 {expert.introduction || '소개가 아직 없어요.'}
               </p>
+            </div>
+
+            <div className="rounded-3xl bg-white px-6 py-5 shadow-sm">
+              <p className="text-base font-semibold text-text-title">채팅 요청 첨부</p>
+              <p className="mt-2 text-xs text-text-caption">
+                공고 링크와 이력서를 첨부하면 더 구체적인 피드백을 받을 수 있어요.
+              </p>
+
+              <div className="mt-4">
+                <p className="text-sm font-semibold text-gray-700">공고 링크</p>
+                <input
+                  type="url"
+                  placeholder="https://example.com/job/123"
+                  value={jobPostUrl}
+                  onChange={(event) => setJobPostUrl(event.target.value)}
+                  className="mt-2 w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20"
+                />
+              </div>
+
+              <div className="mt-4">
+                <p className="text-sm font-semibold text-gray-700">이력서 선택</p>
+                {authStatus !== 'authed' ? (
+                  <p className="mt-2 text-xs text-text-caption">
+                    로그인 후 이력서를 선택할 수 있어요.
+                  </p>
+                ) : isLoadingResumes ? (
+                  <p className="mt-2 text-xs text-text-caption">이력서를 불러오는 중...</p>
+                ) : resumeError ? (
+                  <p className="mt-2 text-xs text-red-500">{resumeError}</p>
+                ) : resumes.length === 0 ? (
+                  <p className="mt-2 text-xs text-text-caption">등록된 이력서가 없습니다.</p>
+                ) : (
+                  <select
+                    value={selectedResumeId ?? undefined}
+                    onChange={(event) => setSelectedResumeId(Number(event.target.value))}
+                    className="mt-2 w-full appearance-none rounded-md border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20"
+                  >
+                    {resumes.map((resume) => (
+                      <option key={resume.resumeId} value={resume.resumeId}>
+                        {resume.title || `이력서 ${resume.resumeId}`}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
           </div>
         ) : (

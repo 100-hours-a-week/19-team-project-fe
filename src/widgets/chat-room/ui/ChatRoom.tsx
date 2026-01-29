@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -49,6 +49,38 @@ const formatChatTime = (value: string) => {
   return `${period} ${displayHours}:${minutes}`;
 };
 
+const renderMessageContent = (content: string) => {
+  const nodes: ReactNode[] = [];
+  const regex = /https?:\/\/[^\s]+/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(content.slice(lastIndex, match.index));
+    }
+    const url = match[0];
+    nodes.push(
+      <a
+        key={`${match.index}-${url}`}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2"
+      >
+        {url}
+      </a>,
+    );
+    lastIndex = match.index + url.length;
+  }
+
+  if (lastIndex < content.length) {
+    nodes.push(content.slice(lastIndex));
+  }
+
+  return nodes;
+};
+
 interface ChatRoomProps {
   chatId: number;
 }
@@ -60,12 +92,19 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const isComposingRef = useRef(false);
   const currentUserId = useMemo(() => readCurrentUserId(), []);
-  const { messages, setMessages, error: historyError } = useChatHistory(chatId, currentUserId);
+  const {
+    messages,
+    setMessages,
+    loading: historyLoading,
+    error: historyError,
+  } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
   const [draft, setDraft] = useState('');
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
+  const hasSentPendingRef = useRef(false);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (historyError) {
@@ -80,6 +119,16 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     }
     prevWsStatusRef.current = wsStatus;
   }, [wsStatus]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const key = `pending-chat-message:${chatId}`;
+    const pending = sessionStorage.getItem(key);
+    if (pending) {
+      setPendingMessage(pending);
+      sessionStorage.removeItem(key);
+    }
+  }, [chatId]);
 
   useEffect(() => {
     if (!chatId) return;
@@ -104,6 +153,52 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       cancelled = true;
     };
   }, [chatId, currentUserId]);
+
+  const sendOptimisticMessage = (content: string) => {
+    const trimmed = content.trim();
+    if (!trimmed) return;
+    if (chatStatus === 'CLOSED') return;
+    if (wsStatus !== 'connected') return;
+
+    const now = new Date();
+    const optimisticId = -now.getTime();
+    const clientMessageId = createClientMessageId();
+    const optimistic: ChatMessageItem = {
+      message_id: optimisticId,
+      chat_id: chatId,
+      sender: {
+        user_id: currentUserId ?? 0,
+        nickname: 'me',
+      },
+      message_type: 'TEXT',
+      content: trimmed,
+      created_at: now.toISOString(),
+      client_message_id: clientMessageId,
+    };
+    setMessages((prev) => sortMessagesByTime([...prev, optimistic]));
+
+    try {
+      sendChatMessage({
+        chat_id: chatId,
+        content: trimmed,
+        message_type: 'TEXT',
+        client_message_id: clientMessageId,
+      });
+    } catch (sendError) {
+      setMessages((prev) => prev.filter((item) => item.message_id !== optimisticId));
+      console.warn('Send message failed:', sendError);
+    }
+  };
+
+  useEffect(() => {
+    if (hasSentPendingRef.current) return;
+    if (wsStatus !== 'connected') return;
+    if (historyLoading) return;
+    if (!pendingMessage) return;
+    sendOptimisticMessage(pendingMessage);
+    hasSentPendingRef.current = true;
+    setPendingMessage(null);
+  }, [pendingMessage, wsStatus]);
 
   useEffect(() => {
     if (!chatId) return;
@@ -146,49 +241,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const trimmed = draft.trim();
-    if (!trimmed) return;
-    if (chatStatus === 'CLOSED') {
-      return;
-    }
-    if (wsStatus !== 'connected') {
-      return;
-    }
-
-    try {
-      const now = new Date();
-      const optimisticId = -now.getTime();
-      const clientMessageId = createClientMessageId();
-      const optimistic: ChatMessageItem = {
-        message_id: optimisticId,
-        chat_id: chatId,
-        sender: {
-          user_id: currentUserId ?? 0,
-          nickname: 'me',
-        },
-        message_type: 'TEXT',
-        content: trimmed,
-        created_at: now.toISOString(),
-        client_message_id: clientMessageId,
-      };
-      setMessages((prev) => sortMessagesByTime([...prev, optimistic]));
-
-      try {
-        sendChatMessage({
-          chat_id: chatId,
-          content: trimmed,
-          message_type: 'TEXT',
-          client_message_id: clientMessageId,
-        });
-      } catch (sendError) {
-        setMessages((prev) => prev.filter((item) => item.message_id !== optimisticId));
-        console.warn('Send message failed:', sendError);
-        return;
-      }
-    } catch (error) {
-      console.warn('Send message failed:', error);
-    }
-
+    sendOptimisticMessage(draft);
     setDraft('');
     if (inputRef.current) {
       inputRef.current.style.height = '0px';
@@ -287,7 +340,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
                       : 'bg-white text-neutral-900'
                   }`}
                 >
-                  <span className="whitespace-pre-wrap break-words">{message.content}</span>
+                  <span className="whitespace-pre-wrap break-words">
+                    {renderMessageContent(message.content)}
+                  </span>
                 </div>
                 {showTime && (
                   <span
