@@ -1,1 +1,8 @@
-export { getChatList, getChatMessages, createChat, markChatRead } from './chat/server';
+export {
+  getChatList,
+  getChatDetail,
+  closeChat,
+  getChatMessages,
+  createChat,
+  markChatRead,
+} from './chat/server';

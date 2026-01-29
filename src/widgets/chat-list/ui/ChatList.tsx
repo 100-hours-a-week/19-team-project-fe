@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
+import { Header } from '@/widgets/header';
 import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
+import charIcon from '@/shared/icons/char_icon.png';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
@@ -104,17 +107,19 @@ export default function ChatList() {
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
-      <div className="fixed top-0 left-1/2 z-10 flex h-app-header w-full max-w-[600px] -translate-x-1/2 items-center bg-[#f7f7f7] px-6">
-        <h1 className="text-2xl font-semibold">채팅</h1>
-      </div>
+      <Header />
 
-      <section className="px-6 pt-[calc(var(--app-header-height)+24px)]">
-        <div className="flex items-center justify-between rounded-3xl bg-neutral-100 px-6 py-5 text-black">
+      <section className="px-6 pt-6">
+        <div className="flex items-center justify-between rounded-3xl bg-white px-6 py-5 text-black shadow-sm">
           <div>
-            <p className="text-lg font-semibold">[채팅 소개] 간단한 채팅 소개</p>
-            <p className="mt-2 text-sm text-neutral-500">쌈뽕한 멘트 추가</p>
+            <p className="text-lg font-semibold">막연한 고민</p>
+            <p className="mt-2 text-lg font-semibold text-neutral-900">
+              현직자와 채팅으로 정리하세요
+            </p>
           </div>
-          <div className="h-20 w-20 rounded-2xl bg-neutral-200" />
+          <div className="flex h-20 w-20 items-center justify-center">
+            <Image src={charIcon} alt="채팅 안내" className="h-20 w-20 object-contain" />
+          </div>
         </div>
       </section>
 
@@ -131,25 +136,29 @@ export default function ChatList() {
           chats.map((chat) => {
             const lastMessage = chat.last_message;
             return (
-              <li key={chat.chat_id}>
+              <li key={chat.chat_id} className="border-b border-neutral-200/70">
                 <Link
                   href={`/chat/${chat.chat_id}`}
                   className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition hover:bg-neutral-100"
                 >
                   <div className="h-12 w-12 flex-shrink-0 rounded-full bg-neutral-200" />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-base font-semibold">{chat.receiver.nickname}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="truncate text-base font-semibold">
+                        {chat.receiver.nickname}
+                      </div>
+                      {chat.status === 'CLOSED' ? (
+                        <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
+                          종료
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="mt-1 truncate text-sm text-neutral-500">
                       {lastMessage?.content ?? '대화를 시작해 보세요.'}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
                     <span>{lastMessage ? formatChatTime(lastMessage.created_at) : ''}</span>
-                    {chat.unread_count > 0 ? (
-                      <span className="rounded-full bg-[var(--color-primary-main)] px-2 py-1 text-[11px] font-semibold text-white">
-                        {chat.unread_count}
-                      </span>
-                    ) : null}
                   </div>
                 </Link>
               </li>
