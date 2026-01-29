@@ -218,10 +218,7 @@ export default function ResumeEditPage() {
     router.replace('/resume');
   };
 
-  const mapEducationLevel = (
-    educationLevel: string,
-    fallbackList: string[],
-  ): string | null => {
+  const mapEducationLevel = (educationLevel: string, fallbackList: string[]): string | null => {
     const normalized = educationLevel.trim();
     if (educationOptions.includes(normalized)) return normalized;
 
