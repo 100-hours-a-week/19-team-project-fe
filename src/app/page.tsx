@@ -21,7 +21,7 @@ export default function Home() {
               <SearchBar />
 
               <div className="flex flex-1 flex-col pb-0">
-                <div className="mt-30 flex-1 w-full rounded-t-3xl bg-white shadow-[0_-8px_24px_rgba(53, 85, 139, 333)]" />
+                <div className="mt-30 flex-1 w-full rounded-t-3xl bg-white shadow-[0_-16px_36px_rgba(59,91,204,0.25)]" />
               </div>
             </div>
             <Footer />
