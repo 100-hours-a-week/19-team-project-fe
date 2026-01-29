@@ -99,7 +99,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         setMessages((prev) => {
           if (message.client_message_id) {
             const existingIndex = prev.findIndex(
-              (item) => item.client_message_id === message.client_message_id
+              (item) => item.client_message_id === message.client_message_id,
             );
             if (existingIndex !== -1) {
               const next = [...prev];
@@ -220,31 +220,36 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         ref={listRef}
         className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[calc(72px+24px)] pt-[calc(var(--app-header-height)+16px)]"
       >
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           const isMine = currentUserId !== null && message.sender.user_id === currentUserId;
+          const displayTime = formatChatTime(message.created_at);
+          const nextMessage = messages[index + 1];
+          const showTime = !nextMessage || formatChatTime(nextMessage.created_at) !== displayTime;
 
           return (
             <div
               key={message.message_id}
               className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
             >
-              <div
-                className={`max-w-[75%] ${
-                  isMine ? 'items-end' : 'items-start'
-                } flex flex-col gap-1`}
-              >
+              <div className={`flex items-end gap-2 ${isMine ? 'flex-row' : 'flex-row'}`}>
+                {showTime ? (
+                  <span className="text-[11px] text-neutral-400">{displayTime}</span>
+                ) : (
+                  <span className="w-8" aria-hidden="true" />
+                )}
                 <div
-                  className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
-                    isMine
-                      ? 'bg-[var(--color-primary-main)] text-white'
-                      : 'bg-white text-neutral-900'
-                  }`}
+                  className={`max-w-[75%] ${isMine ? 'items-end' : 'items-start'} flex flex-col`}
                 >
-                  {message.content}
+                  <div
+                    className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                      isMine
+                        ? 'bg-[var(--color-primary-main)] text-white'
+                        : 'bg-white text-neutral-900'
+                    }`}
+                  >
+                    {message.content}
+                  </div>
                 </div>
-                <span className="text-[11px] text-neutral-400">
-                  {formatChatTime(message.created_at)}
-                </span>
               </div>
             </div>
           );
