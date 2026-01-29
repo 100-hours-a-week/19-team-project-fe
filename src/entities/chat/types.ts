@@ -72,6 +72,17 @@ export interface ChatMessageItem {
   client_message_id?: string;
 }
 
+export interface ChatDetailData {
+  chat_id: number;
+  requester: ChatParticipant;
+  receiver: ChatParticipant;
+  resume_id: number;
+  job_post_url: string;
+  status: 'ACTIVE' | 'CLOSED';
+  created_at: string;
+  closed_at: string | null;
+}
+
 export interface ChatMessageListData {
   messages: ChatMessageItem[];
   nextCursor: number | null;
