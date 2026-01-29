@@ -22,6 +22,13 @@ const readCurrentUserId = () => {
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
+const createClientMessageId = () => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `cm_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+};
+
 const formatChatTime = (value: string) => {
   const normalized = value.replace(' ', 'T');
   const parsed = new Date(normalized);
@@ -90,6 +97,16 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         console.log('[WS RECEIVED]', message);
 
         setMessages((prev) => {
+          if (message.client_message_id) {
+            const existingIndex = prev.findIndex(
+              (item) => item.client_message_id === message.client_message_id
+            );
+            if (existingIndex !== -1) {
+              const next = [...prev];
+              next[existingIndex] = message;
+              return sortMessagesByTime(next);
+            }
+          }
           if (message.message_id > 0) {
             if (prev.some((item) => item.message_id === message.message_id)) {
               return prev;
@@ -159,6 +176,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     }
 
     try {
+      const clientMessageId = createClientMessageId();
       const now = new Date();
       const optimistic: ChatMessageItem = {
         message_id: -now.getTime(),
@@ -170,6 +188,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         message_type: 'TEXT',
         content: trimmed,
         created_at: now.toISOString(),
+        client_message_id: clientMessageId,
       };
       setMessages((prev) => sortMessagesByTime([...prev, optimistic]));
 
@@ -177,6 +196,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         chat_id: chatId,
         content: trimmed,
         message_type: 'TEXT',
+        client_message_id: clientMessageId,
       });
     } catch (error) {
       console.warn('Send message failed:', error);

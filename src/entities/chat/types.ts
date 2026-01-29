@@ -5,6 +5,7 @@ export interface SendChatMessageRequest {
   chat_id: number;
   content: string;
   message_type: ChatMessageType;
+  client_message_id?: string;
 }
 
 export type ChatResponseCode =
@@ -68,6 +69,7 @@ export interface ChatMessageItem {
   message_type: ChatMessageType;
   content: string;
   created_at: string;
+  client_message_id?: string;
 }
 
 export interface ChatMessageListData {
