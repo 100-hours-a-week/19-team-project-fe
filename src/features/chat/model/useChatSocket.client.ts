@@ -39,11 +39,6 @@ export function useChatSocket(
         retryCountRef.current = 0;
 
         unsubscribe = subscribeChat<ChatMessageItem>(chatId, (message) => {
-          alert(
-            `[WS MESSAGE]\nmessage_id: ${message.message_id}\nclient_message_id: ${
-              message.client_message_id ?? 'null'
-            }`,
-          );
           setMessages((prev) => {
             if (message.client_message_id) {
               const index = prev.findIndex(
