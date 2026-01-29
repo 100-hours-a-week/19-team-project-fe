@@ -340,9 +340,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
                       : 'bg-white text-neutral-900'
                   }`}
                 >
-                  <span className="whitespace-pre-wrap break-words">
-                    {message.content}
-                  </span>
+                  <span className="whitespace-pre-wrap break-words">{message.content}</span>
                 </div>
                 {showTime && (
                   <span
