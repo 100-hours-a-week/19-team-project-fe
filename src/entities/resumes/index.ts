@@ -7,3 +7,10 @@ export type { Resume, ResumesResponse } from './api/getResumes';
 export type { CreateResumePayload, CreateResumeResponse } from './api/createResume';
 export type { ResumeDetail } from './api/getResumeDetail';
 export type { UpdateResumeTitlePayload } from './api/updateResumeTitle';
+export type {
+  ResumeParseContentJson,
+  ResumeParseProject,
+  ResumeParseSyncData,
+  ResumeParseSyncRequest,
+  ResumeParseSyncResult,
+} from './api/parseResumeSync';
