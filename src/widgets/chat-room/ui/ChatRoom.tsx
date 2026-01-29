@@ -157,7 +157,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     }
 
     try {
-      const clientMessageId = createClientMessageId();
       const now = new Date();
       const optimisticId = -now.getTime();
       const clientMessageId = createClientMessageId();
