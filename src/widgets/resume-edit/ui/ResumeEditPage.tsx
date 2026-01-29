@@ -5,7 +5,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
-import { createResume, getResumeDetail, updateResumeTitle } from '@/entities/resumes';
+import { createPresignedUrl, uploadToPresignedUrl } from '@/features/uploads';
+import {
+  createResume,
+  getResumeDetail,
+  parseResumeSync,
+  updateResumeTitle,
+  type ResumeParseContentJson,
+  type ResumeParseSyncResult,
+} from '@/entities/resumes';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { useCommonApiErrorHandler } from '@/shared/api';
@@ -59,7 +67,9 @@ export default function ResumeEditPage() {
   const [isFresher, setIsFresher] = useState(false);
   const [fileUrl, setFileUrl] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [autoFillError, setAutoFillError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   const [careers, setCareers] = useState<CareerItem[]>([
     { id: createId(), company: '', period: '', role: '', title: '' },
@@ -72,6 +82,11 @@ export default function ResumeEditPage() {
   const [certificates, setCertificates] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
   const [activities, setActivities] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
   const [isLoadingResume, setIsLoadingResume] = useState(false);
+
+  const educationOptions = useMemo(
+    () => ['고등학교 졸업', '2년제 재학/휴학', '2년제 졸업', '4년제 졸업/휴학', '4년제 졸업'],
+    [],
+  );
 
   const payload = useMemo(
     () => ({
@@ -203,6 +218,137 @@ export default function ResumeEditPage() {
     router.replace('/resume');
   };
 
+  const mapEducationLevel = (
+    educationLevel: string,
+    fallbackList: string[],
+  ): string | null => {
+    const normalized = educationLevel.trim();
+    if (educationOptions.includes(normalized)) return normalized;
+
+    const listMatch = fallbackList.find((item) => educationOptions.includes(item));
+    if (listMatch) return listMatch;
+
+    if (/고등학교/.test(normalized)) return '고등학교 졸업';
+    if (/2년제/.test(normalized) && /재학|휴학/.test(normalized)) return '2년제 재학/휴학';
+    if (/2년제/.test(normalized)) return '2년제 졸업';
+    if (/4년제/.test(normalized) && /재학|휴학/.test(normalized)) return '4년제 졸업/휴학';
+    if (/4년제/.test(normalized)) return '4년제 졸업';
+
+    return null;
+  };
+
+  const toSimpleItems = (values: string[]): SimpleItem[] => {
+    if (!values.length) return [{ id: createId(), value: '' }];
+    return values.map((value) => ({ id: createId(), value }));
+  };
+
+  const formatDateToken = (value: string) => {
+    if (/^\d{4}-\d{2}(-\d{2})?$/.test(value)) {
+      return value.replace(/-/g, '.');
+    }
+    return value;
+  };
+
+  const applyParsedResult = (result: ResumeParseSyncResult | null) => {
+    if (!result) {
+      setAutoFillError('이력서 자동 등록에 실패했습니다.');
+      return;
+    }
+
+    const contentJson = (result.content_json ?? {}) as ResumeParseContentJson;
+    const careersValue = Array.isArray(contentJson.careers) ? contentJson.careers : [];
+    const projectsValue = Array.isArray(contentJson.projects) ? contentJson.projects : [];
+    const educationValue = Array.isArray(contentJson.education) ? contentJson.education : [];
+    const awardsValue = Array.isArray(contentJson.awards) ? contentJson.awards : [];
+    const certificatesValue = Array.isArray(contentJson.certificates)
+      ? contentJson.certificates
+      : [];
+    const activitiesValue = Array.isArray(contentJson.activities) ? contentJson.activities : [];
+
+    if (typeof result.is_fresher === 'boolean') {
+      setIsFresher(result.is_fresher);
+    }
+
+    const mappedEducation =
+      result.education_level || educationValue.length
+        ? mapEducationLevel(result.education_level ?? '', educationValue)
+        : null;
+    if (mappedEducation) {
+      setEducation([{ id: education[0]?.id ?? createId(), value: mappedEducation }]);
+    }
+
+    setCareers(
+      careersValue.length
+        ? careersValue.map((item) => {
+            const [company = '', period = '', role = '', titleValue = ''] = item
+              .split('|')
+              .map((entry) => entry.trim());
+            return { id: createId(), company, period, role, title: titleValue };
+          })
+        : [{ id: createId(), company: '', period: '', role: '', title: '' }],
+    );
+
+    setProjects(
+      projectsValue.length
+        ? projectsValue.map((project) => {
+            const start = project.start_date ? formatDateToken(project.start_date) : '';
+            const end = project.end_date ? formatDateToken(project.end_date) : '';
+            const period = [start, end].filter(Boolean).join(' - ');
+            return {
+              id: createId(),
+              title: project.title ?? '',
+              period,
+              description: project.description ?? '',
+            };
+          })
+        : [{ id: createId(), title: '', period: '', description: '' }],
+    );
+
+    setAwards(toSimpleItems(awardsValue.filter(Boolean)));
+    setCertificates(toSimpleItems(certificatesValue.filter(Boolean)));
+    setActivities(toSimpleItems(activitiesValue.filter(Boolean)));
+  };
+
+  const handleAutoFill = () => {
+    if (authStatus !== 'authed') return;
+    document.getElementById('resume-auto-upload')?.click();
+  };
+
+  const handleAutoUpload = (file: File | null) => {
+    if (!file || authStatus !== 'authed') return;
+    if (file.type !== 'application/pdf') {
+      setAutoFillError('PDF 파일만 업로드할 수 있습니다.');
+      return;
+    }
+
+    setAutoFillError(null);
+    setIsAutoFilling(true);
+
+    (async () => {
+      try {
+        const { presignedUrl, fileUrl: uploadedUrl } = await createPresignedUrl({
+          target_type: 'PROFILE_IMAGE',
+          file_name: file.name,
+        });
+        await uploadToPresignedUrl(file, presignedUrl);
+        setFileUrl(uploadedUrl);
+        window.open(uploadedUrl, '_blank', 'noopener,noreferrer');
+        const data = await parseResumeSync({ file_url: uploadedUrl, mode: 'sync' });
+        applyParsedResult(data.result);
+      } catch (error) {
+        if (await handleCommonApiError(error)) {
+          setIsAutoFilling(false);
+          return;
+        }
+        setAutoFillError(
+          error instanceof Error ? error.message : '이력서 자동 등록에 실패했습니다.',
+        );
+      } finally {
+        setIsAutoFilling(false);
+      }
+    })();
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (authStatus !== 'authed') return;
@@ -258,7 +404,18 @@ export default function ResumeEditPage() {
       <Header />
 
       <section className="flex flex-1 flex-col px-6 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            id="resume-auto-upload"
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0] ?? null;
+              event.target.value = '';
+              handleAutoUpload(file);
+            }}
+          />
           <button
             type="button"
             onClick={() => router.replace('/resume')}
@@ -281,6 +438,18 @@ export default function ResumeEditPage() {
           <h1 className="text-2xl font-semibold text-black">
             {isEditMode ? '이력서 수정' : '이력서 생성'}
           </h1>
+          <button
+            type="button"
+            onClick={handleAutoFill}
+            disabled={isAutoFilling || authStatus !== 'authed'}
+            className={`ml-auto rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              isAutoFilling || authStatus !== 'authed'
+                ? 'border-gray-200 bg-gray-100 text-gray-400'
+                : 'border-primary-main bg-primary-main/10 text-primary-main'
+            }`}
+          >
+            {isAutoFilling ? '자동 등록 중...' : '자동 등록'}
+          </button>
         </div>
 
         {authStatus === 'checking' ? (
@@ -300,6 +469,11 @@ export default function ResumeEditPage() {
             {submitError ? (
               <div className="rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-500 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
                 {submitError}
+              </div>
+            ) : null}
+            {autoFillError ? (
+              <div className="rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-500 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+                {autoFillError}
               </div>
             ) : null}
             <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
@@ -322,13 +496,7 @@ export default function ResumeEditPage() {
                   학력 <span className="text-red-500">*</span>
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {[
-                    '고등학교 졸업',
-                    '2년제 재학/휴학',
-                    '2년제 졸업',
-                    '4년제 졸업/휴학',
-                    '4년제 졸업',
-                  ].map((level) => {
+                  {educationOptions.map((level) => {
                     const selected = (education[0]?.value ?? '') === level;
                     return (
                       <button
@@ -670,19 +838,6 @@ export default function ResumeEditPage() {
                   + 활동 추가
                 </button>
                 <p className="mt-2 text-xs text-red-500" aria-hidden="true" />
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold text-black">파일 업로드</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
-                <Input.Root>
-                  <Input.Label>파일 URL</Input.Label>
-                  <Input.Field
-                    value={fileUrl}
-                    onChange={(event) => setFileUrl(event.target.value)}
-                  />
-                </Input.Root>
               </div>
             </section>
 

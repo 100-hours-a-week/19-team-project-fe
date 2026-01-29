@@ -1,6 +1,6 @@
 import { apiFetch } from '@/shared/api';
 
-export type PresignedTargetType = 'PROFILE_IMAGE';
+export type PresignedTargetType = 'PROFILE_IMAGE' | 'RESUME';
 
 export type CreatePresignedUrlPayload = {
   target_type: PresignedTargetType;
