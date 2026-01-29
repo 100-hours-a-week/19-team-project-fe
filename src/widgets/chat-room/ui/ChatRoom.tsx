@@ -5,14 +5,12 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { useCommonApiErrorHandler } from '@/shared/api';
-import { stompManager } from '@/shared/ws';
 import {
   getChatDetail,
-  getChatMessages,
-  markChatRead,
   sendChatMessage,
-  subscribeChat,
+  sortMessagesByTime,
+  useChatHistory,
+  useChatSocket,
 } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
 
@@ -51,23 +49,6 @@ const formatChatTime = (value: string) => {
   return `${period} ${displayHours}:${minutes}`;
 };
 
-const sortMessagesByTime = (items: ChatMessageItem[]) =>
-  [...items].sort((a, b) => {
-    const timeA = new Date(a.created_at.replace(' ', 'T')).getTime();
-    const timeB = new Date(b.created_at.replace(' ', 'T')).getTime();
-    if (Number.isNaN(timeA) || Number.isNaN(timeB)) {
-      return a.message_id - b.message_id;
-    }
-    return timeA - timeB;
-  });
-
-const mergeMessagesById = (base: ChatMessageItem[], incoming: ChatMessageItem[]) => {
-  const map = new Map<number, ChatMessageItem>();
-  base.forEach((message) => map.set(message.message_id, message));
-  incoming.forEach((message) => map.set(message.message_id, message));
-  return sortMessagesByTime(Array.from(map.values()));
-};
-
 interface ChatRoomProps {
   chatId: number;
 }
@@ -78,92 +59,51 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const isComposingRef = useRef(false);
-  const [messages, setMessages] = useState<ChatMessageItem[]>([]);
+  const currentUserId = useMemo(() => readCurrentUserId(), []);
+  const { messages, setMessages, error: historyError } = useChatHistory(chatId, currentUserId);
+  const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
   const [draft, setDraft] = useState('');
-  const [isWsReady, setIsWsReady] = useState(stompManager.isConnected());
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
-  const currentUserId = useMemo(() => readCurrentUserId(), []);
-  const handleCommonApiError = useCommonApiErrorHandler();
+  const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
 
-  /**
-   * STOMP 연결 + 구독 -> REST 동기화
-   */
+  useEffect(() => {
+    if (historyError) {
+      alert('메시지를 불러오지 못했어요. 새로 고침해 주세요.');
+    }
+  }, [historyError]);
+
+  useEffect(() => {
+    const prev = prevWsStatusRef.current;
+    if (prev && prev !== 'disconnected' && wsStatus === 'disconnected') {
+      alert('실시간 연결이 끊어졌어요. 재연결 중입니다.');
+    }
+    prevWsStatusRef.current = wsStatus;
+  }, [wsStatus]);
+
   useEffect(() => {
     if (!chatId) return;
-    let unsubscribe: (() => void) | null = null;
     let cancelled = false;
-    setIsWsReady(stompManager.isConnected());
 
     (async () => {
       try {
-        await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!);
-      } catch (e) {
-        console.warn('WS connect failed:', e);
-        return; // UI는 살려둠
-      }
-
-      if (cancelled) return;
-      setIsWsReady(true);
-
-      unsubscribe = subscribeChat<ChatMessageItem>(chatId, (message) => {
-        console.log('[WS RECEIVED]', message);
-
-        setMessages((prev) => {
-          if (message.client_message_id) {
-            const existingIndex = prev.findIndex(
-              (item) => item.client_message_id === message.client_message_id,
-            );
-            if (existingIndex !== -1) {
-              const next = [...prev];
-              next[existingIndex] = message;
-              return sortMessagesByTime(next);
-            }
-          }
-          if (message.message_id > 0) {
-            if (prev.some((item) => item.message_id === message.message_id)) {
-              return prev;
-            }
-          }
-          return sortMessagesByTime([...prev, message]);
-        });
-
-        if (currentUserId !== null && message.sender.user_id !== currentUserId) {
-          markChatRead({
-            chat_id: chatId,
-            message_id: message.message_id,
-          }).catch((err) => {
-            console.warn('Mark chat read failed:', err);
-          });
-        }
-      });
-
-      try {
-        const data = await getChatMessages({ chatId });
+        const detail = await getChatDetail({ chatId });
         if (cancelled) return;
-        setMessages((prev) => mergeMessagesById(prev, data.messages));
-        const sorted = sortMessagesByTime(data.messages);
-        const latest = sorted[sorted.length - 1];
-        if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
-          markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch((readError) => {
-            console.warn('Mark chat read failed:', readError);
-          });
-        }
+        const meId = currentUserId;
+        const counterpart =
+          meId !== null && detail.receiver.user_id === meId ? detail.requester : detail.receiver;
+        setHeaderTitle(counterpart.nickname ?? '채팅');
+        setChatStatus(detail.status);
       } catch (error) {
         if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          return;
-        }
-        console.warn('Chat messages load failed:', error);
+        console.warn('Chat detail load failed:', error);
       }
     })();
 
     return () => {
       cancelled = true;
-      setIsWsReady(false);
-      unsubscribe?.();
     };
-  }, [chatId, currentUserId, handleCommonApiError]);
+  }, [chatId, currentUserId]);
 
   useEffect(() => {
     if (!chatId) return;
@@ -211,15 +151,16 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     if (chatStatus === 'CLOSED') {
       return;
     }
-    if (!isWsReady || !stompManager.isConnected()) {
+    if (wsStatus !== 'connected') {
       return;
     }
 
     try {
-      const clientMessageId = createClientMessageId();
       const now = new Date();
+      const optimisticId = -now.getTime();
+      const clientMessageId = createClientMessageId();
       const optimistic: ChatMessageItem = {
-        message_id: -now.getTime(),
+        message_id: optimisticId,
         chat_id: chatId,
         sender: {
           user_id: currentUserId ?? 0,
@@ -232,12 +173,18 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       };
       setMessages((prev) => sortMessagesByTime([...prev, optimistic]));
 
-      sendChatMessage({
-        chat_id: chatId,
-        content: trimmed,
-        message_type: 'TEXT',
-        client_message_id: clientMessageId,
-      });
+      try {
+        sendChatMessage({
+          chat_id: chatId,
+          content: trimmed,
+          message_type: 'TEXT',
+          client_message_id: clientMessageId,
+        });
+      } catch (sendError) {
+        setMessages((prev) => prev.filter((item) => item.message_id !== optimisticId));
+        console.warn('Send message failed:', sendError);
+        return;
+      }
     } catch (error) {
       console.warn('Send message failed:', error);
     }
@@ -388,7 +335,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         />
         <button
           type="submit"
-          disabled={!isWsReady || chatStatus === 'CLOSED'}
+          disabled={wsStatus !== 'connected' || chatStatus === 'CLOSED'}
           className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-main)] text-sm font-semibold text-white disabled:bg-neutral-300"
         >
           <svg
