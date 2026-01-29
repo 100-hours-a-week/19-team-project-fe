@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { getMe } from '@/features/auth';
 import { getUserMe, updateUserMe } from '@/features/users';
+import { createPresignedUrl, uploadToPresignedUrl } from '@/features/uploads';
 import { getCareerLevels, getJobs, getSkills } from '@/features/onboarding';
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 import { checkNickname } from '@/features/onboarding';
@@ -17,6 +18,7 @@ import iconCareer from '@/shared/icons/icon_career.png';
 import iconJob from '@/shared/icons/Icon_job.png';
 import iconTech from '@/shared/icons/Icon_tech.png';
 import iconMark from '@/shared/icons/icon-mark.png';
+import defaultUserImage from '@/shared/icons/char_icon.png';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 import { Button } from '@/shared/ui/button';
@@ -45,6 +47,7 @@ const updateErrorMessages: Record<string, string> = {
   SKILL_IDS_EMPTY: '기술스택을 선택해 주세요.',
   SKILL_DISPLAY_ORDER_REQUIRED: '기술스택 순서를 확인해 주세요.',
   IMAGE_URL_INVALID: '이미지 URL이 올바르지 않습니다.',
+  UPLOAD_FAILED: '이미지 업로드에 실패했습니다.',
 };
 
 export default function MyPageEdit() {
@@ -76,6 +79,9 @@ export default function MyPageEdit() {
   const [initialJobId, setInitialJobId] = useState<number | null>(null);
   const [initialCareerId, setInitialCareerId] = useState<number | null>(null);
   const [initialSkillIds, setInitialSkillIds] = useState<number[]>([]);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [checkedNickname, setCheckedNickname] = useState<string | null>(null);
   const [nicknameCheckMessage, setNicknameCheckMessage] = useState<{
     tone: 'success' | 'error';
@@ -83,7 +89,9 @@ export default function MyPageEdit() {
   } | null>(null);
   const [isNicknameChecking, setIsNicknameChecking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (authStatus === 'guest') {
@@ -173,6 +181,7 @@ export default function MyPageEdit() {
         setInitialCareerId(data.career_level?.id ?? null);
         setSelectedTech(data.skills ?? []);
         setInitialSkillIds(data.skills.map((skill) => skill.id));
+        setProfileImageUrl(data.profile_image_url ?? null);
       })
       .catch(async (error) => {
         if (!mounted) return;
@@ -192,6 +201,22 @@ export default function MyPageEdit() {
       setNicknameCheckMessage(null);
     }
   }, [checkedNickname, nickname]);
+
+  useEffect(() => {
+    if (!profileImagePreview) return;
+    return () => {
+      URL.revokeObjectURL(profileImagePreview);
+    };
+  }, [profileImagePreview]);
+
+  const handleProfileImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const previewUrl = URL.createObjectURL(file);
+    setProfileImageFile(file);
+    setProfileImagePreview(previewUrl);
+    event.target.value = '';
+  };
 
   const filteredSkills = useMemo(() => {
     const query = techQuery.trim().toLowerCase();
@@ -291,6 +316,7 @@ export default function MyPageEdit() {
     const payload: {
       nickname?: string;
       introduction?: string;
+      profile_image_url?: string;
       career_level_id?: number;
       job_ids?: number[];
       skills?: Array<{ skill_id: number; display_order: number }>;
@@ -315,13 +341,24 @@ export default function MyPageEdit() {
       }));
     }
 
-    if (Object.keys(payload).length === 0) {
+    const hasProfileImageChange = !!profileImageFile;
+
+    if (Object.keys(payload).length === 0 && !hasProfileImageChange) {
       setSubmitError('변경된 내용이 없습니다.');
       return;
     }
 
     setIsSubmitting(true);
     try {
+      if (hasProfileImageChange && profileImageFile) {
+        setIsUploadingImage(true);
+        const { presignedUrl, fileUrl } = await createPresignedUrl({
+          target_type: 'PROFILE_IMAGE',
+          file_name: profileImageFile.name,
+        });
+        await uploadToPresignedUrl(profileImageFile, presignedUrl);
+        payload.profile_image_url = fileUrl;
+      }
       await updateUserMe(payload);
       router.replace('/me');
     } catch (error) {
@@ -335,6 +372,7 @@ export default function MyPageEdit() {
         setSubmitError('수정에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       }
     } finally {
+      setIsUploadingImage(false);
       setIsSubmitting(false);
     }
   };
@@ -372,6 +410,39 @@ export default function MyPageEdit() {
         </div>
 
         <div className="mt-8 flex flex-col gap-4">
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+            <div className="text-base font-semibold text-black">프로필 이미지</div>
+            <div className="mt-3 flex items-center gap-4">
+              <div className="relative h-20 w-20 overflow-hidden rounded-full bg-neutral-100">
+                <Image
+                  src={profileImagePreview ?? profileImageUrl ?? defaultUserImage}
+                  alt="프로필 이미지"
+                  width={80}
+                  height={80}
+                  unoptimized={!!profileImagePreview || !!profileImageUrl}
+                  className="h-20 w-20 object-cover"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isSubmitting || isUploadingImage}
+                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 disabled:opacity-60"
+                >
+                  {profileImagePreview ? '다른 이미지 선택' : '이미지 업로드'}
+                </button>
+                <p className="text-xs text-text-caption">jpg/png 권장</p>
+              </div>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleProfileImageChange}
+            />
+          </div>
           <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
             <div className="text-base font-semibold text-black">닉네임</div>
             <Input.Root className="mt-2">
@@ -518,11 +589,11 @@ export default function MyPageEdit() {
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploadingImage}
             icon={<Image src={iconMark} alt="" width={20} height={20} />}
             className="rounded-2xl py-4 text-base font-semibold"
           >
-            {isSubmitting ? '저장 중...' : '저장하기'}
+            {isSubmitting || isUploadingImage ? '저장 중...' : '저장하기'}
           </Button>
         </div>
       </section>

@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 import { getExperts, type Expert } from '@/entities/experts';
 import { useCommonApiErrorHandler } from '@/shared/api';
-import defaultUserImage from '@/shared/icons/char_main.png';
+import defaultUserImage from '@/shared/icons/char_icon.png';
 import ExpertSearchHeader from './ExpertSearchHeader';
 
 export default function ExpertSearchPage() {
@@ -332,10 +332,11 @@ export default function ExpertSearchPage() {
                 >
                   <span className="text-sm font-semibold text-text-body">{expert.nickname}</span>
                   <Image
-                    src={defaultUserImage}
+                    src={expert.profile_image_url || defaultUserImage}
                     alt={`${expert.nickname} 프로필`}
                     width={72}
                     height={72}
+                    unoptimized={!!expert.profile_image_url}
                     className="h-[72px] w-[72px] rounded-full object-cover"
                   />
                   <span className="text-xs font-semibold text-[#111827]">자세히보기</span>
@@ -351,10 +352,11 @@ export default function ExpertSearchPage() {
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <Image
-                      src={defaultUserImage}
+                      src={expert.profile_image_url || defaultUserImage}
                       alt={`${expert.nickname} 프로필`}
                       width={40}
                       height={40}
+                      unoptimized={!!expert.profile_image_url}
                       className="h-10 w-10 rounded-full object-cover"
                     />
                     <div className="flex min-w-0 flex-1 flex-col gap-1">

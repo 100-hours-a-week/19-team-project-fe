@@ -9,7 +9,7 @@ import { getUserMe, type UserMe } from '@/features/users';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
-import defaultUserImage from '@/shared/icons/char_main.png';
+import defaultUserImage from '@/shared/icons/char_icon.png';
 import iconCertification from '@/shared/icons/icon_certification.png';
 import iconInquiry from '@/shared/icons/icon_inquiry.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
@@ -116,11 +116,12 @@ export default function MyPage() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <Image
-                    src={defaultUserImage}
-                    alt="기본 프로필"
+                    src={user.profile_image_url ?? defaultUserImage}
+                    alt="프로필"
                     width={112}
                     height={112}
-                    className="h-24 w-24 rounded-full object-cover grayscale"
+                    unoptimized={!!user.profile_image_url}
+                    className="h-24 w-24 rounded-full object-cover"
                   />
                 </div>
                 <p className="mt-3 text-lg font-semibold text-[#3b5bcc]">{user.nickname}</p>
