@@ -2,8 +2,6 @@
 
 import Link from 'next/link';
 
-import { StarBorder } from '@/shared/ui/star-border';
-
 export default function SearchBar() {
   return (
     <section className="px-6 pt-4">
@@ -15,18 +13,9 @@ export default function SearchBar() {
           sessionStorage.setItem('nav-direction', 'forward');
         }}
       >
-        <StarBorder
-          className="w-full"
-          color="#22d3ee"
-          speed="3s"
-          thickness={4}
-          starOpacity={0.95}
-          starSize={18}
-          innerClassName="bg-white bg-none text-black"
-          innerStyle={{ borderColor: '#111827' }}
-        >
+        <div className="w-full rounded-2xl border border-[#111827] bg-white px-4 py-3">
           <div className="flex items-center justify-between gap-3 text-left text-black">
-            <span className="text-sm">멘트 쌈뽕한걸로 수정!</span>
+            <span className="text-sm text-gray-400">나에게 fit한 현직자를 찾아보세요</span>
             <svg
               data-slot="icon"
               fill="none"
@@ -44,7 +33,7 @@ export default function SearchBar() {
               />
             </svg>
           </div>
-        </StarBorder>
+        </div>
       </Link>
     </section>
   );
