@@ -115,7 +115,9 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
     const careers = Array.isArray((content as { careers?: string[] }).careers)
       ? ((content as { careers?: string[] }).careers ?? [])
       : [];
-    const projects = Array.isArray((content as { projects?: Array<Record<string, string>> }).projects)
+    const projects = Array.isArray(
+      (content as { projects?: Array<Record<string, string>> }).projects,
+    )
       ? ((content as { projects?: Array<Record<string, string>> }).projects ?? [])
       : [];
     const education = Array.isArray((content as { education?: string[] }).education)
@@ -352,7 +354,9 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
               <div className="mt-4">
                 <p className="text-sm font-semibold text-gray-700">이력서 선택</p>
                 {authStatus !== 'authed' ? (
-                  <p className="mt-2 text-xs text-text-caption">로그인 후 이력서를 선택할 수 있어요.</p>
+                  <p className="mt-2 text-xs text-text-caption">
+                    로그인 후 이력서를 선택할 수 있어요.
+                  </p>
                 ) : isLoadingResumes ? (
                   <p className="mt-2 text-xs text-text-caption">이력서를 불러오는 중...</p>
                 ) : resumeError ? (
@@ -373,7 +377,6 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
                   </select>
                 )}
               </div>
-
             </div>
           </div>
         ) : (

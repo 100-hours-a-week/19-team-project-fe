@@ -198,9 +198,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
                 <span className="text-red-500">{resumeError}</span>
               ) : resumeDetail ? (
                 <div className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-neutral-800">
-                  <span className="text-sm font-semibold">
-                    {resumeDetail.title || '제목 없음'}
-                  </span>
+                  <span className="text-sm font-semibold">{resumeDetail.title || '제목 없음'}</span>
                   {resumeDetail.fileUrl ? (
                     <a
                       href={resumeDetail.fileUrl}
