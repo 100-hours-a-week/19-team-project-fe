@@ -11,6 +11,7 @@ import {
   sortMessagesByTime,
   useChatHistory,
   useChatSocket,
+
 } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
 
@@ -105,6 +106,30 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     };
   }, [chatId, currentUserId]);
 
+  useEffect(() => {
+    if (!chatId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const detail = await getChatDetail({ chatId });
+        if (cancelled) return;
+        const meId = currentUserId;
+        const counterpart =
+          meId !== null && detail.receiver.user_id === meId ? detail.requester : detail.receiver;
+        setHeaderTitle(counterpart.nickname ?? '채팅');
+        setChatStatus(detail.status);
+      } catch (error) {
+        if (cancelled) return;
+        console.warn('Chat detail load failed:', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chatId, currentUserId]);
+
   /**
    * 최신 메시지 위치로 포커스
    */
@@ -132,6 +157,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     }
 
     try {
+      const clientMessageId = createClientMessageId();
       const now = new Date();
       const optimisticId = -now.getTime();
       const clientMessageId = createClientMessageId();
