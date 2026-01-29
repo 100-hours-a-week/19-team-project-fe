@@ -1090,3 +1090,47 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-01-29 Raw Log
+
+- Logged at: 2026-01-29 16:26:55Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/app/page.tsx
+   9:1  error  '@/widgets/home/ui/RecruitmentLinksTicker' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+  10:1  error  '@/widgets/home/ui/TechBlogTicker' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다          no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/chat-room/ui/ChatRoom.tsx
+  201:6  warning  React Hook useEffect has missing dependencies: 'historyLoading' and 'sendOptimisticMessage'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (2 errors, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-01-29 Raw Log
+
+- Logged at: 2026-01-29 16:27:47Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/app/page.tsx
+   9:1  error  '@/widgets/home/ui/RecruitmentLinksTicker' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+  10:1  error  '@/widgets/home/ui/TechBlogTicker' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다          no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/chat-room/ui/ChatRoom.tsx
+  201:6  warning  React Hook useEffect has missing dependencies: 'historyLoading' and 'sendOptimisticMessage'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (2 errors, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

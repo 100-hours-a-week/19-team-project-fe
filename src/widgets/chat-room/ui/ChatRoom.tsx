@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -154,7 +154,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     };
   }, [chatId, currentUserId]);
 
-  const sendOptimisticMessage = (content: string) => {
+  const sendOptimisticMessage = useCallback((content: string) => {
     const trimmed = content.trim();
     if (!trimmed) return;
     if (chatStatus === 'CLOSED') return;
@@ -188,7 +188,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       setMessages((prev) => prev.filter((item) => item.message_id !== optimisticId));
       console.warn('Send message failed:', sendError);
     }
-  };
+  }, [chatId, chatStatus, currentUserId, setMessages, wsStatus]);
 
   useEffect(() => {
     if (hasSentPendingRef.current) return;
@@ -198,7 +198,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     sendOptimisticMessage(pendingMessage);
     hasSentPendingRef.current = true;
     setPendingMessage(null);
-  }, [pendingMessage, wsStatus]);
+  }, [pendingMessage, wsStatus, historyLoading, sendOptimisticMessage]);
 
   useEffect(() => {
     if (!chatId) return;

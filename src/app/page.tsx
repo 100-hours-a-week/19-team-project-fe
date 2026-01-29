@@ -5,9 +5,7 @@ import { Header } from '@/widgets/header';
 import { SearchBar } from '@/widgets/search-bar';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
-import { SignupConfetti } from '@/widgets/home';
-import RecruitmentLinksTicker from '@/widgets/home/ui/RecruitmentLinksTicker';
-import TechBlogTicker from '@/widgets/home/ui/TechBlogTicker';
+import { RecruitmentLinksTicker, SignupConfetti, TechBlogTicker } from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import charBtn from '@/shared/icons/char_btn.png';
 
