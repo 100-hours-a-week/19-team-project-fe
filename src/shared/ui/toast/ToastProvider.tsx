@@ -55,17 +55,55 @@ export function ToastProvider({ children }: PropsWithChildren) {
     <ToastContext.Provider value={{ pushToast }}>
       {children}
       <div
-        className="pointer-events-none fixed inset-x-0 bottom-12 z-[999] flex justify-center"
+        className="pointer-events-none fixed left-1/2 top-20 z-[999] w-full max-w-[600px] -translate-x-1/2 px-6"
         role="status"
         aria-live="polite"
       >
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-end gap-2">
           {toasts.map((toast) => (
             <div
               key={toast.id}
-              className="pointer-events-auto animate-fade-in rounded-full bg-red-600/85 px-4 py-2 text-sm text-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
+              className="pointer-events-auto animate-fade-in rounded-2xl border border-[#e3b7b7] bg-[#f3d7d7] px-3 py-2 text-[13px] text-[#b14a4a] shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
             >
-              {toast.message}
+              <div className="flex min-w-[240px] max-w-[360px] items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#b14a4a]">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#b14a4a"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-3.5 w-3.5"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M7.5 7.5l9 9" />
+                    </svg>
+                  </span>
+                  <span className="font-semibold">Error:</span>
+                  <span className="text-[#b14a4a]">{toast.message}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeToast(toast.id)}
+                  className="pointer-events-auto text-[#b14a4a] opacity-70 transition hover:opacity-100"
+                  aria-label="닫기"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    <path d="M6 6l12 12M18 6l-12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
           ))}
         </div>
