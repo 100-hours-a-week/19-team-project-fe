@@ -45,6 +45,14 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         if (isMounted) setExpert(data);
       } catch (error) {
         if (isMounted) {
+          if (
+            error instanceof BusinessError &&
+            (error.code === 'EXPERT_USER_ID_INVALID' || error.code === 'EXPERT_NOT_FOUND')
+          ) {
+            await handleCommonApiError(error);
+            setExpert(null);
+            return;
+          }
           if (await handleCommonApiError(error)) {
             return;
           }
@@ -390,7 +398,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         <Button
           type="button"
           onClick={handleChatRequestClick}
-          disabled={isCheckingAuth}
+          disabled={isCheckingAuth || !expert}
           icon={<Image src={iconMark} alt="" width={18} height={18} />}
         >
           채팅 요청하기
