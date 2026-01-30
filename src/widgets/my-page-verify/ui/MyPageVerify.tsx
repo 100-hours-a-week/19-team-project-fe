@@ -8,6 +8,7 @@ import { sendEmailVerification, verifyEmailVerification } from '@/features/onboa
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { Input } from '@/shared/ui/input';
+import { Button } from '@/shared/ui/button';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
@@ -129,46 +130,51 @@ export default function MyPageVerify() {
     };
   }, [verificationExpiresAt, isVerificationVisible]);
 
-  useEffect(() => {
+  const handleVerifySubmit = async () => {
     const code = verificationCode.join('');
     if (!isVerificationVisible || isVerifying || isVerified) return;
     if (code.length !== verificationCodeLength) return;
     if (!lastSentEmail) return;
-    if (remainingSeconds === 0) return;
+    if (remainingSeconds === 0) {
+      setVerificationError('인증 시간이 만료되었습니다. 다시 전송해 주세요.');
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setVerificationError('네트워크 오류가 발생했어요. 다시 시도해 주세요.');
+      return;
+    }
 
     setIsVerifying(true);
     setVerificationError(null);
-    verifyEmailVerification({ email: lastSentEmail, code })
-      .then(() => {
-        setIsVerified(true);
-      })
-      .catch(async (error: unknown) => {
-        if (await handleCommonApiError(error)) {
-          return;
-        }
-        if (error instanceof Error) {
-          setVerificationError(
-            emailVerificationMessages[error.message] ??
-              error.message ??
-              '인증번호 확인에 실패했습니다.',
-          );
-        } else {
-          setVerificationError('인증번호 확인에 실패했습니다.');
-        }
-        setVerificationCode([]);
-      })
-      .finally(() => {
-        setIsVerifying(false);
-      });
-  }, [
-    handleCommonApiError,
-    isVerificationVisible,
-    isVerifying,
-    isVerified,
-    lastSentEmail,
-    remainingSeconds,
-    verificationCode,
-  ]);
+    try {
+      await verifyEmailVerification({ email: lastSentEmail, code });
+      setIsVerified(true);
+    } catch (error: unknown) {
+      if (await handleCommonApiError(error)) {
+        return;
+      }
+      if (error instanceof Error) {
+        setVerificationError(
+          emailVerificationMessages[error.message] ??
+            error.message ??
+            '인증번호 확인에 실패했습니다.',
+        );
+      } else {
+        setVerificationError('인증번호 확인에 실패했습니다.');
+      }
+      setVerificationCode([]);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const isVerificationSubmitDisabled =
+    !isVerificationVisible ||
+    isVerifying ||
+    isVerified ||
+    verificationCode.join('').length !== verificationCodeLength ||
+    !lastSentEmail ||
+    remainingSeconds === 0;
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
@@ -360,6 +366,17 @@ export default function MyPageVerify() {
                     );
                   },
                 )}
+              </div>
+              <div className="mt-3 flex justify-center">
+                <div className="w-full max-w-xs">
+                  <Button
+                    type="button"
+                    onClick={handleVerifySubmit}
+                    disabled={isVerificationSubmitDisabled}
+                  >
+                    제출
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
