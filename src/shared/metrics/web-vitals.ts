@@ -15,7 +15,7 @@ const sendToAnalytics = async (metric: Metric) => {
   const blob = new Blob([JSON.stringify(payload)], {
     type: 'application/json',
   });
-  navigator.sendBeacon('/api/metrics/web-vitals', blob);
+  navigator.sendBeacon('/bff/metrics/web-vitals', blob);
 };
 
 export const initWebVitals = () => {
