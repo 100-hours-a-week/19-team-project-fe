@@ -53,6 +53,26 @@ const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const inlineFieldClass =
   'w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20 disabled:bg-gray-100 disabled:text-gray-400';
 
+const mapEducationLevel = (
+  educationLevel: string,
+  fallbackList: string[],
+  allowedLevels: string[],
+): string | null => {
+  const normalized = educationLevel.trim();
+  if (allowedLevels.includes(normalized)) return normalized;
+
+  const listMatch = fallbackList.find((item) => allowedLevels.includes(item));
+  if (listMatch) return listMatch;
+
+  if (/고등학교/.test(normalized)) return '고등학교 졸업';
+  if (/2년제/.test(normalized) && /재학|휴학/.test(normalized)) return '2년제 재학/휴학';
+  if (/2년제/.test(normalized)) return '2년제 졸업';
+  if (/4년제/.test(normalized) && /재학|휴학/.test(normalized)) return '4년제 졸업/휴학';
+  if (/4년제/.test(normalized)) return '4년제 졸업';
+
+  return null;
+};
+
 export default function ResumeEditPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -178,7 +198,9 @@ export default function ResumeEditPage() {
             : [{ id: createId(), title: '', period: '', description: '' }],
         );
         const resolvedEducation =
-          mapEducationLevel(data.educationLevel ?? '', educationValue) ?? educationValue[0] ?? '';
+          mapEducationLevel(data.educationLevel ?? '', educationValue, educationOptions) ??
+          educationValue[0] ??
+          '';
         setEducation([{ id: createId(), value: resolvedEducation }]);
         setAwards(
           awardsValue.length
@@ -214,22 +236,6 @@ export default function ResumeEditPage() {
   }, [authStatus, handleCommonApiError, isEditMode, resumeId]);
   const handleAuthSheetClose = () => {
     router.replace('/resume');
-  };
-
-  const mapEducationLevel = (educationLevel: string, fallbackList: string[]): string | null => {
-    const normalized = educationLevel.trim();
-    if (educationOptions.includes(normalized)) return normalized;
-
-    const listMatch = fallbackList.find((item) => educationOptions.includes(item));
-    if (listMatch) return listMatch;
-
-    if (/고등학교/.test(normalized)) return '고등학교 졸업';
-    if (/2년제/.test(normalized) && /재학|휴학/.test(normalized)) return '2년제 재학/휴학';
-    if (/2년제/.test(normalized)) return '2년제 졸업';
-    if (/4년제/.test(normalized) && /재학|휴학/.test(normalized)) return '4년제 졸업/휴학';
-    if (/4년제/.test(normalized)) return '4년제 졸업';
-
-    return null;
   };
 
   const toSimpleItems = (values: string[]): SimpleItem[] => {
@@ -284,7 +290,7 @@ export default function ResumeEditPage() {
 
     const mappedEducation =
       result.education_level || educationValue.length
-        ? mapEducationLevel(result.education_level ?? '', educationValue)
+        ? mapEducationLevel(result.education_level ?? '', educationValue, educationOptions)
         : null;
     if (mappedEducation) {
       setEducation([{ id: education[0]?.id ?? createId(), value: mappedEducation }]);
