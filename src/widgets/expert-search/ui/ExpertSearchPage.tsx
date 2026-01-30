@@ -320,29 +320,33 @@ export default function ExpertSearchPage() {
           ) : errorMessage ? (
             <p className="text-sm text-red-500">{errorMessage}</p>
           ) : submitted ? (
-            <div className="grid grid-cols-3 gap-4">
-              {experts.map((expert) => (
-                <Link
-                  key={expert.user_id}
-                  href={`/experts/${String(expert.user_id)}`}
-                  className="flex flex-col items-center gap-3 rounded-2xl bg-white p-4 text-center shadow-[0_10px_24px_rgba(0,0,0,0.12)] transition-transform duration-200 hover:scale-[1.01]"
-                  onClick={() => {
-                    sessionStorage.setItem('nav-direction', 'forward');
-                  }}
-                >
-                  <span className="text-sm font-semibold text-text-body">{expert.nickname}</span>
-                  <Image
-                    src={expert.profile_image_url || defaultUserImage}
-                    alt={`${expert.nickname} 프로필`}
-                    width={72}
-                    height={72}
-                    unoptimized={!!expert.profile_image_url}
-                    className="h-[72px] w-[72px] rounded-full object-cover"
-                  />
-                  <span className="text-xs font-semibold text-[#111827]">자세히보기</span>
-                </Link>
-              ))}
-            </div>
+            experts.length === 0 ? (
+              <p className="text-center text-sm text-text-hint-main">검색 결과가 없습니다.</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-4">
+                {experts.map((expert) => (
+                  <Link
+                    key={expert.user_id}
+                    href={`/experts/${String(expert.user_id)}`}
+                    className="flex flex-col items-center gap-3 rounded-2xl bg-white p-4 text-center shadow-[0_10px_24px_rgba(0,0,0,0.12)] transition-transform duration-200 hover:scale-[1.01]"
+                    onClick={() => {
+                      sessionStorage.setItem('nav-direction', 'forward');
+                    }}
+                  >
+                    <span className="text-sm font-semibold text-text-body">{expert.nickname}</span>
+                    <Image
+                      src={expert.profile_image_url || defaultUserImage}
+                      alt={`${expert.nickname} 프로필`}
+                      width={72}
+                      height={72}
+                      unoptimized={!!expert.profile_image_url}
+                      className="h-[72px] w-[72px] rounded-full object-cover"
+                    />
+                    <span className="text-xs font-semibold text-[#111827]">자세히보기</span>
+                  </Link>
+                ))}
+              </div>
+            )
           ) : (
             <ul className="flex flex-col gap-3">
               {experts.map((expert) => (

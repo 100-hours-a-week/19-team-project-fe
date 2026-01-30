@@ -52,6 +52,26 @@ function isCommonErrorCode(code: string): code is CommonErrorCode {
   return COMMON_ERROR_CODES.has(code as CommonErrorCode);
 }
 
+function isNetworkError(error: unknown): boolean {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return true;
+  }
+  const rawMessage =
+    typeof error === 'string'
+      ? error
+      : error && typeof error === 'object' && 'message' in error
+        ? String((error as { message?: unknown }).message ?? '')
+        : '';
+  const rawName =
+    error && typeof error === 'object' && 'name' in error
+      ? String((error as { name?: unknown }).name ?? '')
+      : '';
+
+  if (error instanceof Error && error instanceof TypeError) return true;
+  if (rawName.toLowerCase() === 'typeerror') return true;
+  return /failed to fetch|networkerror|load failed/i.test(rawMessage);
+}
+
 type CommonErrorHandlerOptions = {
   redirectTo?: string;
   onInvalidToken?: () => Promise<boolean> | boolean;
@@ -64,6 +84,10 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
 
   return useCallback(
     async (error: unknown): Promise<boolean> => {
+      if (isNetworkError(error)) {
+        pushToast('네트워크 오류가 발생했어요. 다시 시도해 주세요.');
+        return true;
+      }
       if (error instanceof BusinessError && isCommonErrorCode(error.code)) {
         if (error.code === 'AUTH_UNAUTHORIZED') {
           pushToast(COMMON_ERROR_MESSAGES[error.code]);

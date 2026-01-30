@@ -10,7 +10,7 @@ import {
   createResume,
   getResumeDetail,
   parseResumeSync,
-  updateResumeTitle,
+  updateResume,
   type ResumeParseContentJson,
   type ResumeParseSyncResult,
 } from '@/entities/resumes';
@@ -52,6 +52,26 @@ type SimpleItem = {
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const inlineFieldClass =
   'w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20 disabled:bg-gray-100 disabled:text-gray-400';
+
+const mapEducationLevel = (
+  educationLevel: string,
+  fallbackList: string[],
+  allowedLevels: string[],
+): string | null => {
+  const normalized = educationLevel.trim();
+  if (allowedLevels.includes(normalized)) return normalized;
+
+  const listMatch = fallbackList.find((item) => allowedLevels.includes(item));
+  if (listMatch) return listMatch;
+
+  if (/고등학교/.test(normalized)) return '고등학교 졸업';
+  if (/2년제/.test(normalized) && /재학|휴학/.test(normalized)) return '2년제 재학/휴학';
+  if (/2년제/.test(normalized)) return '2년제 졸업';
+  if (/4년제/.test(normalized) && /재학|휴학/.test(normalized)) return '4년제 졸업/휴학';
+  if (/4년제/.test(normalized)) return '4년제 졸업';
+
+  return null;
+};
 
 export default function ResumeEditPage() {
   const router = useRouter();
@@ -177,11 +197,11 @@ export default function ResumeEditPage() {
             ? projectsValue
             : [{ id: createId(), title: '', period: '', description: '' }],
         );
-        setEducation(
-          educationValue.length
-            ? [{ id: createId(), value: educationValue[0] ?? '' }]
-            : [{ id: createId(), value: '' }],
-        );
+        const resolvedEducation =
+          mapEducationLevel(data.educationLevel ?? '', educationValue, educationOptions) ??
+          educationValue[0] ??
+          '';
+        setEducation([{ id: createId(), value: resolvedEducation }]);
         setAwards(
           awardsValue.length
             ? awardsValue.map((item) => ({ id: createId(), value: item }))
@@ -218,22 +238,6 @@ export default function ResumeEditPage() {
     router.replace('/resume');
   };
 
-  const mapEducationLevel = (educationLevel: string, fallbackList: string[]): string | null => {
-    const normalized = educationLevel.trim();
-    if (educationOptions.includes(normalized)) return normalized;
-
-    const listMatch = fallbackList.find((item) => educationOptions.includes(item));
-    if (listMatch) return listMatch;
-
-    if (/고등학교/.test(normalized)) return '고등학교 졸업';
-    if (/2년제/.test(normalized) && /재학|휴학/.test(normalized)) return '2년제 재학/휴학';
-    if (/2년제/.test(normalized)) return '2년제 졸업';
-    if (/4년제/.test(normalized) && /재학|휴학/.test(normalized)) return '4년제 졸업/휴학';
-    if (/4년제/.test(normalized)) return '4년제 졸업';
-
-    return null;
-  };
-
   const toSimpleItems = (values: string[]): SimpleItem[] => {
     if (!values.length) return [{ id: createId(), value: '' }];
     return values.map((value) => ({ id: createId(), value }));
@@ -244,6 +248,24 @@ export default function ResumeEditPage() {
       return value.replace(/-/g, '.');
     }
     return value;
+  };
+
+  const normalizeYearMonth = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+    const normalized = trimmed.replace(/[./]/g, '-');
+    if (/^\d{4}-\d{2}(-\d{2})?$/.test(normalized)) {
+      return normalized.slice(0, 7);
+    }
+    return trimmed;
+  };
+
+  const splitPeriod = (period: string) => {
+    const raw = period.replace(/[~–—]/g, '-');
+    const [startRaw = '', endRaw = ''] = raw.split('-').map((item) => item.trim());
+    const start = normalizeYearMonth(startRaw);
+    const end = normalizeYearMonth(endRaw);
+    return { start, end };
   };
 
   const applyParsedResult = (result: ResumeParseSyncResult | null) => {
@@ -268,7 +290,7 @@ export default function ResumeEditPage() {
 
     const mappedEducation =
       result.education_level || educationValue.length
-        ? mapEducationLevel(result.education_level ?? '', educationValue)
+        ? mapEducationLevel(result.education_level ?? '', educationValue, educationOptions)
         : null;
     if (mappedEducation) {
       setEducation([{ id: education[0]?.id ?? createId(), value: mappedEducation }]);
@@ -367,7 +389,53 @@ export default function ResumeEditPage() {
     (async () => {
       try {
         if (isEditMode && resumeId) {
-          await updateResumeTitle(resumeId, { title: trimmedTitle });
+          const careersPayload = careers
+            .map((career) => {
+              const { start, end } = splitPeriod(career.period);
+              return {
+                company_name: career.company.trim(),
+                job: career.role.trim(),
+                position: career.title.trim(),
+                start_date: start,
+                end_date: end,
+                is_current: Boolean(start) && !end,
+              };
+            })
+            .filter((career) =>
+              [
+                career.company_name,
+                career.job,
+                career.position,
+                career.start_date,
+                career.end_date,
+              ].some(Boolean),
+            );
+
+          const projectsPayload = projects
+            .map((project) => {
+              const { start, end } = splitPeriod(project.period);
+              return {
+                title: project.title.trim(),
+                start_date: start,
+                end_date: end,
+                description: project.description.trim(),
+              };
+            })
+            .filter((project) =>
+              [project.title, project.start_date, project.end_date, project.description].some(
+                Boolean,
+              ),
+            );
+
+          await updateResume(resumeId, {
+            title: trimmedTitle,
+            is_fresher: isFresher,
+            education_level: education[0]?.value ?? '',
+            content_json: {
+              careers: careersPayload,
+              projects: projectsPayload,
+            },
+          });
         } else {
           await createResume({
             title: trimmedTitle,
@@ -463,11 +531,6 @@ export default function ResumeEditPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 flex flex-1 flex-col gap-6">
-            {submitError ? (
-              <div className="rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-500 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
-                {submitError}
-              </div>
-            ) : null}
             {autoFillError ? (
               <div className="rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-500 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
                 {autoFillError}
@@ -838,6 +901,7 @@ export default function ResumeEditPage() {
               </div>
             </section>
 
+            {submitError ? <p className="mb-0 text-sm text-red-500">{submitError}</p> : null}
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting
                 ? isEditMode

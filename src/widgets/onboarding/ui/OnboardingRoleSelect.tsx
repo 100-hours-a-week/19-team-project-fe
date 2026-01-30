@@ -22,7 +22,7 @@ const ROLE_COPY = {
   },
   expert: {
     title: '현직자',
-    tagline: '현직자의 경험으로 후배의 커리어를 응원해주세요.?',
+    tagline: '현직자의 경험으로 후배의 커리어를 응원해주세요.',
     accent: 'text-[#7b2b4b]',
     bg: 'from-[#dc8aa1] via-[#dc8aa1] to-[#dc8aa1]',
     imageBg: 'bg-white/45',
