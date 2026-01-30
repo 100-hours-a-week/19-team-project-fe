@@ -26,8 +26,8 @@ export interface ChatCreatedData {
 
 export interface ChatCreateRequest {
   receiver_id: number;
-  resume_id: number;
-  job_post_url: string;
+  resume_id: number | null;
+  job_post_url: string | null;
   request_type: ChatRequestType;
 }
 
