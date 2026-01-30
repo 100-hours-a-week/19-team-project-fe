@@ -49,7 +49,7 @@ const flushMetrics = () => {
     type: 'application/json',
   });
 
-  navigator.sendBeacon('/api/metrics/batch', blob);
+  navigator.sendBeacon('/metrics/batch', blob);
 };
 
 // 페이지 이탈 시 남은 메트릭 전송
