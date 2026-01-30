@@ -489,9 +489,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       }
       if (error instanceof BusinessError) {
         setVerificationError(
-          emailVerificationMessages[error.code] ??
-            error.message ??
-            '인증번호 확인에 실패했습니다.',
+          emailVerificationMessages[error.code] ?? error.message ?? '인증번호 확인에 실패했습니다.',
         );
       } else if (error instanceof Error) {
         setVerificationError(error.message);
