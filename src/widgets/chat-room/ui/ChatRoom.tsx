@@ -270,7 +270,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           type="button"
           onClick={() => {
             sessionStorage.setItem('nav-direction', 'back');
-            router.back();
+            router.replace('/chat');
           }}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm"
           aria-label="뒤로 가기"

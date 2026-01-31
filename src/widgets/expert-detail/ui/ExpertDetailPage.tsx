@@ -384,10 +384,14 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
                   <p className="mt-2 text-xs text-text-caption">등록된 이력서가 없습니다.</p>
                 ) : (
                   <select
-                    value={selectedResumeId ?? undefined}
-                    onChange={(event) => setSelectedResumeId(Number(event.target.value))}
+                    value={selectedResumeId ?? 0}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      setSelectedResumeId(value === 0 ? null : value);
+                    }}
                     className="mt-2 w-full appearance-none rounded-md border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20"
                   >
+                    <option value={0}>선택 안함</option>
                     {resumes.map((resume) => (
                       <option key={resume.resumeId} value={resume.resumeId}>
                         {resume.title || `이력서 ${resume.resumeId}`}
