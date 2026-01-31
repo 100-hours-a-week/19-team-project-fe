@@ -350,8 +350,6 @@ export default function ResumeEditPage() {
           file_name: file.name,
         });
         await uploadToPresignedUrl(file, presignedUrl);
-        setFileUrl(uploadedUrl);
-        window.open(uploadedUrl, '_blank', 'noopener,noreferrer');
         const data = await parseResumeSync({ file_url: uploadedUrl, mode: 'sync' });
         applyParsedResult(data.result);
       } catch (error) {
@@ -427,7 +425,7 @@ export default function ResumeEditPage() {
               ),
             );
 
-          await updateResume(resumeId, {
+          const updatePayload = {
             title: trimmedTitle,
             is_fresher: isFresher,
             education_level: education[0]?.value ?? '',
@@ -435,15 +433,19 @@ export default function ResumeEditPage() {
               careers: careersPayload,
               projects: projectsPayload,
             },
-          });
+          };
+          window.alert(JSON.stringify(updatePayload, null, 2));
+          await updateResume(resumeId, updatePayload);
         } else {
-          await createResume({
+          const createPayload = {
             title: trimmedTitle,
             is_fresher: isFresher,
             education_level: educationLevel,
             file_url: fileUrl?.trim() ? fileUrl.trim() : null,
             content_json: payload.content_json,
-          });
+          };
+          window.alert(JSON.stringify(createPayload, null, 2));
+          await createResume(createPayload);
         }
         router.replace('/resume');
       } catch (error) {
