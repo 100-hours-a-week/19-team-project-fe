@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
+import { getUserMe, type UserMe } from '@/features/users';
 import { Header } from '@/widgets/header';
 import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';
@@ -43,11 +44,22 @@ const formatChatTime = (value?: string | null) => {
   return `${period} ${displayHours}:${minutes}`;
 };
 
+const getCounterparty = (chat: ChatSummary, currentUserId: number | null) => {
+  if (currentUserId && chat.requester.user_id === currentUserId) {
+    return chat.receiver;
+  }
+  if (currentUserId && chat.receiver.user_id === currentUserId) {
+    return chat.requester;
+  }
+  return chat.receiver;
+};
+
 export default function ChatList() {
   const router = useRouter();
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserMe | null>(null);
   const { status: authStatus } = useAuthGate(getMe);
   const handleCommonApiError = useCommonApiErrorHandler();
 
@@ -65,8 +77,17 @@ export default function ChatList() {
 
     (async () => {
       try {
-        const data = await getChatList();
+        const [userResult, chatResult] = await Promise.allSettled([getUserMe(), getChatList()]);
         if (cancelled) return;
+        if (userResult.status === 'fulfilled') {
+          setCurrentUser(userResult.value);
+        } else {
+          setCurrentUser(null);
+        }
+        if (chatResult.status !== 'fulfilled') {
+          throw chatResult.reason;
+        }
+        const data = chatResult.value;
         const normalized = data.chats
           .map((chat) => {
             const rawChatId = chat.chat_id ?? chat.chatId ?? null;
@@ -134,6 +155,7 @@ export default function ChatList() {
           <li className="px-4 py-6 text-center text-sm text-neutral-500">아직 채팅이 없습니다.</li>
         ) : (
           chats.map((chat) => {
+            const counterparty = getCounterparty(chat, currentUser?.id ?? null);
             const lastMessage = chat.last_message;
             return (
               <li key={chat.chat_id} className="border-b border-neutral-200/70">
@@ -142,17 +164,17 @@ export default function ChatList() {
                   className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition hover:bg-neutral-100"
                 >
                   <Image
-                    src={chat.receiver.profile_image_url ?? charIcon}
-                    alt={`${chat.receiver.nickname} 프로필`}
+                    src={counterparty.profile_image_url ?? charIcon}
+                    alt={`${counterparty.nickname} 프로필`}
                     width={48}
                     height={48}
-                    unoptimized={!!chat.receiver.profile_image_url}
+                    unoptimized={!!counterparty.profile_image_url}
                     className="h-12 w-12 flex-shrink-0 rounded-full object-cover bg-neutral-200"
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <div className="truncate text-base font-semibold">
-                        {chat.receiver.nickname}
+                        {counterparty.nickname}
                       </div>
                       {chat.status === 'CLOSED' ? (
                         <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
