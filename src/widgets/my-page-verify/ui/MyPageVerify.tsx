@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { getMe } from '@/features/auth';
-import { sendEmailVerification, verifyEmailVerification } from '@/features/onboarding';
+import { sendEmailVerification, verifyEmailVerification } from '@/features/email-verification';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { Input } from '@/shared/ui/input';
@@ -15,11 +15,15 @@ import { Header } from '@/widgets/header';
 const verificationCodeLength = 6;
 
 const emailVerificationMessages: Record<string, string> = {
+  EMAIL_FORMAT_INVALID: '이메일 형식이 올바르지 않습니다.',
+  EMAIL_VERIFICATION_RATE_LIMIT: '인증 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.',
   VERIFICATION_CODE_INVALID: '인증번호 형식이 올바르지 않습니다.',
-  VERIFICATION_CODE_MISMATCH: '인증번호가 일치하지 않습니다.',
   AUTH_UNAUTHORIZED: '인증 정보가 만료되었습니다. 다시 전송해 주세요.',
   VERIFICATION_CODE_EXPIRED: '인증 시간이 만료되었습니다. 다시 전송해 주세요.',
 };
+
+const getErrorCode = (error: Error) =>
+  'code' in error ? String((error as { code?: string }).code ?? '') : error.message;
 
 export default function MyPageVerify() {
   const router = useRouter();
@@ -61,9 +65,14 @@ export default function MyPageVerify() {
     sendEmailVerification({ email: trimmedEmail })
       .then((data) => {
         setLastSentEmail(trimmedEmail);
-        const expiresAt = new Date(data.expires_at);
-        setVerificationExpiresAt(expiresAt);
-        setRemainingSeconds(Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000)));
+        if (data.expires_at) {
+          const expiresAt = new Date(data.expires_at);
+          setVerificationExpiresAt(expiresAt);
+          setRemainingSeconds(Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000)));
+        } else {
+          setVerificationExpiresAt(null);
+          setRemainingSeconds(null);
+        }
         setIsVerificationVisible(true);
         setSendVerificationMessage('인증번호를 전송했습니다.');
       })
@@ -72,10 +81,9 @@ export default function MyPageVerify() {
           return;
         }
         if (error instanceof Error) {
+          const errorCode = getErrorCode(error);
           setSendVerificationError(
-            emailVerificationMessages[error.message] ??
-              error.message ??
-              '인증번호 전송에 실패했습니다.',
+            emailVerificationMessages[errorCode] ?? error.message ?? '인증번호 전송에 실패했습니다.',
           );
         } else {
           setSendVerificationError('인증번호 전송에 실패했습니다.');
@@ -135,7 +143,7 @@ export default function MyPageVerify() {
     if (!isVerificationVisible || isVerifying || isVerified) return;
     if (code.length !== verificationCodeLength) return;
     if (!lastSentEmail) return;
-    if (remainingSeconds === 0) {
+    if (typeof remainingSeconds === 'number' && remainingSeconds === 0) {
       setVerificationError('인증 시간이 만료되었습니다. 다시 전송해 주세요.');
       return;
     }
@@ -149,15 +157,15 @@ export default function MyPageVerify() {
     try {
       await verifyEmailVerification({ email: lastSentEmail, code });
       setIsVerified(true);
+      router.replace('/');
     } catch (error: unknown) {
       if (await handleCommonApiError(error)) {
         return;
       }
       if (error instanceof Error) {
+        const errorCode = getErrorCode(error);
         setVerificationError(
-          emailVerificationMessages[error.message] ??
-            error.message ??
-            '인증번호 확인에 실패했습니다.',
+          emailVerificationMessages[errorCode] ?? error.message ?? '인증번호 확인에 실패했습니다.',
         );
       } else {
         setVerificationError('인증번호 확인에 실패했습니다.');
@@ -174,7 +182,7 @@ export default function MyPageVerify() {
     isVerified ||
     verificationCode.join('').length !== verificationCodeLength ||
     !lastSentEmail ||
-    remainingSeconds === 0;
+    (typeof remainingSeconds === 'number' && remainingSeconds === 0);
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
