@@ -249,30 +249,6 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
           </div>
         </section>
 
-        <section className="rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-neutral-700">첨부한 이력서</h2>
-          <div className="mt-4 flex flex-col gap-2 text-sm">
-            {isLoadingResume ? (
-              <span className="text-neutral-700">이력서를 불러오는 중...</span>
-            ) : resumeError ? (
-              <span className="text-red-500">{resumeError}</span>
-            ) : resumeDetail?.fileUrl ? (
-              <div className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-neutral-800">
-                <span className="text-sm font-semibold">{resumeDetail.title || '제목 없음'}</span>
-                <a
-                  href={resumeDetail.fileUrl}
-                  className="text-xs font-semibold text-neutral-800 underline decoration-neutral-300 underline-offset-4"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  파일 열기
-                </a>
-              </div>
-            ) : (
-              <span className="text-neutral-900">첨부된 파일이 없습니다.</span>
-            )}
-          </div>
-        </section>
       </div>
 
       <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-[#f7f7f7] px-6 pb-6 pt-3">
