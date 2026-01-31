@@ -350,7 +350,6 @@ export default function ResumeEditPage() {
           file_name: file.name,
         });
         await uploadToPresignedUrl(file, presignedUrl);
-        window.open(uploadedUrl, '_blank', 'noopener,noreferrer');
         const data = await parseResumeSync({ file_url: uploadedUrl, mode: 'sync' });
         applyParsedResult(data.result);
       } catch (error) {
