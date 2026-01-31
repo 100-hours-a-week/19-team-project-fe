@@ -123,10 +123,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const key = `pending-chat-message:${chatId}`;
-    const pending = sessionStorage.getItem(key);
+    const pending = localStorage.getItem(key);
     if (pending) {
       setPendingMessage(pending);
-      sessionStorage.removeItem(key);
     }
   }, [chatId]);
 
@@ -200,6 +199,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     if (!pendingMessage) return;
     sendOptimisticMessage(pendingMessage);
     hasSentPendingRef.current = true;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`pending-chat-message:${chatId}`);
+    }
     setPendingMessage(null);
   }, [pendingMessage, wsStatus, historyLoading, sendOptimisticMessage]);
 
