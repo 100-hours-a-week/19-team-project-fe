@@ -434,7 +434,6 @@ export default function ResumeEditPage() {
               projects: projectsPayload,
             },
           };
-          window.alert(JSON.stringify(updatePayload, null, 2));
           await updateResume(resumeId, updatePayload);
         } else {
           const createPayload = {
@@ -444,7 +443,6 @@ export default function ResumeEditPage() {
             file_url: fileUrl?.trim() ? fileUrl.trim() : null,
             content_json: payload.content_json,
           };
-          window.alert(JSON.stringify(createPayload, null, 2));
           await createResume(createPayload);
         }
         router.replace('/resume');
