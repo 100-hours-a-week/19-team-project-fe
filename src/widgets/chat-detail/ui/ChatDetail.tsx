@@ -248,7 +248,6 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
             <DetailRow label="생성 일시" value={formatDateTime(detail.created_at)} />
           </div>
         </section>
-
       </div>
 
       <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-[#f7f7f7] px-6 pb-6 pt-3">
