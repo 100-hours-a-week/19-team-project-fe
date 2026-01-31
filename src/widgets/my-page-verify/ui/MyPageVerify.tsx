@@ -83,7 +83,9 @@ export default function MyPageVerify() {
         if (error instanceof Error) {
           const errorCode = getErrorCode(error);
           setSendVerificationError(
-            emailVerificationMessages[errorCode] ?? error.message ?? '인증번호 전송에 실패했습니다.',
+            emailVerificationMessages[errorCode] ??
+              error.message ??
+              '인증번호 전송에 실패했습니다.',
           );
         } else {
           setSendVerificationError('인증번호 전송에 실패했습니다.');
