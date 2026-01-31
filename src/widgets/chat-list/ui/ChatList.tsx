@@ -141,7 +141,14 @@ export default function ChatList() {
                   href={`/chat/${chat.chat_id}`}
                   className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition hover:bg-neutral-100"
                 >
-                  <div className="h-12 w-12 flex-shrink-0 rounded-full bg-neutral-200" />
+                  <Image
+                    src={chat.receiver.profile_image_url ?? charIcon}
+                    alt={`${chat.receiver.nickname} 프로필`}
+                    width={48}
+                    height={48}
+                    unoptimized={!!chat.receiver.profile_image_url}
+                    className="h-12 w-12 flex-shrink-0 rounded-full object-cover bg-neutral-200"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <div className="truncate text-base font-semibold">
