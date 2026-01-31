@@ -138,17 +138,6 @@ export default function ResumePage() {
                           </p>
                         </div>
                         <div className="flex items-start gap-2">
-                          {resume.fileUrl ? (
-                            <a
-                              href={resume.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs font-semibold text-primary-main"
-                              onClick={(event) => event.stopPropagation()}
-                            >
-                              파일 보기
-                            </a>
-                          ) : null}
                           <button
                             type="button"
                             aria-label="이력서 옵션"
