@@ -86,9 +86,6 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         const data = await getResumes();
         if (cancelled) return;
         setResumes(data.resumes);
-        if (data.resumes.length > 0) {
-          setSelectedResumeId((prev) => prev ?? data.resumes[0].resumeId);
-        }
       } catch (error) {
         if (cancelled) return;
         if (error instanceof HttpError && error.status === 401) {
@@ -221,8 +218,8 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         job_post_url: jobPostUrl.trim() || null,
         request_type: 'COFFEE_CHAT',
       });
-      if (initialMessage) {
-        sessionStorage.setItem(`pending-chat-message:${data.chat_id}`, initialMessage);
+      if (initialMessage && typeof window !== 'undefined') {
+        localStorage.setItem(`pending-chat-message:${data.chat_id}`, initialMessage);
       }
       router.push(`/chat/${data.chat_id}`);
     } catch (error) {
@@ -236,14 +233,14 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
             (chat) => chat.receiver.user_id === userId || chat.requester.user_id === userId,
           );
           if (matched) {
-            const fallbackResumeId = selectedResumeId ?? resumes[0]?.resumeId ?? null;
+            const fallbackResumeId = selectedResumeId ?? null;
             let resumeDetail: Awaited<ReturnType<typeof getResumeDetail>> | null = null;
             if (fallbackResumeId) {
               resumeDetail = await getResumeDetail(fallbackResumeId);
             }
             const initialMessage = buildInitialMessage(resumeDetail);
-            if (initialMessage) {
-              sessionStorage.setItem(`pending-chat-message:${matched.chat_id}`, initialMessage);
+            if (initialMessage && typeof window !== 'undefined') {
+              localStorage.setItem(`pending-chat-message:${matched.chat_id}`, initialMessage);
             }
             router.push(`/chat/${matched.chat_id}`);
             return;
