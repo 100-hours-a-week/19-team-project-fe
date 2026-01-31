@@ -2,12 +2,15 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import type { ChatDetailData, ChatParticipant } from '@/entities/chat';
 import { getResumeDetail, type ResumeDetail } from '@/entities/resumes';
 import { closeChat } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
+import charIcon from '@/shared/icons/char_icon.png';
+import { BottomSheet } from '@/shared/ui/bottom-sheet';
 
 type ChatDetailProps = {
   chatId: number;
@@ -27,10 +30,29 @@ const formatDateTime = (value: string | null) => {
   });
 };
 
-const getUserTypeLabel = (value?: string) => {
-  if (!value) return '알 수 없음';
-  return value === 'EXPERT' ? '전문가' : value;
+const EMPTY_CONTENT_LABEL = '내용이 없습니다.';
+
+type ResumeContent = {
+  summary?: string;
+  careers?: string[];
+  projects?: Array<{
+    title?: string;
+    start_date?: string;
+    end_date?: string;
+    description?: string;
+  }>;
+  education?: string[];
+  awards?: string[];
+  certificates?: string[];
+  activities?: string[];
 };
+
+const normalizeContent = (value: ResumeDetail['contentJson']): ResumeContent | null => {
+  if (!value || typeof value !== 'object') return null;
+  return value as ResumeContent;
+};
+
+const toArray = (value?: string[]) => (Array.isArray(value) ? value.filter(Boolean) : []);
 
 const DetailRow = ({ label, value }: { label: string; value: ReactNode }) => (
   <div className="flex items-start justify-between gap-4 text-sm text-neutral-700">
@@ -47,14 +69,18 @@ const ParticipantCard = ({
   participant: ChatParticipant;
 }) => (
   <div className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
-    <div className="h-12 w-12 rounded-full bg-neutral-200" />
+    <Image
+      src={participant.profile_image_url ?? charIcon}
+      alt={`${participant.nickname} 프로필`}
+      width={48}
+      height={48}
+      unoptimized={!!participant.profile_image_url}
+      className="h-12 w-12 rounded-full object-cover bg-neutral-200"
+    />
     <div className="flex flex-1 flex-col gap-1">
       <div className="text-sm font-semibold text-neutral-900">{participant.nickname}</div>
       <div className="text-xs text-neutral-500">{title}</div>
     </div>
-    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600">
-      {getUserTypeLabel(participant.user_type)}
-    </span>
   </div>
 );
 
@@ -67,6 +93,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
   const [resumeDetail, setResumeDetail] = useState<ResumeDetail | null>(null);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [isLoadingResume, setIsLoadingResume] = useState(false);
+  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const participants: Array<{ title: string; data: ChatParticipant }> = [
     { title: '요청자', data: detail.requester },
     { title: '수신자', data: detail.receiver },
@@ -114,6 +141,23 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
       setIsClosing(false);
     }
   };
+
+  const content = normalizeContent(resumeDetail?.contentJson ?? null);
+  const careers = toArray(content?.careers);
+  const projects = Array.isArray(content?.projects) ? (content?.projects ?? []) : [];
+  const education = toArray(content?.education);
+  const awards = toArray(content?.awards);
+  const certificates = toArray(content?.certificates);
+  const activities = toArray(content?.activities);
+  const summary = content?.summary?.trim();
+  const hasContent =
+    Boolean(summary) ||
+    careers.length > 0 ||
+    projects.length > 0 ||
+    education.length > 0 ||
+    awards.length > 0 ||
+    certificates.length > 0 ||
+    activities.length > 0;
 
   return (
     <div
@@ -164,14 +208,6 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
         </section>
 
         <section className="rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-neutral-700">채팅 정보</h2>
-          <div className="mt-4 flex flex-col gap-3">
-            <DetailRow label="상태" value={detail.status === 'ACTIVE' ? '진행 중' : '종료'} />
-            <DetailRow label="이력서 ID" value={detail.resume_id || '—'} />
-          </div>
-        </section>
-
-        <section className="rounded-2xl bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-neutral-700">첨부 자료</h2>
           <div className="mt-4 flex flex-col gap-4">
             <div className="flex flex-col gap-1 text-sm">
@@ -197,26 +233,44 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
               ) : resumeError ? (
                 <span className="text-red-500">{resumeError}</span>
               ) : resumeDetail ? (
-                <div className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-neutral-800">
+                <button
+                  type="button"
+                  onClick={() => setIsResumeModalOpen(true)}
+                  className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-left text-neutral-800"
+                >
                   <span className="text-sm font-semibold">{resumeDetail.title || '제목 없음'}</span>
-                  {resumeDetail.fileUrl ? (
-                    <a
-                      href={resumeDetail.fileUrl}
-                      className="text-xs font-semibold text-neutral-800 underline decoration-neutral-300 underline-offset-4"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      파일 열기
-                    </a>
-                  ) : (
-                    <span className="text-xs text-neutral-500">파일 없음</span>
-                  )}
-                </div>
+                  <span className="text-xs font-semibold text-neutral-700">상세 보기</span>
+                </button>
               ) : (
                 <span className="text-neutral-900">—</span>
               )}
             </div>
             <DetailRow label="생성 일시" value={formatDateTime(detail.created_at)} />
+          </div>
+        </section>
+
+        <section className="rounded-2xl bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-neutral-700">첨부한 이력서</h2>
+          <div className="mt-4 flex flex-col gap-2 text-sm">
+            {isLoadingResume ? (
+              <span className="text-neutral-700">이력서를 불러오는 중...</span>
+            ) : resumeError ? (
+              <span className="text-red-500">{resumeError}</span>
+            ) : resumeDetail?.fileUrl ? (
+              <div className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-neutral-800">
+                <span className="text-sm font-semibold">{resumeDetail.title || '제목 없음'}</span>
+                <a
+                  href={resumeDetail.fileUrl}
+                  className="text-xs font-semibold text-neutral-800 underline decoration-neutral-300 underline-offset-4"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  파일 열기
+                </a>
+              </div>
+            ) : (
+              <span className="text-neutral-900">첨부된 파일이 없습니다.</span>
+            )}
           </div>
         </section>
       </div>
@@ -232,6 +286,126 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
         </button>
         {closeError ? <p className="mt-2 text-center text-xs text-red-500">{closeError}</p> : null}
       </div>
+
+      <BottomSheet
+        open={isResumeModalOpen}
+        title="이력서 상세"
+        onClose={() => setIsResumeModalOpen(false)}
+      >
+        {isLoadingResume ? (
+          <p className="text-sm text-neutral-700">이력서를 불러오는 중...</p>
+        ) : resumeError ? (
+          <p className="text-sm text-red-500">{resumeError}</p>
+        ) : resumeDetail ? (
+          <div className="flex flex-col gap-4">
+            <div className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+              <p className="text-base font-semibold text-neutral-900">
+                {resumeDetail.title || '제목 없음'}
+              </p>
+              <p className="mt-1 text-xs text-neutral-500">
+                {resumeDetail.isFresher ? '신입' : '경력'} ·{' '}
+                {resumeDetail.educationLevel || '학력 정보 없음'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+              {hasContent ? (
+                <div className="flex flex-col gap-4 text-sm text-neutral-800">
+                  {summary ? (
+                    <div>
+                      <p className="text-xs font-semibold text-neutral-600">요약</p>
+                      <p className="mt-1 whitespace-pre-line">{summary}</p>
+                    </div>
+                  ) : null}
+
+                  {careers.length > 0 ? (
+                    <div>
+                      <p className="text-xs font-semibold text-neutral-600">경력</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-4">
+                        {careers.map((item, index) => (
+                          <li key={`career-${index}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
+                  {projects.length > 0 ? (
+                    <div>
+                      <p className="text-xs font-semibold text-neutral-600">프로젝트</p>
+                      <div className="mt-2 flex flex-col gap-3">
+                        {projects.map((project, index) => (
+                          <div key={`project-${index}`} className="rounded-lg bg-neutral-50 p-3">
+                            <p className="text-sm font-semibold text-neutral-900">
+                              {project.title || `프로젝트 ${index + 1}`}
+                            </p>
+                            <p className="mt-1 text-xs text-neutral-500">
+                              {[project.start_date, project.end_date].filter(Boolean).join(' ~ ') ||
+                                '기간 정보 없음'}
+                            </p>
+                            {project.description ? (
+                              <p className="mt-2 whitespace-pre-line text-sm text-neutral-700">
+                                {project.description}
+                              </p>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {education.length > 0 ? (
+                    <div>
+                      <p className="text-xs font-semibold text-neutral-600">학력</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-4">
+                        {education.map((item, index) => (
+                          <li key={`education-${index}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
+                  {awards.length > 0 ? (
+                    <div>
+                      <p className="text-xs font-semibold text-neutral-600">수상</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-4">
+                        {awards.map((item, index) => (
+                          <li key={`award-${index}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
+                  {certificates.length > 0 ? (
+                    <div>
+                      <p className="text-xs font-semibold text-neutral-600">자격증</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-4">
+                        {certificates.map((item, index) => (
+                          <li key={`certificate-${index}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
+                  {activities.length > 0 ? (
+                    <div>
+                      <p className="text-xs font-semibold text-neutral-600">활동</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-4">
+                        {activities.map((item, index) => (
+                          <li key={`activity-${index}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-sm text-neutral-500">{EMPTY_CONTENT_LABEL}</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-neutral-500">이력서가 없습니다.</p>
+        )}
+      </BottomSheet>
     </div>
   );
 }
