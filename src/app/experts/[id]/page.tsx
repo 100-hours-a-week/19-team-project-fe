@@ -14,7 +14,7 @@ export default async function ExpertDetailRoute({ params }: ExpertDetailRoutePro
   if (Number.isNaN(userId)) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-white px-6 pt-24 text-sm text-text-hint-main">
+        <div className="min-h-screen bg-white px-2.5 pt-24 text-sm text-text-hint-main">
           잘못된 전문가 정보예요.
         </div>
       </PageTransition>

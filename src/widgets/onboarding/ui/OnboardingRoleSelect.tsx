@@ -37,7 +37,7 @@ export default function OnboardingRoleSelect() {
 
   return (
     <main className="flex min-h-screen flex-col bg-white pb-10 pt-4 text-text-body">
-      <header className="relative px-6">
+      <header className="relative px-2.5">
         <div className="mx-auto max-w-xs text-center">
           <h1 className="mt-4 text-2xl font-semibold text-text-title">
             어떤 서비스를 이용하고 싶으세요
@@ -67,7 +67,7 @@ export default function OnboardingRoleSelect() {
               >
                 <div className="relative z-10 flex h-full flex-col items-center">
                   <div className="-mt-5 -mr-10 flex w-full justify-end">
-                    <span className="rounded-full bg-white/70 px-4 py-1 text-sm font-medium text-text-caption">
+                    <span className="rounded-full bg-white/70 px-2.5 py-1 text-sm font-medium text-text-caption">
                       {isActive ? '선택됨' : '클릭'}
                     </span>
                   </div>

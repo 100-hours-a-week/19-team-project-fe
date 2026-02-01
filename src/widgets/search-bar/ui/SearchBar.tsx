@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function SearchBar() {
   return (
-    <section className="px-6 pt-4">
+    <section className="px-2.5 pt-4">
       <Link
         href="/experts"
         className="block"
@@ -13,7 +13,7 @@ export default function SearchBar() {
           sessionStorage.setItem('nav-direction', 'forward');
         }}
       >
-        <div className="w-full rounded-2xl border border-[#111827] bg-white px-4 py-3">
+        <div className="w-full rounded-2xl border border-[#111827] bg-white px-2.5 py-3">
           <div className="flex items-center justify-between gap-3 text-left text-black">
             <span className="text-sm text-gray-400">나에게 fit한 현직자를 찾아보세요</span>
             <svg

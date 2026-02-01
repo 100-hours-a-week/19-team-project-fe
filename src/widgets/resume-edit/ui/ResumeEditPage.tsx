@@ -51,7 +51,7 @@ type SimpleItem = {
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const inlineFieldClass =
-  'w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20 disabled:bg-gray-100 disabled:text-gray-400';
+  'w-full rounded-md border border-gray-200 px-2.5 py-3 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20 disabled:bg-gray-100 disabled:text-gray-400';
 
 const mapEducationLevel = (
   educationLevel: string,
@@ -468,7 +468,7 @@ export default function ResumeEditPage() {
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <Header />
 
-      <section className="flex flex-1 flex-col px-6 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
+      <section className="flex flex-1 flex-col px-2.5 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
         <div className="flex flex-wrap items-center gap-3">
           <input
             id="resume-auto-upload"
@@ -507,7 +507,7 @@ export default function ResumeEditPage() {
             type="button"
             onClick={handleAutoFill}
             disabled={isAutoFilling || authStatus !== 'authed'}
-            className={`ml-auto rounded-full border px-4 py-2 text-sm font-semibold transition ${
+            className={`ml-auto rounded-full border px-2.5 py-2 text-sm font-semibold transition ${
               isAutoFilling || authStatus !== 'authed'
                 ? 'border-gray-200 bg-gray-100 text-gray-400'
                 : 'border-primary-main bg-primary-main/10 text-primary-main'
@@ -518,21 +518,21 @@ export default function ResumeEditPage() {
         </div>
 
         {authStatus === 'checking' ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">불러오는 중...</p>
           </div>
         ) : authStatus !== 'authed' ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">로그인이 필요합니다.</p>
           </div>
         ) : isEditMode && isLoadingResume ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">이력서를 불러오는 중...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 flex flex-1 flex-col gap-6">
             {autoFillError ? (
-              <div className="rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-red-500 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <div className="rounded-2xl border border-red-100 bg-white px-2.5 py-3 text-sm text-red-500 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
                 {autoFillError}
               </div>
             ) : null}
@@ -583,7 +583,7 @@ export default function ResumeEditPage() {
                   <button
                     type="button"
                     onClick={() => setIsFresher(true)}
-                    className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                    className={`rounded-xl border px-2.5 py-3 text-sm font-semibold transition ${
                       isFresher
                         ? 'border-primary-main bg-primary-main/10 text-primary-main'
                         : 'border-gray-200 text-gray-600'
@@ -594,7 +594,7 @@ export default function ResumeEditPage() {
                   <button
                     type="button"
                     onClick={() => setIsFresher(false)}
-                    className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                    className={`rounded-xl border px-2.5 py-3 text-sm font-semibold transition ${
                       !isFresher
                         ? 'border-primary-main bg-primary-main/10 text-primary-main'
                         : 'border-gray-200 text-gray-600'
@@ -747,7 +747,7 @@ export default function ResumeEditPage() {
                         next[index] = { ...project, description: event.target.value };
                         setProjects(next);
                       }}
-                      className="mt-2 w-full rounded-md border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20"
+                      className="mt-2 w-full rounded-md border border-gray-200 px-2.5 py-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20"
                       rows={3}
                       placeholder="프로젝트 설명"
                     />

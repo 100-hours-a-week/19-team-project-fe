@@ -190,7 +190,7 @@ export default function MyPageVerify() {
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <Header />
 
-      <section className="px-6 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
+      <section className="px-2.5 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -304,7 +304,7 @@ export default function MyPageVerify() {
                   })}
                 </div>
               </div>
-              <div className="mt-10 grid grid-cols-3 gap-6 px-6 text-center text-2xl font-semibold text-[#2b4b7e]">
+              <div className="mt-10 grid grid-cols-3 gap-6 px-2.5 text-center text-2xl font-semibold text-[#2b4b7e]">
                 {['3', '7', '0', '6', '8', '2', '4', '1', '5', 'biometric', '9', 'backspace'].map(
                   (item) => {
                     if (item === 'biometric') {

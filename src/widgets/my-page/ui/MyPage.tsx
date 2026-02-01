@@ -67,26 +67,26 @@ export default function MyPage() {
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <Header />
 
-      <section className="px-6 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
+      <section className="px-2.5 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
         {authStatus === 'checking' ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">불러오는 중...</p>
           </div>
         ) : authStatus !== 'authed' ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">로그인이 필요합니다.</p>
           </div>
         ) : isLoadingUser ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">내 정보를 불러오는 중...</p>
           </div>
         ) : loadError ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-red-500">{loadError}</p>
           </div>
         ) : user ? (
           <div className="mt-6 flex flex-col gap-6">
-            <div className="relative rounded-3xl bg-white px-6 py-6 text-center shadow-sm">
+            <div className="relative rounded-3xl bg-white px-2.5 py-6 text-center shadow-sm">
               <button
                 type="button"
                 className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-[#3b5bcc] text-white shadow-md"
@@ -150,7 +150,7 @@ export default function MyPage() {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white px-6 py-5 shadow-sm">
+            <div className="rounded-3xl bg-white px-2.5 py-5 shadow-sm">
               <p className="text-base font-semibold text-text-title">자기 소개</p>
               <p className="mt-3 text-sm text-text-body whitespace-pre-line">
                 {user.introduction || '자기 소개가 없습니다.'}
@@ -198,7 +198,7 @@ export default function MyPage() {
             </div>
           </div>
         ) : (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">내 정보를 불러오지 못했습니다.</p>
           </div>
         )}

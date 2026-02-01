@@ -103,7 +103,7 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <Header />
 
-      <section className="flex flex-1 flex-col px-6 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
+      <section className="flex flex-1 flex-col px-2.5 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -128,19 +128,19 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
         </div>
 
         {authStatus === 'checking' ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">불러오는 중...</p>
           </div>
         ) : authStatus !== 'authed' ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">로그인이 필요합니다.</p>
           </div>
         ) : isLoading ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">이력서를 불러오는 중...</p>
           </div>
         ) : loadError ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-red-500">{loadError}</p>
           </div>
         ) : resume ? (
@@ -192,7 +192,7 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
                           return (
                             <div
                               key={`${project.title ?? 'project'}-${index}`}
-                              className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3"
+                              className="rounded-xl border border-gray-100 bg-gray-50 px-2.5 py-3"
                             >
                               <p className="font-semibold text-text-title">
                                 {project.title || '프로젝트'}
@@ -269,7 +269,7 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
             ) : null}
           </div>
         ) : (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">이력서를 찾을 수 없습니다.</p>
           </div>
         )}

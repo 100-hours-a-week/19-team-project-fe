@@ -1,10 +1,15 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
+import bannerNum1 from '@/shared/icons/banner_num1.png';
+import bannerNum2 from '@/shared/icons/banner_num2.png';
+import bannerNum3 from '@/shared/icons/banner_num3.png';
+
 const BLOGS = [
-  { label: '카카오 테크 블로그', url: 'https://tech.kakao.com/blog/' },
-  { label: '쿠팡 기술 블로그', url: 'https://medium.com/coupang-tech/technote/home' },
+  { label: '카카오 테크 블로그', url: 'https://tech.kakao.com/blog?page=1' },
+  { label: '쿠팡 기술 블로그', url: 'https://medium.com/coupang-engineering' },
   { label: '왓챠 팀 블로그', url: 'https://medium.com/watcha' },
   { label: '마켓컬리 Tech Blog', url: 'http://thefarmersfront.github.io/' },
   { label: '우아한형제들 기술 블로그', url: 'https://woowabros.github.io/' },
@@ -16,7 +21,6 @@ const BLOGS = [
   { label: 'Delivery Tech Korea', url: 'https://medium.com/deliverytechkorea' },
   { label: '이스트소프트 AI PLUS TECH', url: 'https://blog.est.ai/' },
   { label: '플랫팜 팀 블로그', url: 'https://medium.com/platfarm' },
-  { label: '레진 기술 블로그', url: 'https://tech.lezhin.com/' },
   { label: 'Spoqa 기술 블로그', url: 'https://spoqa.github.io/' },
   { label: '플라네타리움 엔지니어링 스낵', url: 'https://snack.planetarium.dev/kor/' },
   { label: 'LINE Engineering 블로그', url: 'https://engineering.linecorp.com/ko/blog/' },
@@ -28,8 +32,6 @@ const BLOGS = [
 export default function TechBlogTicker() {
   const [index, setIndex] = useState(0);
   const [enableTransition, setEnableTransition] = useState(true);
-  const [sliceIndex, setSliceIndex] = useState(0);
-  const [sliceTransition, setSliceTransition] = useState(true);
   const rowHeight = 44;
   const rowGap = 8;
 
@@ -55,28 +57,8 @@ export default function TechBlogTicker() {
     return () => window.clearTimeout(resetId);
   }, [index]);
 
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setSliceTransition(true);
-      setSliceIndex((prev) => prev + 1);
-    }, 3000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (sliceIndex !== 3) return;
-    const resetId = window.setTimeout(() => {
-      setSliceTransition(false);
-      setSliceIndex(0);
-    }, 300);
-    return () => window.clearTimeout(resetId);
-  }, [sliceIndex]);
-
   return (
-    <div className="rounded-2xl bg-white px-4 py-4">
+    <div className="rounded-2xl bg-white px-2.5 pt-0 pb-4">
       <p className="text-sm font-semibold text-neutral-900">기업 기술 블로그</p>
       <div className="mt-3 overflow-hidden" style={{ height: rowHeight * 3 + rowGap * 2 }}>
         <div
@@ -110,19 +92,53 @@ export default function TechBlogTicker() {
           ))}
         </div>
       </div>
-      <div className="mt-4 overflow-hidden">
+    </div>
+  );
+}
+
+export function TechBlogBanner() {
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [enableTransition, setEnableTransition] = useState(true);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setEnableTransition(true);
+      setSlideIndex((prev) => prev + 1);
+    }, 3500);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (slideIndex !== 3) return;
+    const resetId = window.setTimeout(() => {
+      setEnableTransition(false);
+      setSlideIndex(0);
+    }, 300);
+    return () => window.clearTimeout(resetId);
+  }, [slideIndex]);
+
+  const slides = [bannerNum1, bannerNum2, bannerNum3, bannerNum1];
+
+  return (
+    <div className="rounded-2xl bg-white px-2.5 py-4">
+      <div className="relative w-full overflow-hidden rounded-2xl aspect-[600/174] shadow-[0_14px_32px_rgba(15,23,42,0.2)]">
         <div
-          className={`flex ${sliceTransition ? 'transition-transform duration-500 ease-out' : ''}`}
-          style={{ transform: `translateX(-${sliceIndex * 100}%)` }}
+          className={`flex h-full ${enableTransition ? 'transition-transform duration-500 ease-out' : ''}`}
+          style={{ transform: `translateX(-${slideIndex * 100}%)` }}
         >
-          {[
-            { key: 0, bg: 'bg-[#F7C7D3]', shadow: 'shadow-[0_10px_24px_rgba(247,199,211,0.5)]' },
-            { key: 1, bg: 'bg-[#CFEAD6]', shadow: 'shadow-[0_10px_24px_rgba(207,234,214,0.5)]' },
-            { key: 2, bg: 'bg-[#C8D7F3]', shadow: 'shadow-[0_10px_24px_rgba(200,215,243,0.55)]' },
-            { key: 0, bg: 'bg-[#F7C7D3]', shadow: 'shadow-[0_10px_24px_rgba(247,199,211,0.5)]' },
-          ].map((item, idx) => (
-            <div key={`tech-blog-slice-${item.key}-${idx}`} className="w-full shrink-0 pr-2">
-              <div className={`h-24 rounded-2xl ${item.bg} ${item.shadow}`} aria-hidden="true" />
+          {slides.map((src, idx) => (
+            <div key={`tech-blog-banner-${idx}`} className="relative h-full w-full shrink-0">
+              <Image
+                src={src}
+                alt=""
+                fill
+                sizes="(max-width: 600px) 100vw, 600px"
+                className="object-contain"
+                priority={idx === 0}
+              />
             </div>
           ))}
         </div>
