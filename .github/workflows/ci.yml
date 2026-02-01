@@ -81,11 +81,11 @@ jobs:
         run: pnpm audit --audit-level=moderate
         continue-on-error: true
 
-  # 3. 릴리즈 확정 단계 (develop/main 모두 아티팩트 생성)
+  # 3. 릴리즈 확정 단계 (main 브랜치만 배포)
   release:
-    # todo: CD 수동으로 돌리는 경우, 아티팩트 없으면 가장 최근 아티팩트 찾아서 배포
+    # develop 브랜치는 integration까지만 실행, 배포는 main에서만 수행
     if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release' || github.event.inputs.job_to_run == 'all'))
     runs-on: ubuntu-latest
     outputs:
