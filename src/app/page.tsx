@@ -9,6 +9,7 @@ import {
   HomeGuardToast,
   RecruitmentLinksTicker,
   SignupConfetti,
+  TechBlogBanner,
   TechBlogTicker,
 } from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
@@ -24,7 +25,7 @@ export default function Home() {
           <div className="min-h-screen bg-[#D2DEEA]">
             <Header />
             <div className="flex min-h-[calc(100vh-var(--app-header-height))] flex-col">
-              <div className="px-6 pt-6 text-text-body">
+              <div className="px-2.5 pt-6 text-text-body">
                 <div className="flex items-center">
                   <Image src={iconMarkB} alt="" width={22} height={22} />
                   <p className="text-2xl font-bold">re:fit에 오신 걸 환영합니다.</p>
@@ -36,7 +37,7 @@ export default function Home() {
               </div>
 
               <div className="flex flex-1 flex-col pb-0">
-                <div className="relative mt-30 flex-1 w-full rounded-t-3xl bg-white px-6 py-8 shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
+                <div className="relative mt-30 flex-1 w-full rounded-t-3xl bg-white px-2.5 py-8 shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
                   <Image
                     src={charBtn}
                     alt=""
@@ -44,11 +45,10 @@ export default function Home() {
                     height={380}
                     className="pointer-events-none absolute -top-52 left-1/2 -translate-x-1/2"
                   />
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-0">
+                    <TechBlogBanner />
                     <RecruitmentLinksTicker />
-                    <div className="-mt-2">
-                      <TechBlogTicker />
-                    </div>
+                    <TechBlogTicker />
                   </div>
                 </div>
               </div>
