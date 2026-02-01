@@ -383,7 +383,7 @@ export default function MyPageEdit() {
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <Header />
 
-      <section className="px-2.5 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
+      <section className="px-4 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -570,7 +570,7 @@ export default function MyPageEdit() {
             </button>
           </div>
 
-          <div className="rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+          <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">
             <p className="text-base font-semibold text-text-title">자기 소개</p>
             <textarea
               className="mt-3 h-28 w-full resize-none text-base text-text-body placeholder:text-gray-400 focus:outline-none"
@@ -669,7 +669,7 @@ export default function MyPageEdit() {
           {activeSheet === 'tech' ? (
             <div className="flex h-full flex-col gap-3">
               <input
-                className="rounded-2xl border border-gray-200 px-2.5 py-2 text-sm focus:outline-none"
+                className="rounded-2xl border border-gray-200 px-4 py-2 text-sm focus:outline-none"
                 placeholder="기술을 검색해 주세요"
                 value={techQuery}
                 onChange={(event) => setTechQuery(event.target.value)}

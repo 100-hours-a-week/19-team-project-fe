@@ -157,7 +157,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <ExpertDetailHeader />
-      <section className="px-2.5 pt-6 pb-[calc(96px+24px)]">
+      <section className="px-4 pt-6 pb-[calc(96px+24px)]">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -181,16 +181,16 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         </div>
 
         {isLoading ? (
-          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
             <p className="text-base text-neutral-700">불러오는 중...</p>
           </div>
         ) : errorMessage ? (
-          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
             <p className="text-base text-red-500">에러: {errorMessage}</p>
           </div>
         ) : expert ? (
           <div className="mt-6 flex flex-col gap-6">
-            <div className="rounded-3xl bg-white px-2.5 py-6 text-center shadow-sm">
+            <div className="rounded-3xl bg-white px-4 py-6 text-center shadow-sm">
               <div className="flex flex-col items-center">
                 <Image
                   src={expert.profile_image_url || defaultUserImage}
@@ -233,14 +233,14 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+            <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">
               <p className="text-base font-semibold text-text-title">자기 소개</p>
               <p className="mt-3 text-sm text-text-body whitespace-pre-line">
                 {expert.introduction || '소개가 아직 없어요.'}
               </p>
             </div>
 
-            <div className="rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+            <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">
               <p className="text-base font-semibold text-text-title">채팅 요청 첨부</p>
               <p className="mt-2 text-xs text-text-caption">
                 공고 링크와 이력서를 첨부하면 더 구체적인 피드백을 받을 수 있어요.
@@ -290,13 +290,13 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
             </div>
           </div>
         ) : (
-          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
             <p className="text-base text-neutral-700">현직자 정보를 찾을 수 없어요.</p>
           </div>
         )}
       </section>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-2.5 pb-6 pt-3">
+      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-4 pb-6 pt-3">
         <Button
           type="button"
           onClick={handleChatRequestClick}
