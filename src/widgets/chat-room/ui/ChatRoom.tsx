@@ -13,6 +13,8 @@ import {
   useChatSocket,
 } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
+import { BusinessError, HttpError } from '@/shared/api/errors';
+import { useToast } from '@/shared/ui/toast';
 
 const readCurrentUserId = () => {
   if (typeof document === 'undefined') return null;
@@ -87,6 +89,7 @@ interface ChatRoomProps {
 
 export default function ChatRoom({ chatId }: ChatRoomProps) {
   const router = useRouter();
+  const { pushToast } = useToast();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -105,6 +108,28 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
   const hasSentPendingRef = useRef(false);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+
+  const handleInvalidAccess = useCallback(
+    (error: unknown): boolean => {
+      const invalidAccess =
+        (error instanceof BusinessError &&
+          [
+            'AUTH_UNAUTHORIZED',
+            'AUTH_INVALID_TOKEN',
+            'AUTH_TOKEN_EXPIRED',
+            'AUTH_FORBIDDEN',
+            'CHAT_NOT_FOUND',
+            'FORBIDDEN',
+          ].includes(error.code)) ||
+        (error instanceof HttpError && [401, 403, 404].includes(error.status));
+
+      if (!invalidAccess) return false;
+      pushToast('잘못된 접근입니다.', { variant: 'warning' });
+      router.replace('/');
+      return true;
+    },
+    [pushToast, router],
+  );
 
   useEffect(() => {
     if (historyError) {
@@ -144,6 +169,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         setChatStatus(detail.status);
       } catch (error) {
         if (cancelled) return;
+        if (handleInvalidAccess(error)) return;
         console.warn('Chat detail load failed:', error);
       }
     })();
@@ -151,7 +177,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     return () => {
       cancelled = true;
     };
-  }, [chatId, currentUserId]);
+  }, [chatId, currentUserId, handleInvalidAccess]);
 
   const sendOptimisticMessage = useCallback(
     (content: string) => {
@@ -220,6 +246,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         setChatStatus(detail.status);
       } catch (error) {
         if (cancelled) return;
+        if (handleInvalidAccess(error)) return;
         console.warn('Chat detail load failed:', error);
       }
     })();
@@ -227,7 +254,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     return () => {
       cancelled = true;
     };
-  }, [chatId, currentUserId]);
+  }, [chatId, currentUserId, handleInvalidAccess]);
 
   /**
    * 최신 메시지 위치로 포커스
