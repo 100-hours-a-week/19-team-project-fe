@@ -12,6 +12,7 @@ export async function refreshAuthTokens(): Promise<boolean> {
     headers: {
       'Content-Type': 'application/json',
     },
+    retryOnUnauthorized: false,
     successCodes: ['CREATED'],
   });
 

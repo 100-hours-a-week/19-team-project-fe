@@ -1,3 +1,4 @@
+import { readAccessToken } from './accessToken';
 import { BusinessError, HttpError } from './errors';
 import type { ApiResponse } from './types';
 
@@ -5,14 +6,62 @@ const DEFAULT_SUCCESS_CODES = ['SUCCESS', 'OK', 'CREATED'];
 
 export type ApiFetchOptions = RequestInit & {
   successCodes?: string[];
+  retryOnUnauthorized?: boolean;
 };
 
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof document !== 'undefined';
+}
+
+function getRequestUrl(input: RequestInfo): string | null {
+  if (typeof input === 'string') return input;
+  if (typeof URL !== 'undefined' && input instanceof URL) return input.toString();
+  if (typeof Request !== 'undefined' && input instanceof Request) return input.url;
+  return null;
+}
+
+function refreshInitWithLatestToken(init?: ApiFetchOptions): ApiFetchOptions | undefined {
+  if (!isBrowser() || !init?.headers) return init;
+  const token = readAccessToken();
+  if (!token) return init;
+  const headers = new Headers(init.headers);
+  if (!headers.has('Authorization')) return init;
+  headers.set('Authorization', `Bearer ${token}`);
+  return { ...init, headers };
+}
+
+async function tryRefreshAuthTokens(): Promise<boolean> {
+  if (!isBrowser()) return false;
+  try {
+    const { refreshAuthTokens } = await import('./refreshTokens.client');
+    return await refreshAuthTokens().catch(() => false);
+  } catch {
+    return false;
+  }
+}
+
 export async function apiFetch<T>(input: RequestInfo, init?: ApiFetchOptions): Promise<T> {
-  const { successCodes = DEFAULT_SUCCESS_CODES, ...fetchInit } = init ?? {};
+  const {
+    successCodes = DEFAULT_SUCCESS_CODES,
+    retryOnUnauthorized = true,
+    ...fetchInit
+  } = init ?? {};
   const res = await fetch(input, {
     credentials: 'include',
     ...fetchInit,
   });
+
+  if (res.status === 401 && retryOnUnauthorized) {
+    const requestUrl = getRequestUrl(input);
+    const isTokenRefresh = requestUrl?.includes('/bff/auth/tokens') ?? false;
+    if (!isTokenRefresh) {
+      const refreshed = await tryRefreshAuthTokens();
+      if (refreshed) {
+        const retryInit = refreshInitWithLatestToken({ ...init, retryOnUnauthorized: false });
+        return apiFetch<T>(input, retryInit);
+      }
+    }
+  }
 
   if (!res.ok) {
     try {
