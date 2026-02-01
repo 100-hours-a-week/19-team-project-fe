@@ -19,6 +19,14 @@ on:
         options:
           - develop
           - main
+      version_tag:
+        description: 'Version tag (e.g., v1.0.0, develop-abc1234)'
+        required: false
+        type: string
+      artifact_prefix:
+        description: 'Artifact prefix (e.g., v1.0.0-abc1234, develop-abc1234)'
+        required: false
+        type: string
       use_latest_artifact:
         description: 'run_id/sha를 입력하지 않으면 선택한 브랜치의 최신 아티팩트 사용'
         required: true
@@ -36,7 +44,7 @@ jobs:
     environment: ${{ inputs.branch == 'main' && 'production' || 'development' }}
     steps:
       - name: Find Latest Artifact (if needed)
-        if: inputs.use_latest_artifact == true && (inputs.run_id == '' || inputs.sha == '')
+        if: inputs.use_latest_artifact == true && (inputs.run_id == '' || inputs.sha == '' || inputs.artifact_prefix == '')
         id: find-artifact
         uses: actions/github-script@v7
         with:
@@ -69,18 +77,38 @@ jobs:
               });
 
               const buildArtifact = artifacts.data.artifacts.find(
-                a => a.name.startsWith('next-build-artifact-')
+                a => a.name.startsWith('frontend-build-')
               );
 
               if (buildArtifact) {
                 const sha = run.head_sha;
+                const sha_short = sha.substring(0, 7);
+
+                // 아티팩트 이름에서 prefix 추출 (frontend-build-{prefix})
+                const artifactPrefix = buildArtifact.name.replace('frontend-build-', '');
+
+                // version_tag 추출
+                let versionTag;
+                if (branch === 'main') {
+                  // main 브랜치: v1.0.0-abc1234 -> v1.0.0
+                  versionTag = artifactPrefix.replace(/-[a-f0-9]{7}$/, '');
+                } else {
+                  // develop 브랜치: develop-abc1234
+                  versionTag = artifactPrefix;
+                }
+
                 console.log(`✅ Found artifact from run #${run.run_number}`);
                 console.log(`   Run ID: ${run.id}`);
                 console.log(`   SHA: ${sha}`);
+                console.log(`   Version Tag: ${versionTag}`);
+                console.log(`   Artifact Prefix: ${artifactPrefix}`);
                 console.log(`   Created: ${run.created_at}`);
 
                 core.setOutput('run_id', run.id.toString());
                 core.setOutput('sha', sha);
+                core.setOutput('sha_short', sha_short);
+                core.setOutput('version_tag', versionTag);
+                core.setOutput('artifact_prefix', artifactPrefix);
                 core.setOutput('run_number', run.run_number.toString());
                 return;
               }
@@ -94,17 +122,39 @@ jobs:
           if [ "${{ inputs.use_latest_artifact }}" == "true" ] && [ -z "${{ inputs.run_id }}" ]; then
             echo "run_id=${{ steps.find-artifact.outputs.run_id }}" >> $GITHUB_OUTPUT
             echo "sha=${{ steps.find-artifact.outputs.sha }}" >> $GITHUB_OUTPUT
+            echo "sha_short=${{ steps.find-artifact.outputs.sha_short }}" >> $GITHUB_OUTPUT
+            echo "version_tag=${{ steps.find-artifact.outputs.version_tag }}" >> $GITHUB_OUTPUT
+            echo "artifact_prefix=${{ steps.find-artifact.outputs.artifact_prefix }}" >> $GITHUB_OUTPUT
             echo "📦 Using latest artifact from run #${{ steps.find-artifact.outputs.run_number }}"
           else
+            SHA="${{ inputs.sha }}"
+            SHA_SHORT="${SHA:0:7}"
             echo "run_id=${{ inputs.run_id }}" >> $GITHUB_OUTPUT
-            echo "sha=${{ inputs.sha }}" >> $GITHUB_OUTPUT
+            echo "sha=${SHA}" >> $GITHUB_OUTPUT
+            echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
+            echo "version_tag=${{ inputs.version_tag }}" >> $GITHUB_OUTPUT
+            echo "artifact_prefix=${{ inputs.artifact_prefix }}" >> $GITHUB_OUTPUT
             echo "📦 Using manually specified artifact"
+          fi
+
+          # 브랜치별 version_path 설정 (S3 경로용)
+          VERSION_TAG="${{ inputs.version_tag }}"
+          if [ -z "$VERSION_TAG" ]; then
+            VERSION_TAG="${{ steps.find-artifact.outputs.version_tag }}"
+          fi
+
+          if [[ "$VERSION_TAG" == v* ]]; then
+            # Main 브랜치: v1.0.0 -> v1.0.0
+            echo "version_path=${VERSION_TAG}" >> $GITHUB_OUTPUT
+          else
+            # Develop 브랜치: develop
+            echo "version_path=develop" >> $GITHUB_OUTPUT
           fi
 
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: next-build-artifact-${{ steps.deploy-vars.outputs.sha }}
+          name: frontend-build-${{ steps.deploy-vars.outputs.artifact_prefix }}
           path: build-output
           github-token: ${{ secrets.PAT }}
           run-id: ${{ steps.deploy-vars.outputs.run_id }}
@@ -120,7 +170,7 @@ jobs:
       - name: Download Deployment Files
         uses: actions/download-artifact@v4
         with:
-          name: deploy-files-${{ steps.deploy-vars.outputs.sha }}
+          name: frontend-files-${{ steps.deploy-vars.outputs.artifact_prefix }}
           path: build-output
           github-token: ${{ secrets.PAT }}
           run-id: ${{ steps.deploy-vars.outputs.run_id }}
@@ -155,18 +205,36 @@ jobs:
         run: |
           set -euo pipefail
           cd build-output
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          ARCHIVE_NAME="frontend-build-${TIMESTAMP}.tar.gz"
 
-          # .next, package.json, pnpm-lock.yaml, next.config.ts, public/ 등을 tar로 압축
+          # 아카이브 이름 생성
+          ARTIFACT_PREFIX="${{ steps.deploy-vars.outputs.artifact_prefix }}"
+          VERSION_PATH="${{ steps.deploy-vars.outputs.version_path }}"
+
+          # develop 브랜치는 타임스탬프 추가
+          if [[ "$VERSION_PATH" == "develop" ]]; then
+            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            ARCHIVE_NAME="frontend-deploy-${ARTIFACT_PREFIX}-${TIMESTAMP}.tar.gz"
+          else
+            # main 브랜치: frontend-deploy-v1.0.0-abc1234.tar.gz
+            ARCHIVE_NAME="frontend-deploy-${ARTIFACT_PREFIX}.tar.gz"
+          fi
+
+          echo "📦 Archive name: ${ARCHIVE_NAME}"
+          echo "📁 S3 path: artifacts/frontend/${VERSION_PATH}/"
+
+          # .next, package.json, pnpm-lock.yaml, next.config.mjs, public/ 등을 tar로 압축
           tar -czf "${ARCHIVE_NAME}" .next package.json pnpm-lock.yaml next.config.mjs public/ 2>/dev/null || \
           tar -czf "${ARCHIVE_NAME}" .next package.json 2>/dev/null || exit 1
 
           # 파일 크기 검증 (100KB 이상)
           [ $(stat -f%z "${ARCHIVE_NAME}" 2>/dev/null || stat -c%s "${ARCHIVE_NAME}" 2>/dev/null || echo 0) -gt 100000 ] || exit 1
 
-          aws s3 cp "${ARCHIVE_NAME}" s3://${{ secrets.S3_ARTIFACTS_BUCKET }}/artifacts/frontend/${ARCHIVE_NAME}
-          echo "s3_key=artifacts/frontend/${ARCHIVE_NAME}" >> $GITHUB_OUTPUT
+          # S3 업로드 (버전별 폴더 구조)
+          S3_KEY="artifacts/frontend/${VERSION_PATH}/${ARCHIVE_NAME}"
+          aws s3 cp "${ARCHIVE_NAME}" "s3://${{ secrets.S3_ARTIFACTS_BUCKET }}/${S3_KEY}"
+
+          echo "s3_key=${S3_KEY}" >> $GITHUB_OUTPUT
+          echo "archive_name=${ARCHIVE_NAME}" >> $GITHUB_OUTPUT
 
       # SSM을 통해 EC2 인스턴스에 배포
       - name: Deploy via SSM
@@ -176,6 +244,8 @@ jobs:
           HEALTH_CHECK_URL: ${{ secrets.HEALTH_CHECK_URL }}
           S3_BUCKET: ${{ secrets.S3_ARTIFACTS_BUCKET }}
           S3_KEY: ${{ steps.s3_upload.outputs.s3_key }}
+          ARTIFACT_PREFIX: ${{ steps.deploy-vars.outputs.artifact_prefix }}
+          VERSION_TAG: ${{ steps.deploy-vars.outputs.version_tag }}
         run: |
           set -euo pipefail
 
@@ -183,8 +253,9 @@ jobs:
           FE_DIR="${BASE_PATH}/app/frontend"
           BACKUP_DIR="${BASE_PATH}/backups/frontend"
           TEMP_DIR="${BASE_PATH}/app/frontend_deploy_temp"
-          ARCHIVE_PATH="${TEMP_DIR}/frontend-build.tar.gz"
+          ARCHIVE_PATH="${TEMP_DIR}/frontend-deploy.tar.gz"
           PM2_CONFIG="${BASE_PATH}/infra/pm2/ecosystem.config.js"
+          ARTIFACT_PREFIX="$ARTIFACT_PREFIX"
 
           DEPLOY_SCRIPT=$(cat <<'SCRIPT_END'
           set -euo pipefail
@@ -197,9 +268,11 @@ jobs:
           S3_BUCKET="$7"
           S3_KEY="$8"
           HEALTH_CHECK_URL="$9"
+          ARTIFACT_PREFIX="${10}"
 
           APP_NAME="frontend"
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          BACKUP_NAME="backup-${ARTIFACT_PREFIX}"
 
           trap 'sudo -u ubuntu pm2 status || true; exit $?' ERR
 
@@ -223,24 +296,24 @@ jobs:
             echo "ℹ️  .env.production 파일 없음 (빌드 시점 환경 변수 사용)"
           fi
 
-          # 기존 .next 백업
-          # 기존 .next 백업
+          # 기존 파일 백업
           if [ -d "${FE_DIR}/.next" ]; then
             echo "기존 파일 백업 중..."
-            mkdir -p "${BACKUP_DIR}/next_${TIMESTAMP}"
-            
+            BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
+            mkdir -p "${BACKUP_PATH}"
+
             # .next 백업
-            cp -r "${FE_DIR}/.next" "${BACKUP_DIR}/next_${TIMESTAMP}/"
-            
+            cp -r "${FE_DIR}/.next" "${BACKUP_PATH}/"
+
             # 환경 설정 및 의존성 파일 백업
-            [ -f "${FE_DIR}/package.json" ] && cp "${FE_DIR}/package.json" "${BACKUP_DIR}/next_${TIMESTAMP}/"
-            [ -f "${FE_DIR}/pnpm-lock.yaml" ] && cp "${FE_DIR}/pnpm-lock.yaml" "${BACKUP_DIR}/next_${TIMESTAMP}/"
-            [ -f "${FE_DIR}/next.config.mjs" ] && cp "${FE_DIR}/next.config.mjs" "${BACKUP_DIR}/next_${TIMESTAMP}/"
-            
+            [ -f "${FE_DIR}/package.json" ] && cp "${FE_DIR}/package.json" "${BACKUP_PATH}/"
+            [ -f "${FE_DIR}/pnpm-lock.yaml" ] && cp "${FE_DIR}/pnpm-lock.yaml" "${BACKUP_PATH}/"
+            [ -f "${FE_DIR}/next.config.mjs" ] && cp "${FE_DIR}/next.config.mjs" "${BACKUP_PATH}/"
+
             # public 폴더 백업
-            [ -d "${FE_DIR}/public" ] && cp -r "${FE_DIR}/public" "${BACKUP_DIR}/next_${TIMESTAMP}/"
-            
-            echo "✅ 백업 완료: ${BACKUP_DIR}/next_${TIMESTAMP}"
+            [ -d "${FE_DIR}/public" ] && cp -r "${FE_DIR}/public" "${BACKUP_PATH}/"
+
+            echo "✅ 백업 완료: ${BACKUP_PATH}"
           fi
 
           # 임시 디렉토리에 압축 해제
@@ -316,9 +389,10 @@ jobs:
             if [ "${HTTP_STATUS}" = "200" ]; then
               echo "✅ 배포 성공! (HTTP ${HTTP_STATUS})"
               sudo -u ubuntu pm2 save 2>/dev/null || true
-              (find ${BACKUP_DIR} -name "next_*" -type d -mtime +7 -exec rm -rf {} + 2>/dev/null) &
+              (find ${BACKUP_DIR} -name "backup-*" -type d -mtime +7 -exec rm -rf {} + 2>/dev/null) &
               echo "============================================"
               echo "✅ Re-Fit FE 배포 완료: $(date)"
+              echo "   Version: ${ARTIFACT_PREFIX}"
               echo "============================================"
               exit 0
             fi
@@ -327,11 +401,17 @@ jobs:
 
           # 헬스체크 실패 시 롤백
           echo "⚠️  헬스체크 실패, 롤백 시도 중..."
-          BACKUP_DIR_PATH="${BACKUP_DIR}/next_${TIMESTAMP}"
-          if [ -d "${BACKUP_DIR_PATH}" ]; then
+          BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
+          if [ -d "${BACKUP_PATH}" ]; then
             rm -rf "${FE_DIR}/.next"
-            cp -r "${BACKUP_DIR_PATH}" "${FE_DIR}/.next"
-            sudo chown -R ubuntu:ubuntu "${FE_DIR}/.next" 2>/dev/null || true
+            cp -r "${BACKUP_PATH}/.next" "${FE_DIR}/.next"
+
+            # 설정 파일도 롤백
+            [ -f "${BACKUP_PATH}/package.json" ] && cp "${BACKUP_PATH}/package.json" "${FE_DIR}/package.json"
+            [ -f "${BACKUP_PATH}/pnpm-lock.yaml" ] && cp "${BACKUP_PATH}/pnpm-lock.yaml" "${FE_DIR}/pnpm-lock.yaml"
+            [ -f "${BACKUP_PATH}/next.config.mjs" ] && cp "${BACKUP_PATH}/next.config.mjs" "${FE_DIR}/next.config.mjs"
+
+            sudo chown -R ubuntu:ubuntu "${FE_DIR}" 2>/dev/null || true
             sudo -u ubuntu pm2 reload ${APP_NAME}
             sleep 5
             HTTP_STATUS=$(timeout 10 curl -s -o /dev/null -w "%{http_code}" "${HEALTH_CHECK_URL}" 2>/dev/null || echo "000")
@@ -348,7 +428,7 @@ jobs:
 
           # SSM 명령 실행 (base64 인코딩으로 특수문자 이스케이프 문제 방지)
           DEPLOY_SCRIPT_ENCODED=$(echo "$DEPLOY_SCRIPT" | base64 -w 0)
-          SSM_COMMAND="bash -c \"echo '$DEPLOY_SCRIPT_ENCODED' | base64 -d | bash -s -- '$BASE_PATH' '$FE_DIR' '$BACKUP_DIR' '$TEMP_DIR' '$ARCHIVE_PATH' '$PM2_CONFIG' '$S3_BUCKET' '$S3_KEY' '$HEALTH_CHECK_URL'\""
+          SSM_COMMAND="bash -c \"echo '$DEPLOY_SCRIPT_ENCODED' | base64 -d | bash -s -- '$BASE_PATH' '$FE_DIR' '$BACKUP_DIR' '$TEMP_DIR' '$ARCHIVE_PATH' '$PM2_CONFIG' '$S3_BUCKET' '$S3_KEY' '$HEALTH_CHECK_URL' '$ARTIFACT_PREFIX'\""
           PARAMETERS_JSON=$(jq -n --arg cmd "$SSM_COMMAND" '{commands: [$cmd]}')
 
           COMMAND_ID=$(aws ssm send-command \
@@ -397,6 +477,7 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           BRANCH: ${{ inputs.branch }}
+          VERSION_TAG: ${{ steps.deploy-vars.outputs.version_tag }}
           SHA: ${{ steps.deploy-vars.outputs.sha }}
           RUN_ID: ${{ github.run_id }}
         run: |
@@ -408,8 +489,9 @@ jobs:
               "color": 3066993,
               "fields": [
                 {"name": "서비스", "value": "Re-Fit Frontend", "inline": true},
+                {"name": "버전", "value": "\`$VERSION_TAG\`", "inline": true},
                 {"name": "브랜치", "value": "\`$BRANCH\`", "inline": true},
-                {"name": "커밋 SHA", "value": "\`$SHA\`", "inline": false},
+                {"name": "커밋 SHA", "value": "\`${SHA:0:7}\`", "inline": true},
                 {"name": "워크플로우", "value": "[상세 보기](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)", "inline": false}
               ],
               "footer": { "text": "Re-Fit Deployment System" },
@@ -425,9 +507,13 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           BRANCH: ${{ inputs.branch }}
+          VERSION_TAG: ${{ steps.deploy-vars.outputs.version_tag }}
           SHA: ${{ steps.deploy-vars.outputs.sha }}
           RUN_ID: ${{ github.run_id }}
         run: |
+          VERSION="${VERSION_TAG:-unknown}"
+          SHA_SHORT="${SHA:0:7}"
+
           payload=$(cat <<EOF
           {
             "embeds": [{
@@ -436,8 +522,9 @@ jobs:
               "color": 15158332,
               "fields": [
                 {"name": "서비스", "value": "Re-Fit Frontend", "inline": true},
+                {"name": "버전", "value": "\`$VERSION\`", "inline": true},
                 {"name": "브랜치", "value": "\`$BRANCH\`", "inline": true},
-                {"name": "커밋 SHA", "value": "\`$SHA\`", "inline": false},
+                {"name": "커밋 SHA", "value": "\`$SHA_SHORT\`", "inline": true},
                 {"name": "워크플로우", "value": "[상세 보기](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)", "inline": false}
               ],
               "footer": { "text": "Re-Fit Deployment System" },
