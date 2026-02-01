@@ -5,7 +5,12 @@ import { Header } from '@/widgets/header';
 import { SearchBar } from '@/widgets/search-bar';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
-import { RecruitmentLinksTicker, SignupConfetti, TechBlogTicker } from '@/widgets/home';
+import {
+  HomeGuardToast,
+  RecruitmentLinksTicker,
+  SignupConfetti,
+  TechBlogTicker,
+} from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import charBtn from '@/shared/icons/char_btn.png';
 
@@ -15,6 +20,7 @@ export default function Home() {
       <PageTransition>
         <SplashGate>
           <SignupConfetti />
+          <HomeGuardToast />
           <div className="min-h-screen bg-[#D2DEEA]">
             <Header />
             <div className="flex min-h-[calc(100vh-var(--app-header-height))] flex-col">

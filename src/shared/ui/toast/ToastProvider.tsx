@@ -6,10 +6,12 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 type Toast = {
   id: number;
   message: string;
+  variant: 'error' | 'warning';
 };
 
 type ToastOptions = {
   durationMs?: number;
+  variant?: Toast['variant'];
 };
 
 type ToastContextValue = {
@@ -36,7 +38,8 @@ export function ToastProvider({ children }: PropsWithChildren) {
     (message: string, options?: ToastOptions) => {
       const id = (idRef.current += 1);
       const durationMs = options?.durationMs ?? 2400;
-      setToasts((prev) => [...prev, { id, message }]);
+      const variant = options?.variant ?? 'error';
+      setToasts((prev) => [...prev, { id, message, variant }]);
       const timer = window.setTimeout(() => removeToast(id), durationMs);
       timersRef.current.set(id, timer);
     },
@@ -63,15 +66,23 @@ export function ToastProvider({ children }: PropsWithChildren) {
           {toasts.map((toast) => (
             <div
               key={toast.id}
-              className="pointer-events-auto animate-fade-in rounded-2xl border border-[#e3b7b7] bg-[#f3d7d7] px-3 py-2 text-[13px] text-[#b14a4a] shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
+              className={`pointer-events-auto animate-fade-in rounded-2xl border px-3 py-2 text-[13px] shadow-[0_8px_24px_rgba(0,0,0,0.15)] ${
+                toast.variant === 'warning'
+                  ? 'border-[#e6cf8b] bg-[#fff2c8] text-[#8a6a00]'
+                  : 'border-[#e3b7b7] bg-[#f3d7d7] text-[#b14a4a]'
+              }`}
             >
               <div className="flex min-w-[240px] max-w-[360px] items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#b14a4a]">
+                  <span
+                    className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                      toast.variant === 'warning' ? 'border-[#8a6a00]' : 'border-[#b14a4a]'
+                    }`}
+                  >
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#b14a4a"
+                      stroke={toast.variant === 'warning' ? '#8a6a00' : '#b14a4a'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -82,13 +93,21 @@ export function ToastProvider({ children }: PropsWithChildren) {
                       <path d="M7.5 7.5l9 9" />
                     </svg>
                   </span>
-                  <span className="font-semibold">Error:</span>
-                  <span className="text-[#b14a4a]">{toast.message}</span>
+                  <span className="font-semibold">
+                    {toast.variant === 'warning' ? 'Warning:' : 'Error:'}
+                  </span>
+                  <span
+                    className={toast.variant === 'warning' ? 'text-[#8a6a00]' : 'text-[#b14a4a]'}
+                  >
+                    {toast.message}
+                  </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeToast(toast.id)}
-                  className="pointer-events-auto text-[#b14a4a] opacity-70 transition hover:opacity-100"
+                  className={`pointer-events-auto opacity-70 transition hover:opacity-100 ${
+                    toast.variant === 'warning' ? 'text-[#8a6a00]' : 'text-[#b14a4a]'
+                  }`}
                   aria-label="닫기"
                 >
                   <svg
