@@ -106,8 +106,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
-  const hasSentPendingRef = useRef(false);
-  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   const handleInvalidAccess = useCallback(
     (error: unknown): boolean => {
@@ -144,15 +142,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     }
     prevWsStatusRef.current = wsStatus;
   }, [wsStatus]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const key = `pending-chat-message:${chatId}`;
-    const pending = localStorage.getItem(key);
-    if (pending) {
-      setPendingMessage(pending);
-    }
-  }, [chatId]);
 
   useEffect(() => {
     if (!chatId) return;
@@ -217,19 +206,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     },
     [chatId, chatStatus, currentUserId, setMessages, wsStatus],
   );
-
-  useEffect(() => {
-    if (hasSentPendingRef.current) return;
-    if (wsStatus !== 'connected') return;
-    if (historyLoading) return;
-    if (!pendingMessage) return;
-    sendOptimisticMessage(pendingMessage);
-    hasSentPendingRef.current = true;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(`pending-chat-message:${chatId}`);
-    }
-    setPendingMessage(null);
-  }, [pendingMessage, wsStatus, historyLoading, sendOptimisticMessage, chatId]);
 
   useEffect(() => {
     if (!chatId) return;

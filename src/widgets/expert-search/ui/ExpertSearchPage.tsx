@@ -78,7 +78,7 @@ export default function ExpertSearchPage() {
   return (
     <div className="min-h-screen bg-white">
       <ExpertSearchHeader />
-      <section className="px-2.5 pt-6">
+      <section className="px-4 pt-6">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -101,7 +101,7 @@ export default function ExpertSearchPage() {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="mt-5">
-          <div className="flex w-full items-center justify-between gap-3 rounded-full border border-[#262627] bg-[#f7f7f7] px-2.5 py-3 text-left text-text-hint-main">
+          <div className="flex w-full items-center justify-between gap-3 rounded-full border border-[#262627] bg-[#f7f7f7] px-4 py-3 text-left text-text-hint-main">
             <input
               type="search"
               value={keyword}

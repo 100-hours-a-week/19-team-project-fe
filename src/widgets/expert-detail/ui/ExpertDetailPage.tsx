@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
-import { getResumeDetail, getResumes, type Resume } from '@/entities/resumes';
+import { getResumes, type Resume } from '@/entities/resumes';
 import { createChat, getChatList } from '@/features/chat';
 import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
 import { BusinessError, HttpError, useCommonApiErrorHandler } from '@/shared/api';
@@ -105,99 +105,6 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
     };
   }, [authStatus]);
 
-  const buildInitialMessage = (resume?: Awaited<ReturnType<typeof getResumeDetail>> | null) => {
-    const lines: string[] = [];
-    const trimmedJobPostUrl = jobPostUrl.trim();
-    if (trimmedJobPostUrl) {
-      lines.push(`공고 링크: ${trimmedJobPostUrl}`);
-    }
-
-    if (resume) {
-      if (lines.length > 0) {
-        lines.push('');
-      }
-      lines.push('이력서 정보');
-      lines.push(`- 제목: ${resume.title || '제목 없음'}`);
-      lines.push(`- 구분: ${resume.isFresher ? '신입' : '경력'}`);
-      if (resume.educationLevel) {
-        lines.push(`- 학력: ${resume.educationLevel}`);
-      }
-      if (resume.fileUrl) {
-        lines.push(`- 파일: ${resume.fileUrl}`);
-      }
-
-      const content = resume.contentJson ?? {};
-      const careers = Array.isArray((content as { careers?: string[] }).careers)
-        ? ((content as { careers?: string[] }).careers ?? [])
-        : [];
-      const projects = Array.isArray(
-        (content as { projects?: Array<Record<string, string>> }).projects,
-      )
-        ? ((content as { projects?: Array<Record<string, string>> }).projects ?? [])
-        : [];
-      const education = Array.isArray((content as { education?: string[] }).education)
-        ? ((content as { education?: string[] }).education ?? [])
-        : [];
-      const awards = Array.isArray((content as { awards?: string[] }).awards)
-        ? ((content as { awards?: string[] }).awards ?? [])
-        : [];
-      const certificates = Array.isArray((content as { certificates?: string[] }).certificates)
-        ? ((content as { certificates?: string[] }).certificates ?? [])
-        : [];
-      const activities = Array.isArray((content as { activities?: string[] }).activities)
-        ? ((content as { activities?: string[] }).activities ?? [])
-        : [];
-
-      if (education.length > 0) {
-        lines.push('');
-        lines.push('학력');
-        education.forEach((item) => lines.push(`- ${item}`));
-      }
-
-      if (careers.length > 0) {
-        lines.push('');
-        lines.push('경력');
-        careers.forEach((item) => lines.push(`- ${item}`));
-      }
-
-      if (projects.length > 0) {
-        lines.push('');
-        lines.push('프로젝트');
-        projects.forEach((project) => {
-          const title = project.title ?? '제목 없음';
-          const start = project.start_date ?? '';
-          const end = project.end_date ?? '';
-          const period = [start, end].filter(Boolean).join(' - ');
-          const description = project.description ?? '';
-          lines.push(`- ${title}${period ? ` (${period})` : ''}`);
-          if (description) {
-            lines.push(`  ${description}`);
-          }
-        });
-      }
-
-      if (awards.length > 0) {
-        lines.push('');
-        lines.push('수상');
-        awards.forEach((item) => lines.push(`- ${item}`));
-      }
-
-      if (certificates.length > 0) {
-        lines.push('');
-        lines.push('자격증');
-        certificates.forEach((item) => lines.push(`- ${item}`));
-      }
-
-      if (activities.length > 0) {
-        lines.push('');
-        lines.push('활동');
-        activities.forEach((item) => lines.push(`- ${item}`));
-      }
-    }
-
-    return lines.join('\n');
-  };
-
   const handleChatRequestClick = async () => {
     if (isCheckingAuth) return;
     setIsCheckingAuth(true);
@@ -207,20 +114,12 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         setAuthSheetOpen(true);
         return;
       }
-      let resumeDetail: Awaited<ReturnType<typeof getResumeDetail>> | null = null;
-      if (selectedResumeId) {
-        resumeDetail = await getResumeDetail(selectedResumeId);
-      }
-      const initialMessage = buildInitialMessage(resumeDetail);
       const data = await createChat({
         receiver_id: userId,
         resume_id: selectedResumeId ?? null,
         job_post_url: jobPostUrl.trim() || null,
         request_type: 'COFFEE_CHAT',
       });
-      if (initialMessage && typeof window !== 'undefined') {
-        localStorage.setItem(`pending-chat-message:${data.chat_id}`, initialMessage);
-      }
       router.push(`/chat/${data.chat_id}`);
     } catch (error) {
       if (
@@ -233,15 +132,6 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
             (chat) => chat.receiver.user_id === userId || chat.requester.user_id === userId,
           );
           if (matched) {
-            const fallbackResumeId = selectedResumeId ?? null;
-            let resumeDetail: Awaited<ReturnType<typeof getResumeDetail>> | null = null;
-            if (fallbackResumeId) {
-              resumeDetail = await getResumeDetail(fallbackResumeId);
-            }
-            const initialMessage = buildInitialMessage(resumeDetail);
-            if (initialMessage && typeof window !== 'undefined') {
-              localStorage.setItem(`pending-chat-message:${matched.chat_id}`, initialMessage);
-            }
             router.push(`/chat/${matched.chat_id}`);
             return;
           }
@@ -267,7 +157,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <ExpertDetailHeader />
-      <section className="px-2.5 pt-6 pb-[calc(96px+24px)]">
+      <section className="px-4 pt-6 pb-[calc(96px+24px)]">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -291,16 +181,16 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         </div>
 
         {isLoading ? (
-          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
             <p className="text-base text-neutral-700">불러오는 중...</p>
           </div>
         ) : errorMessage ? (
-          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
             <p className="text-base text-red-500">에러: {errorMessage}</p>
           </div>
         ) : expert ? (
           <div className="mt-6 flex flex-col gap-6">
-            <div className="rounded-3xl bg-white px-2.5 py-6 text-center shadow-sm">
+            <div className="rounded-3xl bg-white px-4 py-6 text-center shadow-sm">
               <div className="flex flex-col items-center">
                 <Image
                   src={expert.profile_image_url || defaultUserImage}
@@ -343,14 +233,14 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+            <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">
               <p className="text-base font-semibold text-text-title">자기 소개</p>
               <p className="mt-3 text-sm text-text-body whitespace-pre-line">
                 {expert.introduction || '소개가 아직 없어요.'}
               </p>
             </div>
 
-            <div className="rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+            <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">
               <p className="text-base font-semibold text-text-title">채팅 요청 첨부</p>
               <p className="mt-2 text-xs text-text-caption">
                 공고 링크와 이력서를 첨부하면 더 구체적인 피드백을 받을 수 있어요.
@@ -400,13 +290,13 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
             </div>
           </div>
         ) : (
-          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
             <p className="text-base text-neutral-700">현직자 정보를 찾을 수 없어요.</p>
           </div>
         )}
       </section>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-2.5 pb-6 pt-3">
+      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-4 pb-6 pt-3">
         <Button
           type="button"
           onClick={handleChatRequestClick}

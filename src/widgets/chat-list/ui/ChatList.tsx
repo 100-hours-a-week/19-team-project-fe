@@ -130,8 +130,8 @@ export default function ChatList() {
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <Header />
 
-      <section className="px-2.5 pt-6">
-        <div className="flex items-center justify-between rounded-3xl bg-white px-2.5 py-5 text-black shadow-sm">
+      <section className="px-4 pt-6">
+        <div className="flex items-center justify-between rounded-3xl bg-white px-4 py-5 text-black shadow-sm">
           <div>
             <p className="text-lg font-semibold">막연한 고민</p>
             <p className="mt-2 text-lg font-semibold text-neutral-900">
@@ -144,7 +144,7 @@ export default function ChatList() {
         </div>
       </section>
 
-      <ul className="mt-4 flex flex-1 flex-col gap-1 px-2 pb-[calc(var(--app-footer-height)+16px)]">
+      <ul className="mt-4 flex flex-1 flex-col gap-1 px-4 pb-[calc(var(--app-footer-height)+16px)]">
         {authStatus === 'guest' ? (
           <li className="px-2.5 py-6 text-center text-sm text-neutral-500">로그인이 필요합니다.</li>
         ) : isLoading ? (

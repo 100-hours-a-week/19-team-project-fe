@@ -944,7 +944,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       >
         {activeSheet === 'tech' ? (
           <div className="flex h-full flex-col">
-            <div className="flex items-center gap-2 rounded-full bg-[#edf4ff] px-2.5 py-3">
+            <div className="flex items-center gap-2 rounded-full bg-[#edf4ff] px-4 py-3">
               <span className="text-sm text-text-caption">🔍</span>
               <input
                 value={techQuery}

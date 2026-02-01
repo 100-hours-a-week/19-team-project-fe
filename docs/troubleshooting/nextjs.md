@@ -162,3 +162,5 @@
 
 - `ElementType`/`ReactNode` 타입으로 `as`와 `Component` 정의 수정
 - `sanitizeSnapshot` 도입 후 `fromSnapshot`/`toSnapshots` 정제
+
+---
