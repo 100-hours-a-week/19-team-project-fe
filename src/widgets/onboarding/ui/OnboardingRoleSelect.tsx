@@ -6,25 +6,27 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/shared/ui/button';
 import iconMark from '@/shared/icons/icon-mark.png';
+import onboardingExpert from '@/shared/icons/onboarding-expert.png';
+import onboardingSeeker from '@/shared/icons/onboarding-seeker.png';
 
 type RoleId = 'seeker' | 'expert';
 
 const ROLE_COPY = {
   seeker: {
     title: '구직자',
-    tagline: '나에게 맞는 공고와 준비 플로우를 빠르게.',
-    description: ['맞춤 공고 큐레이션', '포트폴리오 체크리스트', '이력서 문항 AI 피드백'],
+    tagline: '이력서와 공고를 업데이트하고, 커리어 챗으로 맞춤 리포트를 받아보세요.',
     accent: 'text-[#2b4b7e]',
     bg: 'from-[#b0d8e4] via-[#b0d8e4] to-[#b0d8e4]',
     imageBg: 'bg-white/60',
+    image: onboardingSeeker,
   },
   expert: {
     title: '현직자',
-    tagline: '경험을 나누고, 프로필 가치를 높여요.',
-    description: ['상담 요청 관리', '전문 분야 노출', '리워드 정산 내역'],
+    tagline: '현직자의 경험으로 후배의 커리어를 응원해주세요.',
     accent: 'text-[#7b2b4b]',
     bg: 'from-[#dc8aa1] via-[#dc8aa1] to-[#dc8aa1]',
     imageBg: 'bg-white/45',
+    image: onboardingExpert,
   },
 } as const;
 
@@ -34,22 +36,9 @@ export default function OnboardingRoleSelect() {
   const roles = Object.entries(ROLE_COPY) as [RoleId, typeof ROLE_COPY.seeker][];
 
   return (
-    <main className="flex min-h-screen flex-col bg-white pb-10 pt-12 text-text-body">
-      <header className="relative px-6">
-        <button
-          type="button"
-          className="absolute left-0 top-1/2 -translate-y-1/2 text-2xl text-text-caption"
-          aria-label="뒤로가기"
-        >
-          ←
-        </button>
+    <main className="flex min-h-screen flex-col bg-white pb-10 pt-4 text-text-body">
+      <header className="relative px-2.5">
         <div className="mx-auto max-w-xs text-center">
-          <div className="flex justify-center">
-            <Image src={iconMark} alt="re-fit" width={36} height={36} priority />
-          </div>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.25em] text-text-caption">
-            onboarding
-          </p>
           <h1 className="mt-4 text-2xl font-semibold text-text-title">
             어떤 서비스를 이용하고 싶으세요
           </h1>
@@ -59,7 +48,7 @@ export default function OnboardingRoleSelect() {
         </div>
       </header>
 
-      <section className="relative mt-8 flex flex-1 pb-24">
+      <section className="relative mt-8 flex flex-1 overflow-hidden pb-24">
         <div className="absolute inset-x-0 top-0 bottom-24 flex">
           {roles.map(([roleId, role]) => {
             const isActive = activeRole === roleId;
@@ -70,44 +59,39 @@ export default function OnboardingRoleSelect() {
                 type="button"
                 onClick={() => setActiveRole(roleId)}
                 aria-pressed={isActive}
-                className={`relative flex h-full flex-[1] flex-col overflow-hidden bg-gradient-to-br ${role.bg} p-8 text-left transition-all duration-500 ${
+                className={`relative flex h-full flex-[1] flex-col overflow-hidden bg-gradient-to-br ${role.bg} p-8 text-center transition-all duration-500 ${
                   isActive
-                    ? 'flex-[2.2] scale-[1.01] opacity-100 shadow-[inset_0_0_18px_rgba(0,0,0,0.2)]'
-                    : 'flex-[0.65] scale-[0.98] opacity-90 brightness-[0.7] saturate-75'
+                    ? 'flex-[2.2] opacity-100 shadow-[inset_0_0_18px_rgba(0,0,0,0.2)]'
+                    : 'flex-[0.65] opacity-90 brightness-[0.7] saturate-75'
                 }`}
               >
-                <div className="relative z-10 flex h-full flex-col">
-                  <div className="flex justify-end">
-                    <span className="rounded-full bg-white/70 px-4 py-1 text-sm font-medium text-text-caption">
+                <div className="relative z-10 flex h-full flex-col items-center">
+                  <div className="-mt-5 -mr-10 flex w-full justify-end">
+                    <span className="rounded-full bg-white/70 px-2.5 py-1 text-sm font-medium text-text-caption">
                       {isActive ? '선택됨' : '클릭'}
                     </span>
                   </div>
 
-                  <div className="mt-6 flex justify-center">
-                    <div
-                      className={`h-28 w-28 rounded-full ${role.imageBg} shadow-[0_18px_40px_rgba(0,0,0,0.2)]`}
+                  <div className="flex flex-1 flex-col items-center justify-center">
+                    <Image
+                      src={role.image}
+                      alt={`${role.title} 아이콘`}
+                      width={120}
+                      height={120}
+                      className="h-30 w-30 object-contain"
                     />
-                  </div>
-
-                  <div className="mt-4 flex-1">
-                    <p className={`text-3xl font-semibold ${role.accent}`}>{role.title}</p>
-                    {isActive ? (
-                      <>
-                        <p className="mt-3 text-lg font-medium text-text-body">{role.tagline}</p>
-                        <ul className="mt-5 space-y-2 text-base text-text-caption-strong">
-                          {role.description.map((item) => (
-                            <li key={item} className="flex items-center gap-2">
-                              <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : null}
+                    <p className={`mt-4 text-2xl font-bold ${role.accent}`}>{role.title}</p>
+                    <p
+                      className={`mt-3 min-h-[3.5rem] text-lg font-medium text-text-body transition-opacity ${
+                        isActive ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      {role.tagline}
+                    </p>
                   </div>
 
                   {!isActive ? (
-                    <div className="mt-auto text-xs font-semibold tracking-[0.2em] text-white/70 animate-pulse">
+                    <div className="mt-auto text-xs font-bold tracking-[0.2em] text-white/70 animate-pulse">
                       TAP
                     </div>
                   ) : null}
@@ -120,9 +104,13 @@ export default function OnboardingRoleSelect() {
           <div className="pointer-events-auto px-2.5">
             <Button
               icon={<Image src={iconMark} alt="" width={20} height={20} />}
-              onClick={() => router.push(`/onboarding/profile?role=${activeRole}`)}
+              onClick={() =>
+                router.push(
+                  `/onboarding/profile?role=${activeRole === 'expert' ? 'EXPERT' : 'SEEKER'}`,
+                )
+              }
             >
-              가입 완료
+              다음 단계
             </Button>
           </div>
         </div>

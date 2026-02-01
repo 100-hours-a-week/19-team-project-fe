@@ -4,8 +4,12 @@ on:
   pull_request:
     branches: [develop, main]
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/workflows/**'
   push:
     branches: [develop, main]
+    paths-ignore:
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       job_to_run:
@@ -32,42 +36,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
       - name: Run Lint
         run: pnpm run lint
 
-      - name: Run Unit Tests
-        run: pnpm test || echo "⚠️  No tests defined yet"
+      - name: TypeScript Type Check
+        run: pnpm run type-check
+
+      - name: Setup Build Environment
+        run: echo "${{ secrets.TEST_ENV_FILE }}" > .env.production
 
       - name: Build Check
         run: pnpm run build
         env:
           NODE_ENV: production
+
+      - name: Run Unit Tests
+        run: pnpm test || echo "⚠️  No tests defined yet"
 
   # 2. 통합 검증 단계
   integration:
@@ -78,31 +68,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
       - name: Integration Test
         run: pnpm run test:integration || echo "⚠️  Integration tests not yet implemented"
@@ -111,46 +81,60 @@ jobs:
         run: pnpm audit --audit-level=moderate
         continue-on-error: true
 
-  # 3. 릴리즈 확정 단계
+  # 3. 릴리즈 확정 단계 (main 브랜치만 배포)
   release:
+    # develop 브랜치는 integration까지만 실행, 배포는 main에서만 수행
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release' || github.event.inputs.job_to_run == 'all'))
     runs-on: ubuntu-latest
+    outputs:
+      version_tag: ${{ steps.version.outputs.version_tag }}
+      artifact_prefix: ${{ steps.version.outputs.artifact_prefix }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        shell: bash
+      - name: Determine Version and Artifact Names
+        id: version
         run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          SHA_SHORT="${GITHUB_SHA::7}"
 
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            # Main 브랜치: package.json에서 버전 읽기
+            VERSION=$(node -p "require('./package.json').version")
+            VERSION_TAG="v${VERSION}"
+            ARTIFACT_PREFIX="v${VERSION}-${SHA_SHORT}"
+            echo "📦 Production Release: ${VERSION_TAG} (${SHA_SHORT})"
+          else
+            # Develop 브랜치: develop-{sha} 형식
+            VERSION_TAG="develop-${SHA_SHORT}"
+            ARTIFACT_PREFIX="develop-${SHA_SHORT}"
+            echo "🔧 Development Build: ${ARTIFACT_PREFIX}"
+          fi
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
+          echo "artifact_prefix=${ARTIFACT_PREFIX}" >> $GITHUB_OUTPUT
+          echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
 
       - name: Full Regression Test
         run: pnpm run test:all || echo "⚠️  Full tests not yet implemented"
+
+      - name: Setup Environment Variables
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "${{ secrets.PROD_ENV_FILE }}" > .env.production
+          else
+            echo "${{ secrets.DEV_ENV_FILE }}" > .env.production
+          fi
 
       - name: Production Build
         run: pnpm run build
@@ -169,29 +153,67 @@ jobs:
             exit 1
           fi
 
+      - name: Compress Build Artifacts
+        if: success()
+        run: |
+          tar -czf next-build.tar.gz .next/
+          echo "✅ Build artifacts compressed"
+          ls -lh next-build.tar.gz
+
       - name: Archive Build Artifacts
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: next-build-artifact-${{ github.sha }}
-          path: .next/
+          name: frontend-build-${{ steps.version.outputs.artifact_prefix }}
+          path: next-build.tar.gz
           retention-days: 7
-          include-hidden-files: true
 
       - name: Archive Deployment Files
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: deploy-files-${{ github.sha }}
+          name: frontend-files-${{ steps.version.outputs.artifact_prefix }}
           path: |
             package.json
             pnpm-lock.yaml
-            next.config.ts
+            next.config.mjs
             public/
+            scripts/
           retention-days: 7
 
-      - name: Create Release Tag
+      - name: Create Release Tag (Main Branch Only)
+        if: github.ref == 'refs/heads/main'
         run: |
-          TAG_NAME="v$(date +'%Y.%m.%d')-${GITHUB_SHA::7}"
-          git tag $TAG_NAME
-          git push origin $TAG_NAME
+          TAG_NAME="${{ steps.version.outputs.version_tag }}"
+
+          # 태그가 이미 존재하는지 확인
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "⚠️  Tag $TAG_NAME already exists. Skipping tag creation."
+            echo "   Please bump the version in package.json before releasing."
+            exit 1
+          fi
+
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+          echo "✅ Created and pushed tag: $TAG_NAME"
+
+      - name: Trigger CD Workflow
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PAT }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'cd.yml',
+              ref: context.ref,
+              inputs: {
+                run_id: '${{ github.run_id }}',
+                sha: '${{ github.sha }}',
+                branch: '${{ github.ref_name }}',
+                version_tag: '${{ steps.version.outputs.version_tag }}',
+                artifact_prefix: '${{ steps.version.outputs.artifact_prefix }}'
+              }
+            });
+            console.log('CD workflow triggered successfully');

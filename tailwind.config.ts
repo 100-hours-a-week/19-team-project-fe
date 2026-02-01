@@ -38,6 +38,24 @@ export default {
         "blur-strong": "var(--shadow-blur-strong)",
         "blur-basic": "var(--shadow-blur-basic)",
       },
+      height: {
+        "app-header": "var(--app-header-height)",
+        "app-footer": "var(--app-footer-height)",
+      },
+      animation: {
+        "star-movement-bottom": "star-movement-bottom linear infinite",
+        "star-movement-top": "star-movement-top linear infinite",
+      },
+      keyframes: {
+        "star-movement-bottom": {
+          "0%": { transform: "translate(0%, 0%)", opacity: "1" },
+          "100%": { transform: "translate(-100%, 0%)", opacity: "0" },
+        },
+        "star-movement-top": {
+          "0%": { transform: "translate(0%, 0%)", opacity: "1" },
+          "100%": { transform: "translate(100%, 0%)", opacity: "0" },
+        },
+      },
     },
   },
 } satisfies Config;
