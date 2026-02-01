@@ -1,3 +1,4 @@
+import { readAccessToken } from './accessToken';
 import { BusinessError, HttpError } from './errors';
 import type { ApiResponse } from './types';
 
@@ -17,6 +18,16 @@ function getRequestUrl(input: RequestInfo): string | null {
   if (typeof URL !== 'undefined' && input instanceof URL) return input.toString();
   if (typeof Request !== 'undefined' && input instanceof Request) return input.url;
   return null;
+}
+
+function refreshInitWithLatestToken(init?: ApiFetchOptions): ApiFetchOptions | undefined {
+  if (!isBrowser() || !init?.headers) return init;
+  const token = readAccessToken();
+  if (!token) return init;
+  const headers = new Headers(init.headers);
+  if (!headers.has('Authorization')) return init;
+  headers.set('Authorization', `Bearer ${token}`);
+  return { ...init, headers };
 }
 
 async function tryRefreshAuthTokens(): Promise<boolean> {
@@ -46,7 +57,8 @@ export async function apiFetch<T>(input: RequestInfo, init?: ApiFetchOptions): P
     if (!isTokenRefresh) {
       const refreshed = await tryRefreshAuthTokens();
       if (refreshed) {
-        return apiFetch<T>(input, { ...init, retryOnUnauthorized: false });
+        const retryInit = refreshInitWithLatestToken({ ...init, retryOnUnauthorized: false });
+        return apiFetch<T>(input, retryInit);
       }
     }
   }
