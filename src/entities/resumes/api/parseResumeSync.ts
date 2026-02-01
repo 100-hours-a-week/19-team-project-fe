@@ -12,8 +12,18 @@ export type ResumeParseProject = {
   description?: string;
 };
 
+export type ResumeParseCareer = {
+  company?: string;
+  position?: string;
+  job?: string;
+  start_date?: string;
+  end_date?: string;
+  is_current?: boolean;
+  description?: string;
+};
+
 export type ResumeParseContentJson = {
-  careers?: string[];
+  careers?: (string | ResumeParseCareer)[];
   projects?: ResumeParseProject[];
   education?: string[];
   awards?: string[];

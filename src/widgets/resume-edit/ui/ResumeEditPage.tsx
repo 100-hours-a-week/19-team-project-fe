@@ -44,6 +44,17 @@ type ContentProjectItem = {
   description?: string;
 };
 
+type ContentCareerItem = {
+  company?: string;
+  company_name?: string;
+  job?: string;
+  position?: string;
+  start_date?: string;
+  end_date?: string;
+  is_current?: boolean;
+  description?: string;
+};
+
 type SimpleItem = {
   id: string;
   value: string;
@@ -154,16 +165,14 @@ export default function ResumeEditPage() {
         setFileUrl(data.fileUrl ?? '');
 
         const content = data.contentJson ?? {};
-        const careersValue = Array.isArray((content as { careers?: string[] }).careers)
-          ? ((content as { careers?: string[] }).careers ?? [])
-          : [];
+        const careersValue = (content as { careers?: unknown }).careers;
         const projectsValue = Array.isArray(
           (content as { projects?: ContentProjectItem[] }).projects,
         )
           ? ((content as { projects?: ContentProjectItem[] }).projects ?? []).map((project) => ({
               id: createId(),
               title: project.title ?? '',
-              period: [project.start_date, project.end_date].filter(Boolean).join(' - '),
+              period: buildPeriodFromDates(project.start_date, project.end_date),
               description: project.description ?? '',
             }))
           : [];
@@ -182,16 +191,7 @@ export default function ResumeEditPage() {
           ? ((content as { activities?: string[] }).activities ?? [])
           : [];
 
-        setCareers(
-          careersValue.length
-            ? careersValue.map((item) => {
-                const [company = '', period = '', role = '', titleValue = ''] = item
-                  .split('|')
-                  .map((entry) => entry.trim());
-                return { id: createId(), company, period, role, title: titleValue };
-              })
-            : [{ id: createId(), company: '', period: '', role: '', title: '' }],
-        );
+        setCareers(normalizeCareerItems(careersValue));
         setProjects(
           projectsValue.length
             ? projectsValue
@@ -250,6 +250,12 @@ export default function ResumeEditPage() {
     return value;
   };
 
+  const buildPeriodFromDates = (start?: string, end?: string, isCurrent?: boolean) => {
+    const startValue = start ? formatDateToken(start) : '';
+    const endValue = end ? formatDateToken(end) : isCurrent ? 'Present' : '';
+    return [startValue, endValue].filter(Boolean).join(' - ');
+  };
+
   const normalizeYearMonth = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return '';
@@ -266,6 +272,36 @@ export default function ResumeEditPage() {
     const start = normalizeYearMonth(startRaw);
     const end = normalizeYearMonth(endRaw);
     return { start, end };
+  };
+
+  const normalizeCareerItems = (value: unknown): CareerItem[] => {
+    if (!Array.isArray(value)) {
+      return [{ id: createId(), company: '', period: '', role: '', title: '' }];
+    }
+
+    const parsed = value
+      .map((item) => {
+        if (typeof item === 'string') {
+          const [company = '', period = '', role = '', titleValue = ''] = item
+            .split('|')
+            .map((entry) => entry.trim());
+          return { id: createId(), company, period, role, title: titleValue };
+        }
+        if (item && typeof item === 'object') {
+          const career = item as ContentCareerItem;
+          const company = career.company ?? career.company_name ?? '';
+          const role = career.job ?? '';
+          const titleValue = career.position ?? '';
+          const period = buildPeriodFromDates(career.start_date, career.end_date, career.is_current);
+          return { id: createId(), company, period, role, title: titleValue };
+        }
+        return null;
+      })
+      .filter((item): item is CareerItem => Boolean(item));
+
+    return parsed.length
+      ? parsed
+      : [{ id: createId(), company: '', period: '', role: '', title: '' }];
   };
 
   const applyParsedResult = (result: ResumeParseSyncResult | null) => {
@@ -296,23 +332,12 @@ export default function ResumeEditPage() {
       setEducation([{ id: education[0]?.id ?? createId(), value: mappedEducation }]);
     }
 
-    setCareers(
-      careersValue.length
-        ? careersValue.map((item) => {
-            const [company = '', period = '', role = '', titleValue = ''] = item
-              .split('|')
-              .map((entry) => entry.trim());
-            return { id: createId(), company, period, role, title: titleValue };
-          })
-        : [{ id: createId(), company: '', period: '', role: '', title: '' }],
-    );
+    setCareers(normalizeCareerItems(careersValue));
 
     setProjects(
       projectsValue.length
         ? projectsValue.map((project) => {
-            const start = project.start_date ? formatDateToken(project.start_date) : '';
-            const end = project.end_date ? formatDateToken(project.end_date) : '';
-            const period = [start, end].filter(Boolean).join(' - ');
+            const period = buildPeriodFromDates(project.start_date, project.end_date);
             return {
               id: createId(),
               title: project.title ?? '',
