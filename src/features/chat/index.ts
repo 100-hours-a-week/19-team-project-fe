@@ -9,4 +9,3 @@ export * from './api/markChatRead';
 export * from './model/useChatHistory.client';
 export * from './model/useChatSocket.client';
 export * from './lib/message';
-export { getChatDetail as getChatDetailServer } from './server/getChatDetail.server';

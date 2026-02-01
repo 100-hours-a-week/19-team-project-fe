@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { ChatRoom } from '@/widgets/chat-room';
-import { getChatDetailServer } from '@/features/chat';
+import { getChatDetail } from '@/features/chat.server';
 
 type ChatRoomPageProps = {
   params: Promise<{
@@ -16,7 +16,7 @@ export default async function ChatRoomPage({ params }: ChatRoomPageProps) {
     redirect('/?guard=invalid');
   }
   try {
-    await getChatDetailServer({ chatId });
+    await getChatDetail({ chatId });
   } catch {
     redirect('/?guard=invalid');
   }
