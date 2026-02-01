@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 
 const BLOGS = [
-  { label: '카카오 테크 블로그', url: 'https://tech.kakao.com/blog/' },
-  { label: '쿠팡 기술 블로그', url: 'https://medium.com/coupang-tech/technote/home' },
+  { label: '카카오 테크 블로그', url: 'https://tech.kakao.com/blog?page=1' },
+  { label: '쿠팡 기술 블로그', url: 'https://medium.com/coupang-engineering' },
   { label: '왓챠 팀 블로그', url: 'https://medium.com/watcha' },
   { label: '마켓컬리 Tech Blog', url: 'http://thefarmersfront.github.io/' },
   { label: '우아한형제들 기술 블로그', url: 'https://woowabros.github.io/' },
@@ -16,7 +16,6 @@ const BLOGS = [
   { label: 'Delivery Tech Korea', url: 'https://medium.com/deliverytechkorea' },
   { label: '이스트소프트 AI PLUS TECH', url: 'https://blog.est.ai/' },
   { label: '플랫팜 팀 블로그', url: 'https://medium.com/platfarm' },
-  { label: '레진 기술 블로그', url: 'https://tech.lezhin.com/' },
   { label: 'Spoqa 기술 블로그', url: 'https://spoqa.github.io/' },
   { label: '플라네타리움 엔지니어링 스낵', url: 'https://snack.planetarium.dev/kor/' },
   { label: 'LINE Engineering 블로그', url: 'https://engineering.linecorp.com/ko/blog/' },
