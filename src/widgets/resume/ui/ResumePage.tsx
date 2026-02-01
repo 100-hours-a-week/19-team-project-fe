@@ -67,23 +67,23 @@ export default function ResumePage() {
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <Header />
 
-      <section className="flex flex-1 flex-col px-6 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
+      <section className="flex flex-1 flex-col px-2.5 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
         <h1 className="text-2xl font-semibold text-black">이력서</h1>
 
         {authStatus === 'checking' ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">불러오는 중...</p>
           </div>
         ) : authStatus !== 'authed' ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">로그인이 필요합니다.</p>
           </div>
         ) : isLoadingResumes ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-neutral-700">이력서를 불러오는 중...</p>
           </div>
         ) : loadError ? (
-          <div className="mt-4 rounded-3xl bg-white px-6 py-5 shadow-sm">
+          <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
             <p className="text-base text-red-500">{loadError}</p>
           </div>
         ) : (
@@ -181,7 +181,7 @@ export default function ResumePage() {
                             setOpenMenuId(null);
                             router.push(`/resume/edit?resumeId=${resume.resumeId}`);
                           }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                          className="w-full px-2.5 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                         >
                           수정
                         </button>
@@ -212,7 +212,7 @@ export default function ResumePage() {
                               }
                             })();
                           }}
-                          className="w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-red-50"
+                          className="w-full px-2.5 py-2 text-left text-sm text-red-500 hover:bg-red-50"
                         >
                           {isDeletingId === resume.resumeId ? '삭제 중...' : '삭제'}
                         </button>

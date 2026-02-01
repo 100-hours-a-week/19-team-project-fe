@@ -11,7 +11,7 @@ export default function SocialLoginPage() {
   const [termsOpen, setTermsOpen] = useState(false);
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#fff8cc] via-white to-white px-6 py-16 text-gray-900">
+    <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#fff8cc] via-white to-white px-2.5 py-16 text-gray-900">
       <section className="mx-auto flex w-full max-w-md flex-1 flex-col">
         <header className="text-center">
           <p className="text-base font-semibold text-black">
@@ -26,7 +26,7 @@ export default function SocialLoginPage() {
           <button
             type="button"
             onClick={() => setTermsOpen(true)}
-            className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-neutral-300 bg-white px-4 py-3 text-sm font-semibold text-black shadow-sm transition active:scale-[0.99]"
+            className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-neutral-300 bg-white px-2.5 py-3 text-sm font-semibold text-black shadow-sm transition active:scale-[0.99]"
           >
             이용약관
           </button>
@@ -67,7 +67,7 @@ export default function SocialLoginPage() {
         <button
           type="button"
           onClick={() => setTermsOpen(false)}
-          className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-black px-4 py-3 text-sm font-semibold text-white transition active:scale-[0.99]"
+          className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-black px-2.5 py-3 text-sm font-semibold text-white transition active:scale-[0.99]"
         >
           닫기
         </button>

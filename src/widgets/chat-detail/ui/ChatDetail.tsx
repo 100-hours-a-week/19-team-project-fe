@@ -164,7 +164,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
       className="flex h-[100dvh] flex-col overflow-hidden bg-[#f7f7f7] text-black"
       style={{ '--app-header-height': '64px' } as CSSProperties}
     >
-      <header className="fixed top-0 left-1/2 z-10 flex h-16 w-full max-w-[600px] -translate-x-1/2 items-center bg-white px-4">
+      <header className="fixed top-0 left-1/2 z-10 flex h-16 w-full max-w-[600px] -translate-x-1/2 items-center bg-white px-2.5">
         <button
           type="button"
           onClick={() => {
@@ -193,7 +193,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
         <div className="h-9 w-9" aria-hidden="true" />
       </header>
 
-      <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 pb-[calc(96px+16px)] pt-[calc(var(--app-header-height)+16px)]">
+      <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-2.5 pb-[calc(96px+16px)] pt-[calc(var(--app-header-height)+16px)]">
         <section>
           <h2 className="text-sm font-semibold text-neutral-700">참여자</h2>
           <div className="mt-4 flex flex-col gap-3">
@@ -236,7 +236,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
                 <button
                   type="button"
                   onClick={() => setIsResumeModalOpen(true)}
-                  className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-left text-neutral-800"
+                  className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-2.5 py-3 text-left text-neutral-800"
                 >
                   <span className="text-sm font-semibold">{resumeDetail.title || '제목 없음'}</span>
                   <span className="text-xs font-semibold text-neutral-700">상세 보기</span>
@@ -250,7 +250,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
         </section>
       </div>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-[#f7f7f7] px-6 pb-6 pt-3">
+      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-[#f7f7f7] px-2.5 pb-6 pt-3">
         <button
           type="button"
           onClick={handleCloseChat}

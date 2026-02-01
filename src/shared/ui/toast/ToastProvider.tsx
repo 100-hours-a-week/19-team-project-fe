@@ -58,7 +58,7 @@ export function ToastProvider({ children }: PropsWithChildren) {
     <ToastContext.Provider value={{ pushToast }}>
       {children}
       <div
-        className="pointer-events-none fixed left-1/2 top-20 z-[999] w-full max-w-[600px] -translate-x-1/2 px-6"
+        className="pointer-events-none fixed left-1/2 top-20 z-[999] w-full max-w-[600px] -translate-x-1/2 px-2.5"
         role="status"
         aria-live="polite"
       >

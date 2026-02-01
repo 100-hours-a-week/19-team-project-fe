@@ -679,7 +679,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   );
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#F7F7F7] px-6 pb-10 pt-4 text-text-body">
+    <main className="flex min-h-screen flex-col bg-[#F7F7F7] px-2.5 pb-10 pt-4 text-text-body">
       <header className="relative flex items-center">
         <Link href="/onboarding" className="text-2xl text-neutral-700">
           ←
@@ -828,7 +828,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                           })}
                         </div>
                       </div>
-                      <div className="mt-10 grid grid-cols-3 gap-6 px-6 text-center text-2xl font-semibold text-[#2b4b7e]">
+                      <div className="mt-10 grid grid-cols-3 gap-6 px-2.5 text-center text-2xl font-semibold text-[#2b4b7e]">
                         {[
                           '3',
                           '7',
@@ -944,7 +944,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       >
         {activeSheet === 'tech' ? (
           <div className="flex h-full flex-col">
-            <div className="flex items-center gap-2 rounded-full bg-[#edf4ff] px-4 py-3">
+            <div className="flex items-center gap-2 rounded-full bg-[#edf4ff] px-2.5 py-3">
               <span className="text-sm text-text-caption">🔍</span>
               <input
                 value={techQuery}
