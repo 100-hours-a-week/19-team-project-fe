@@ -292,7 +292,11 @@ export default function ResumeEditPage() {
           const company = career.company ?? career.company_name ?? '';
           const role = career.job ?? '';
           const titleValue = career.position ?? '';
-          const period = buildPeriodFromDates(career.start_date, career.end_date, career.is_current);
+          const period = buildPeriodFromDates(
+            career.start_date,
+            career.end_date,
+            career.is_current,
+          );
           return { id: createId(), company, period, role, title: titleValue };
         }
         return null;
