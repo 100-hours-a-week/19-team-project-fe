@@ -229,7 +229,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       localStorage.removeItem(`pending-chat-message:${chatId}`);
     }
     setPendingMessage(null);
-  }, [pendingMessage, wsStatus, historyLoading, sendOptimisticMessage]);
+  }, [pendingMessage, wsStatus, historyLoading, sendOptimisticMessage, chatId]);
 
   useEffect(() => {
     if (!chatId) return;
