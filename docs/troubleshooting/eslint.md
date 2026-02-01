@@ -1134,3 +1134,75 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-01 Raw Log
+
+- Logged at: 2026-02-01 07:02:54Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/app/chat/[chatId]/page.tsx
+  4:1  error  '@/features/chat/server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/chat-room/ui/ChatRoom.tsx
+  232:6  warning  React Hook useEffect has a missing dependency: 'chatId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/junseopark/re-fit/src/widgets/resume-edit/ui/ResumeEditPage.tsx
+  236:6  warning  React Hook useEffect has a missing dependency: 'educationOptions'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (1 error, 2 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-01 Raw Log
+
+- Logged at: 2026-02-01 07:03:23Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/app/chat/[chatId]/page.tsx
+  4:1  error  '@/features/chat/server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/chat-room/ui/ChatRoom.tsx
+  232:6  warning  React Hook useEffect has a missing dependency: 'chatId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/junseopark/re-fit/src/widgets/resume-edit/ui/ResumeEditPage.tsx
+  236:6  warning  React Hook useEffect has a missing dependency: 'educationOptions'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (1 error, 2 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-01 Raw Log
+
+- Logged at: 2026-02-01 07:04:39Z
+
+```
+> re-fit@0.1.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/src/app/chat/[chatId]/page.tsx
+  4:1  error  '@/features/chat/server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/re-fit/src/widgets/chat-room/ui/ChatRoom.tsx
+  232:6  warning  React Hook useEffect has a missing dependency: 'chatId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/junseopark/re-fit/src/widgets/resume-edit/ui/ResumeEditPage.tsx
+  236:6  warning  React Hook useEffect has a missing dependency: 'educationOptions'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 3 problems (1 error, 2 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

@@ -233,7 +233,7 @@ export default function ResumeEditPage() {
     return () => {
       cancelled = true;
     };
-  }, [authStatus, handleCommonApiError, isEditMode, resumeId]);
+  }, [authStatus, handleCommonApiError, isEditMode, resumeId, educationOptions]);
   const handleAuthSheetClose = () => {
     router.replace('/resume');
   };
