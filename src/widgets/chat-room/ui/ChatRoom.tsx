@@ -181,11 +181,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   }, [chatId, currentUserId, handleCommonApiError, handleInvalidAccess]);
 
   const sendOptimisticMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       const trimmed = content.trim();
       if (!trimmed) return;
       if (chatStatus === 'CLOSED') return;
-      if (wsStatus !== 'connected') return;
 
       const now = new Date();
       const optimisticId = -now.getTime();
@@ -205,7 +204,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       setMessages((prev) => sortMessagesByTime([...prev, optimistic]));
 
       try {
-        sendChatMessage({
+        await sendChatMessage({
           chat_id: chatId,
           content: trimmed,
           message_type: 'TEXT',
@@ -216,7 +215,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         console.warn('Send message failed:', sendError);
       }
     },
-    [chatId, chatStatus, currentUserId, setMessages, wsStatus],
+    [chatId, chatStatus, currentUserId, setMessages],
   );
 
   /**
@@ -236,7 +235,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    sendOptimisticMessage(draft);
+    void sendOptimisticMessage(draft);
     setDraft('');
     if (inputRef.current) {
       inputRef.current.style.height = '0px';
