@@ -940,6 +940,8 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         title={
           activeSheet === 'job' ? '직무 선택' : activeSheet === 'career' ? '경력 선택' : '기술스택'
         }
+        actionLabel="완료"
+        onAction={() => setActiveSheet(null)}
         onClose={() => setActiveSheet(null)}
       >
         {activeSheet === 'tech' ? (
