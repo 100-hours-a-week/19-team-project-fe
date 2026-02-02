@@ -26,7 +26,10 @@ const withAuthorization = (headers: HeadersInit | undefined, token: string): Hea
     return next;
   }
   if (Array.isArray(headers)) {
-    return [...headers.filter(([key]) => key.toLowerCase() !== 'authorization'), ['Authorization', `Bearer ${token}`]];
+    return [
+      ...headers.filter(([key]) => key.toLowerCase() !== 'authorization'),
+      ['Authorization', `Bearer ${token}`],
+    ];
   }
   return { ...headers, Authorization: `Bearer ${token}` };
 };

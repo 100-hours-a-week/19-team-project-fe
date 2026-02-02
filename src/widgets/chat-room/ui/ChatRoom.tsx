@@ -112,11 +112,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const handleInvalidAccess = useCallback(
     (error: unknown): boolean => {
       const invalidAccess =
-        (error instanceof BusinessError &&
-          [
-            'CHAT_NOT_FOUND',
-            'FORBIDDEN',
-          ].includes(error.code)) ||
+        (error instanceof BusinessError && ['CHAT_NOT_FOUND', 'FORBIDDEN'].includes(error.code)) ||
         (error instanceof HttpError && [403, 404].includes(error.status));
 
       if (!invalidAccess) return false;
