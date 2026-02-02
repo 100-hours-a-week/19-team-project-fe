@@ -270,7 +270,8 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         oauth_provider: 'KAKAO' as const,
         oauth_id: oauthId,
         email,
-        company_email: isExpert && isVerified ? lastSentEmail ?? verificationEmail.trim() : undefined,
+        company_email:
+          isExpert && isVerified ? (lastSentEmail ?? verificationEmail.trim()) : undefined,
         nickname: resolvedNickname,
         user_type: userType,
         career_level_id: selectedCareer.id,
@@ -625,9 +626,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             <Image src={iconTech} alt="기술스택" width={40} height={40} />
             <div className="text-left">
               <span className="text-base font-semibold text-text-body">기술스택</span>
-              <p className="mt-2 text-xs leading-relaxed text-text-caption">
-                기술을 선택해 주세요
-              </p>
+              <p className="mt-2 text-xs leading-relaxed text-text-caption">기술을 선택해 주세요</p>
             </div>
           </div>
           <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
