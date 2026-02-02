@@ -106,23 +106,35 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
     setIsLoadingResume(true);
     setResumeError(null);
 
-    (async () => {
+    const loadResume = async (allowRetry: boolean) => {
       try {
         const data = await getResumeDetail(detail.resume_id);
         if (cancelled) return;
         setResumeDetail(data);
+        setResumeError(null);
       } catch (error) {
         if (cancelled) return;
+        const handled = await handleCommonApiError(error);
+        if (handled) {
+          if (allowRetry && !cancelled) {
+            await loadResume(false);
+          } else {
+            setIsLoadingResume(false);
+          }
+          return;
+        }
         setResumeError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
       } finally {
         if (!cancelled) setIsLoadingResume(false);
       }
-    })();
+    };
+
+    loadResume(true);
 
     return () => {
       cancelled = true;
     };
-  }, [detail.resume_id]);
+  }, [detail.resume_id, handleCommonApiError]);
 
   const handleCloseChat = async () => {
     if (isClosed || isClosing) return;

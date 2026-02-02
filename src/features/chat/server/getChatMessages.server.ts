@@ -1,7 +1,6 @@
-import { cookies } from 'next/headers';
-
 import type { ChatMessageListData } from '@/entities/chat';
-import { apiFetch, buildApiUrl } from '@/shared/api';
+import { buildApiUrl } from '@/shared/api';
+import { apiFetchWithRefresh } from '@/shared/api/server';
 
 const CHAT_MESSAGES_PATH = '/api/v1/chats';
 
@@ -10,16 +9,10 @@ export interface ChatMessagesParams {
   cursor?: number;
   size?: number;
   accessToken?: string;
+  allowRefresh?: boolean;
 }
 
 export async function getChatMessages(params: ChatMessagesParams): Promise<ChatMessageListData> {
-  const cookieStore = await cookies();
-  const accessToken = params.accessToken ?? cookieStore.get('access_token')?.value;
-
-  if (!accessToken) {
-    throw new Error('UNAUTHORIZED');
-  }
-
   const { chatId, cursor, size = 50 } = params;
   const url = buildApiUrl(`${CHAT_MESSAGES_PATH}/${chatId}/messages`);
   const query = new URLSearchParams();
@@ -29,10 +22,10 @@ export async function getChatMessages(params: ChatMessagesParams): Promise<ChatM
 
   const fullUrl = query.toString() ? `${url}?${query.toString()}` : url;
 
-  return apiFetch<ChatMessageListData>(fullUrl, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  return apiFetchWithRefresh<ChatMessageListData>(
+    fullUrl,
+    { method: 'GET' },
+    params.accessToken,
+    params.allowRefresh ?? true,
+  );
 }

@@ -316,7 +316,7 @@ export default function MyPageEdit() {
     const payload: {
       nickname?: string;
       introduction?: string;
-      profile_image_url?: string;
+      profile_image_url?: string | null;
       career_level_id?: number;
       job_ids?: number[];
       skills?: Array<{ skill_id: number; display_order: number }>;
@@ -424,14 +424,16 @@ export default function MyPageEdit() {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isSubmitting || isUploadingImage}
-                  className="rounded-full border border-neutral-300 px-2.5 py-2 text-sm font-semibold text-neutral-700 disabled:opacity-60"
-                >
-                  {profileImagePreview ? '다른 이미지 선택' : '이미지 업로드'}
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSubmitting || isUploadingImage}
+                    className="rounded-full border border-neutral-300 px-2.5 py-1.5 text-sm font-semibold text-neutral-700 disabled:opacity-60"
+                  >
+                    {profileImagePreview ? '다른 이미지 선택' : '이미지 업로드'}
+                  </button>
+                </div>
                 <p className="text-xs text-text-caption">jpg/png 권장</p>
               </div>
             </div>

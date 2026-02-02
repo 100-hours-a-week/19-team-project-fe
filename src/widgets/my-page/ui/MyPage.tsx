@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
-import { getUserMe, type UserMe } from '@/features/users';
+import { getExpertStatus, getUserMe, type ExpertStatus, type UserMe } from '@/features/users';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
@@ -23,6 +23,8 @@ export default function MyPage() {
   const [user, setUser] = useState<UserMe | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [expertStatus, setExpertStatus] = useState<ExpertStatus | null>(null);
+  const [isLoadingExpertStatus, setIsLoadingExpertStatus] = useState(false);
 
   useEffect(() => {
     if (authStatus !== 'authed') {
@@ -59,9 +61,50 @@ export default function MyPage() {
     };
   }, [authStatus, handleCommonApiError]);
 
+  useEffect(() => {
+    if (authStatus !== 'authed') {
+      setExpertStatus(null);
+      setIsLoadingExpertStatus(false);
+      return;
+    }
+    if (!user || user.user_type !== 'EXPERT') {
+      setExpertStatus(null);
+      setIsLoadingExpertStatus(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingExpertStatus(true);
+
+    (async () => {
+      try {
+        const data = await getExpertStatus();
+        if (cancelled) return;
+        setExpertStatus(data);
+      } catch (error) {
+        if (cancelled) return;
+        if (await handleCommonApiError(error)) {
+          setIsLoadingExpertStatus(false);
+          return;
+        }
+        setExpertStatus(null);
+      } finally {
+        if (cancelled) return;
+        setIsLoadingExpertStatus(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authStatus, handleCommonApiError, user]);
+
   const handleAuthSheetClose = () => {
     router.replace('/');
   };
+
+  const shouldShowExpertVerifyButton =
+    user?.user_type === 'EXPERT' && !expertStatus?.verified && !isLoadingExpertStatus;
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
@@ -124,7 +167,14 @@ export default function MyPage() {
                     className="h-24 w-24 rounded-full object-cover"
                   />
                 </div>
-                <p className="mt-3 text-lg font-semibold text-[#3b5bcc]">{user.nickname}</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <p className="text-lg font-semibold text-[#3b5bcc]">{user.nickname}</p>
+                  {expertStatus?.verified ? (
+                    <span className="rounded-full border border-[#2b4b7e] bg-[#edf4ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
+                      인증됨
+                    </span>
+                  ) : null}
+                </div>
                 <p className="mt-1 text-sm text-text-caption">
                   {user.jobs[0]?.name ?? '직무 정보 없음'}
                 </p>
@@ -158,29 +208,34 @@ export default function MyPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  sessionStorage.setItem('nav-direction', 'forward');
-                  router.push('/me/verify');
-                }}
-                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
-              >
-                <div className="flex items-center gap-3">
-                  <Image src={iconCertification} alt="현직자 인증하기" width={40} height={40} />
-                  <div className="text-left">
-                    <span className="flex items-center gap-1 text-base font-semibold text-text-body">
-                      <Image src={iconMarkB} alt="" width={18} height={18} />
-                      현직자 인증하기
-                    </span>
-                    <p className="mt-1 text-xs text-text-caption">인증을 진행해 주세요</p>
+              {shouldShowExpertVerifyButton ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sessionStorage.setItem('nav-direction', 'forward');
+                    router.push('/me/verify');
+                  }}
+                  className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <Image src={iconCertification} alt="현직자 인증하기" width={40} height={40} />
+                    <div className="text-left">
+                      <span className="flex items-center gap-1 text-base font-semibold text-text-body">
+                        <Image src={iconMarkB} alt="" width={18} height={18} />
+                        현직자 인증하기
+                      </span>
+                      <p className="mt-1 text-xs text-text-caption">인증을 진행해 주세요</p>
+                    </div>
                   </div>
-                </div>
-                <span className="text-xl text-gray-300">›</span>
-              </button>
+                  <span className="text-xl text-gray-300">›</span>
+                </button>
+              ) : null}
 
               <button
                 type="button"
+                onClick={() => {
+                  window.location.href = 'mailto:corp.refit@gmail.com';
+                }}
                 className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
               >
                 <div className="flex items-center gap-3">
