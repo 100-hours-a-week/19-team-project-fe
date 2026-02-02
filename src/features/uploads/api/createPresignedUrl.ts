@@ -5,6 +5,7 @@ export type PresignedTargetType = 'PROFILE_IMAGE' | 'RESUME' | 'RESUME_PDF';
 export type CreatePresignedUrlPayload = {
   target_type: PresignedTargetType;
   file_name: string;
+  file_size?: number;
 };
 
 export type PresignedUrlResponse = {

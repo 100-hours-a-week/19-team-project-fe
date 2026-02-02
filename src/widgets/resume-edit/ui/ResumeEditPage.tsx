@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
@@ -61,6 +61,7 @@ type SimpleItem = {
 };
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+const MAX_RESUME_PDF_SIZE = 5 * 1024 * 1024;
 const inlineFieldClass =
   'w-full rounded-md border border-gray-200 px-2.5 py-3 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20 disabled:bg-gray-100 disabled:text-gray-400';
 
@@ -149,6 +150,59 @@ export default function ResumeEditPage() {
     [title, isFresher, fileUrl, careers, projects, education, awards, certificates, activities],
   );
 
+  const formatDateToken = useCallback((value: string) => {
+    if (/^\d{4}-\d{2}(-\d{2})?$/.test(value)) {
+      return value.replace(/-/g, '.');
+    }
+    return value;
+  }, []);
+
+  const buildPeriodFromDates = useCallback(
+    (start?: string, end?: string, isCurrent?: boolean) => {
+      const startValue = start ? formatDateToken(start) : '';
+      const endValue = end ? formatDateToken(end) : isCurrent ? 'Present' : '';
+      return [startValue, endValue].filter(Boolean).join(' - ');
+    },
+    [formatDateToken],
+  );
+
+  const normalizeCareerItems = useCallback(
+    (value: unknown): CareerItem[] => {
+      if (!Array.isArray(value)) {
+        return [{ id: createId(), company: '', period: '', role: '', title: '' }];
+      }
+
+      const parsed = value
+        .map((item) => {
+          if (typeof item === 'string') {
+            const [company = '', period = '', role = '', titleValue = ''] = item
+              .split('|')
+              .map((entry) => entry.trim());
+            return { id: createId(), company, period, role, title: titleValue };
+          }
+          if (item && typeof item === 'object') {
+            const career = item as ContentCareerItem;
+            const company = career.company ?? career.company_name ?? '';
+            const role = career.job ?? '';
+            const titleValue = career.position ?? '';
+            const period = buildPeriodFromDates(
+              career.start_date,
+              career.end_date,
+              career.is_current,
+            );
+            return { id: createId(), company, period, role, title: titleValue };
+          }
+          return null;
+        })
+        .filter((item): item is CareerItem => Boolean(item));
+
+      return parsed.length
+        ? parsed
+        : [{ id: createId(), company: '', period: '', role: '', title: '' }];
+    },
+    [buildPeriodFromDates],
+  );
+
   useEffect(() => {
     if (!isEditMode || authStatus !== 'authed' || !resumeId) return;
 
@@ -233,7 +287,15 @@ export default function ResumeEditPage() {
     return () => {
       cancelled = true;
     };
-  }, [authStatus, handleCommonApiError, isEditMode, resumeId, educationOptions]);
+  }, [
+    authStatus,
+    buildPeriodFromDates,
+    educationOptions,
+    handleCommonApiError,
+    isEditMode,
+    normalizeCareerItems,
+    resumeId,
+  ]);
   const handleAuthSheetClose = () => {
     router.replace('/resume');
   };
@@ -241,19 +303,6 @@ export default function ResumeEditPage() {
   const toSimpleItems = (values: string[]): SimpleItem[] => {
     if (!values.length) return [{ id: createId(), value: '' }];
     return values.map((value) => ({ id: createId(), value }));
-  };
-
-  const formatDateToken = (value: string) => {
-    if (/^\d{4}-\d{2}(-\d{2})?$/.test(value)) {
-      return value.replace(/-/g, '.');
-    }
-    return value;
-  };
-
-  const buildPeriodFromDates = (start?: string, end?: string, isCurrent?: boolean) => {
-    const startValue = start ? formatDateToken(start) : '';
-    const endValue = end ? formatDateToken(end) : isCurrent ? 'Present' : '';
-    return [startValue, endValue].filter(Boolean).join(' - ');
   };
 
   const normalizeYearMonth = (value: string) => {
@@ -272,40 +321,6 @@ export default function ResumeEditPage() {
     const start = normalizeYearMonth(startRaw);
     const end = normalizeYearMonth(endRaw);
     return { start, end };
-  };
-
-  const normalizeCareerItems = (value: unknown): CareerItem[] => {
-    if (!Array.isArray(value)) {
-      return [{ id: createId(), company: '', period: '', role: '', title: '' }];
-    }
-
-    const parsed = value
-      .map((item) => {
-        if (typeof item === 'string') {
-          const [company = '', period = '', role = '', titleValue = ''] = item
-            .split('|')
-            .map((entry) => entry.trim());
-          return { id: createId(), company, period, role, title: titleValue };
-        }
-        if (item && typeof item === 'object') {
-          const career = item as ContentCareerItem;
-          const company = career.company ?? career.company_name ?? '';
-          const role = career.job ?? '';
-          const titleValue = career.position ?? '';
-          const period = buildPeriodFromDates(
-            career.start_date,
-            career.end_date,
-            career.is_current,
-          );
-          return { id: createId(), company, period, role, title: titleValue };
-        }
-        return null;
-      })
-      .filter((item): item is CareerItem => Boolean(item));
-
-    return parsed.length
-      ? parsed
-      : [{ id: createId(), company: '', period: '', role: '', title: '' }];
   };
 
   const applyParsedResult = (result: ResumeParseSyncResult | null) => {
@@ -368,6 +383,10 @@ export default function ResumeEditPage() {
       setAutoFillError('PDF 파일만 업로드할 수 있습니다.');
       return;
     }
+    if (file.size > MAX_RESUME_PDF_SIZE) {
+      setAutoFillError('이력서는 5MB 이하만 업로드할 수 있습니다.');
+      return;
+    }
 
     setAutoFillError(null);
     setIsAutoFilling(true);
@@ -377,6 +396,7 @@ export default function ResumeEditPage() {
         const { presignedUrl, fileUrl: uploadedUrl } = await createPresignedUrl({
           target_type: 'RESUME_PDF',
           file_name: file.name,
+          file_size: file.size,
         });
         await uploadToPresignedUrl(file, presignedUrl);
         const data = await parseResumeSync({ file_url: uploadedUrl, mode: 'sync' });
@@ -542,6 +562,9 @@ export default function ResumeEditPage() {
           >
             {isAutoFilling ? '자동 등록 중...' : '자동 등록'}
           </button>
+        </div>
+        <div className="mt-2 text-right text-xs font-semibold text-primary-main">
+          5MB 이하 PDF 파일만 업로드 가능합니다.
         </div>
 
         {authStatus === 'checking' ? (
