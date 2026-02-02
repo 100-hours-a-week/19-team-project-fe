@@ -19,7 +19,7 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
     if (!chatId) return;
     let cancelled = false;
 
-    (async () => {
+    const loadHistory = async (allowRetry: boolean) => {
       try {
         setLoading(true);
         const data = await getChatMessages({ chatId });
@@ -35,15 +35,20 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
         }
       } catch (err) {
         if (cancelled) return;
-        if (await handleCommonApiError(err)) {
-          setLoading(false);
+        const handled = await handleCommonApiError(err);
+        if (handled) {
+          if (allowRetry && !cancelled) {
+            await loadHistory(false);
+          }
           return;
         }
         setError(err instanceof Error ? err : new Error('CHAT_HISTORY_FAILED'));
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    };
+
+    loadHistory(true);
 
     return () => {
       cancelled = true;

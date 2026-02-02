@@ -1,7 +1,6 @@
-import { cookies } from 'next/headers';
-
 import type { ChatListData } from '@/entities/chat';
-import { apiFetch, buildApiUrl } from '@/shared/api';
+import { buildApiUrl } from '@/shared/api';
+import { apiFetchWithRefresh } from '@/shared/api/server';
 
 const CHAT_LIST_PATH = '/api/v1/chats';
 
@@ -10,16 +9,10 @@ export interface ChatListParams {
   cursor?: number;
   size?: number;
   accessToken?: string;
+  allowRefresh?: boolean;
 }
 
 export async function getChatList(params: ChatListParams = {}): Promise<ChatListData> {
-  const cookieStore = await cookies();
-  const accessToken = params.accessToken ?? cookieStore.get('access_token')?.value;
-
-  if (!accessToken) {
-    throw new Error('UNAUTHORIZED');
-  }
-
   const { status = 'ACTIVE', cursor, size = 20 } = params;
   const url = buildApiUrl(CHAT_LIST_PATH);
   const query = new URLSearchParams();
@@ -30,10 +23,10 @@ export async function getChatList(params: ChatListParams = {}): Promise<ChatList
 
   const fullUrl = `${url}?${query.toString()}`;
 
-  return apiFetch<ChatListData>(fullUrl, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  return apiFetchWithRefresh<ChatListData>(
+    fullUrl,
+    { method: 'GET' },
+    params.accessToken,
+    params.allowRefresh ?? true,
+  );
 }

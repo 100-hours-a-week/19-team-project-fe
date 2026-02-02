@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse } from '@/shared/api';
 import { createChat, getChatList } from '@/features/chat.server';
+
+function getAccessToken(req: Request, cookieToken?: string) {
+  const authHeader = req.headers.get('authorization');
+  const rawToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : (authHeader ?? undefined);
+  return rawToken?.trim() || cookieToken?.trim() || undefined;
+}
 
 export async function GET(req: Request) {
   try {
@@ -19,12 +28,10 @@ export async function GET(req: Request) {
         ? Number(sizeParam)
         : undefined;
 
-    const authHeader = req.headers.get('authorization');
-    const rawToken = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7)
-      : (authHeader ?? undefined);
-    const accessToken = rawToken?.trim() || undefined;
-    const data = await getChatList({ status, cursor, size, accessToken });
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get('access_token')?.value;
+    const accessToken = getAccessToken(req, cookieToken);
+    const data = await getChatList({ status, cursor, size, accessToken, allowRefresh: false });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: '',
@@ -64,12 +71,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
-    const authHeader = req.headers.get('authorization');
-    const rawToken = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7)
-      : (authHeader ?? undefined);
-    const accessToken = rawToken?.trim() || undefined;
-    const data = await createChat(payload, accessToken);
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get('access_token')?.value;
+    const accessToken = getAccessToken(req, cookieToken);
+    const data = await createChat(payload, accessToken, false);
     const response: ApiResponse<typeof data> = {
       code: 'CREATED',
       message: 'create_success',

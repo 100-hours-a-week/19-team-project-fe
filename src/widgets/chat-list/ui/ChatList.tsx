@@ -75,7 +75,7 @@ export default function ChatList() {
 
     let cancelled = false;
 
-    (async () => {
+    const loadChats = async (allowRetry: boolean) => {
       try {
         const [userResult, chatResult] = await Promise.allSettled([getUserMe(), getChatList()]);
         if (cancelled) return;
@@ -106,8 +106,13 @@ export default function ChatList() {
         setLoadError(null);
       } catch (error) {
         if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          setIsLoading(false);
+        const handled = await handleCommonApiError(error);
+        if (handled) {
+          if (allowRetry && !cancelled) {
+            await loadChats(false);
+          } else {
+            setIsLoading(false);
+          }
           return;
         }
         setLoadError(error instanceof Error ? error.message : '채팅 목록을 불러오지 못했습니다.');
@@ -115,7 +120,9 @@ export default function ChatList() {
         if (cancelled) return;
         setIsLoading(false);
       }
-    })();
+    };
+
+    loadChats(true);
 
     return () => {
       cancelled = true;
