@@ -21,16 +21,26 @@ export async function refreshAuthTokens(): Promise<{
     headers: {
       'Content-Type': 'application/json',
       'Refresh-Token': refreshToken,
+      Authorization: `Bearer ${refreshToken}`,
+      Cookie: `refresh_token=${encodeURIComponent(refreshToken)}`,
     },
     body: JSON.stringify({ refresh_token: refreshToken }),
   });
 
   if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    console.error('[Token Refresh Error]', res.status, body);
+    if (body && typeof body.code === 'string') {
+      throw new Error(body.code);
+    }
     throw new Error('TOKEN_REFRESH_FAILED');
   }
 
-  const body = await res.json();
-  const data = body.data as RefreshTokenResponse;
+  const body = await res.json().catch(() => null);
+  const data = body?.data as RefreshTokenResponse | undefined;
+  if (!data?.access_token || !data?.refresh_token) {
+    throw new Error('TOKEN_REFRESH_FAILED');
+  }
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,

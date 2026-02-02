@@ -111,6 +111,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   const [introduction, setIntroduction] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isUnverifiedModalOpen, setIsUnverifiedModalOpen] = useState(false);
   const [nicknameCheckMessage, setNicknameCheckMessage] = useState<{
     tone: 'success' | 'error';
     text: string;
@@ -269,7 +270,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         oauth_provider: 'KAKAO' as const,
         oauth_id: oauthId,
         email,
-        company_email: isExpert ? verificationEmail.trim() : undefined,
+        company_email: isExpert && isVerified ? verificationEmail.trim() : undefined,
         nickname: resolvedNickname,
         user_type: userType,
         career_level_id: selectedCareer.id,
@@ -414,6 +415,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         } else {
           setSendVerificationError('인증번호 전송에 실패했습니다.');
         }
+        setIsUnverifiedModalOpen(true);
       })
       .finally(() => {
         setIsSendingVerification(false);
@@ -496,6 +498,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       } else {
         setVerificationError('인증번호 확인에 실패했습니다.');
       }
+      setIsUnverifiedModalOpen(true);
       setVerificationCode([]);
     } finally {
       setIsVerifying(false);
@@ -934,6 +937,28 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           profileFormContent
         )}
       </section>
+
+      <BottomSheet
+        open={isUnverifiedModalOpen}
+        title="현직자 인증 안내"
+        onClose={() => setIsUnverifiedModalOpen(false)}
+      >
+        <div className="flex flex-col gap-4 text-sm text-text-body">
+          <p>
+            이메일 인증이 완료되지 않았습니다. 현직자로 우선 로그인할 수 있으며, 마이페이지 &gt;
+            현직자 인증에서 인증을 완료해야 <span className="font-semibold">인증됨</span> 뱃지가
+            표시됩니다.
+          </p>
+          <p className="text-xs text-text-caption">회원가입은 현직자로 진행됩니다.</p>
+          <Button
+            onClick={() => {
+              setIsUnverifiedModalOpen(false);
+            }}
+          >
+            확인
+          </Button>
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         open={activeSheet !== null}

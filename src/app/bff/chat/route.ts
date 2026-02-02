@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse } from '@/shared/api';
 import { createChat, getChatList } from '@/features/chat.server';
@@ -23,7 +24,9 @@ export async function GET(req: Request) {
     const rawToken = authHeader?.startsWith('Bearer ')
       ? authHeader.slice(7)
       : (authHeader ?? undefined);
-    const accessToken = rawToken?.trim() || undefined;
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get('access_token')?.value;
+    const accessToken = rawToken?.trim() || cookieToken?.trim() || undefined;
     const data = await getChatList({ status, cursor, size, accessToken });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
@@ -40,6 +43,7 @@ export async function GET(req: Request) {
         data: error.data ?? null,
       };
       const status =
+        error.code === 'UNAUTHORIZED' ||
         error.code === 'AUTH_UNAUTHORIZED' ||
         error.code === 'AUTH_INVALID_TOKEN' ||
         error.code === 'AUTH_TOKEN_EXPIRED'
@@ -78,7 +82,9 @@ export async function POST(req: Request) {
     const rawToken = authHeader?.startsWith('Bearer ')
       ? authHeader.slice(7)
       : (authHeader ?? undefined);
-    const accessToken = rawToken?.trim() || undefined;
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get('access_token')?.value;
+    const accessToken = rawToken?.trim() || cookieToken?.trim() || undefined;
     const data = await createChat(payload, accessToken);
     const response: ApiResponse<typeof data> = {
       code: 'CREATED',

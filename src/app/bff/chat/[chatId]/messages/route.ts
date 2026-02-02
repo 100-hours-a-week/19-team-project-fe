@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse } from '@/shared/api';
 import { getChatMessages } from '@/features/chat.server';
@@ -39,7 +40,9 @@ export async function GET(req: Request, context: { params: Params }) {
     const rawToken = authHeader?.startsWith('Bearer ')
       ? authHeader.slice(7)
       : (authHeader ?? undefined);
-    const accessToken = rawToken?.trim() || undefined;
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get('access_token')?.value;
+    const accessToken = rawToken?.trim() || cookieToken?.trim() || undefined;
     const data = await getChatMessages({ chatId, cursor, size, accessToken });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
@@ -56,6 +59,7 @@ export async function GET(req: Request, context: { params: Params }) {
         data: error.data ?? null,
       };
       const status =
+        error.code === 'UNAUTHORIZED' ||
         error.code === 'AUTH_UNAUTHORIZED' ||
         error.code === 'AUTH_INVALID_TOKEN' ||
         error.code === 'AUTH_TOKEN_EXPIRED'

@@ -6,20 +6,31 @@ type RefreshTokenResponse = {
   refresh_token: string;
 };
 
+let refreshInFlight: Promise<boolean> | null = null;
+
 export async function refreshAuthTokens(): Promise<boolean> {
-  const data = await apiFetch<RefreshTokenResponse>('/bff/auth/tokens', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    retryOnUnauthorized: false,
-    successCodes: ['CREATED'],
-  });
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    const data = await apiFetch<RefreshTokenResponse>('/bff/auth/tokens', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      retryOnUnauthorized: false,
+      successCodes: ['CREATED'],
+    });
 
-  setAuthCookies({
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
-  });
+    setAuthCookies({
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+    });
 
-  return true;
+    return true;
+  })();
+
+  try {
+    return await refreshInFlight;
+  } finally {
+    refreshInFlight = null;
+  }
 }
