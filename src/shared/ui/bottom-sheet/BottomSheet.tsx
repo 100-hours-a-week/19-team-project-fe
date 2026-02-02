@@ -60,7 +60,7 @@ export default function BottomSheet({
             </div>
             <div className="mt-4 h-px w-full bg-gray-200" aria-hidden="true" />
           </div>
-          <div className="mt-6 h-[72vh] overflow-y-auto">{children}</div>
+          <div className="mt-6 h-[72vh] overflow-y-auto px-3">{children}</div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
