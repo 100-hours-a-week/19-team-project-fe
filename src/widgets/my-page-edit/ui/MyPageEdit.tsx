@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { getMe } from '@/features/auth';
-import { getUserMe, updateUserMe } from '@/features/users';
+import { deleteProfileImage, getUserMe, updateUserMe } from '@/features/users';
 import { createPresignedUrl, uploadToPresignedUrl } from '@/features/uploads';
 import { getCareerLevels, getJobs, getSkills } from '@/features/onboarding';
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
@@ -79,6 +79,7 @@ export default function MyPageEdit() {
   const [initialJobId, setInitialJobId] = useState<number | null>(null);
   const [initialCareerId, setInitialCareerId] = useState<number | null>(null);
   const [initialSkillIds, setInitialSkillIds] = useState<number[]>([]);
+  const [profileImageReset, setProfileImageReset] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
@@ -182,6 +183,7 @@ export default function MyPageEdit() {
         setSelectedTech(data.skills ?? []);
         setInitialSkillIds(data.skills.map((skill) => skill.id));
         setProfileImageUrl(data.profile_image_url ?? null);
+        setProfileImageReset(false);
       })
       .catch(async (error) => {
         if (!mounted) return;
@@ -215,7 +217,19 @@ export default function MyPageEdit() {
     const previewUrl = URL.createObjectURL(file);
     setProfileImageFile(file);
     setProfileImagePreview(previewUrl);
+    setProfileImageReset(false);
     event.target.value = '';
+  };
+
+  const handleProfileImageReset = () => {
+    if (!profileImagePreview && !profileImageUrl) return;
+    if (profileImagePreview) {
+      URL.revokeObjectURL(profileImagePreview);
+    }
+    setProfileImageFile(null);
+    setProfileImagePreview(null);
+    setProfileImageUrl(null);
+    setProfileImageReset(true);
   };
 
   const filteredSkills = useMemo(() => {
@@ -341,7 +355,7 @@ export default function MyPageEdit() {
       }));
     }
 
-    const hasProfileImageChange = !!profileImageFile;
+    const hasProfileImageChange = !!profileImageFile || profileImageReset;
 
     if (Object.keys(payload).length === 0 && !hasProfileImageChange) {
       setSubmitError('변경된 내용이 없습니다.');
@@ -350,16 +364,23 @@ export default function MyPageEdit() {
 
     setIsSubmitting(true);
     try {
+      if (profileImageReset) {
+        setIsUploadingImage(true);
+        await deleteProfileImage();
+      }
       if (hasProfileImageChange && profileImageFile) {
         setIsUploadingImage(true);
         const { presignedUrl, fileUrl } = await createPresignedUrl({
           target_type: 'PROFILE_IMAGE',
           file_name: profileImageFile.name,
+          file_size: profileImageFile.size,
         });
         await uploadToPresignedUrl(profileImageFile, presignedUrl);
         payload.profile_image_url = fileUrl;
       }
-      await updateUserMe(payload);
+      if (Object.keys(payload).length > 0) {
+        await updateUserMe(payload);
+      }
       router.replace('/me');
     } catch (error) {
       if (await handleCommonApiError(error)) {
@@ -425,6 +446,16 @@ export default function MyPageEdit() {
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleProfileImageReset}
+                    disabled={
+                      isSubmitting || isUploadingImage || (!profileImagePreview && !profileImageUrl)
+                    }
+                    className="rounded-full border border-neutral-300 px-2.5 py-1.5 text-sm font-semibold text-neutral-700 disabled:opacity-60"
+                  >
+                    기본 이미지
+                  </button>
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
