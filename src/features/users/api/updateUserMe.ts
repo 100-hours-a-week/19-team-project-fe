@@ -9,7 +9,7 @@ type UpdateUserSkill = {
 type UpdateUserMePayload = {
   nickname?: string;
   introduction?: string;
-  profile_image_url?: string;
+  profile_image_url?: string | null;
   career_level_id?: number;
   job_ids?: number[];
   skills?: UpdateUserSkill[];
