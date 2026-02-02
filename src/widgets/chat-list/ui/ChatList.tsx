@@ -44,6 +44,20 @@ const formatChatTime = (value?: string | null) => {
   return `${period} ${displayHours}:${minutes}`;
 };
 
+const formatUnreadCount = (value?: number | null) => {
+  if (!value || value <= 0) return '';
+  return value > 99 ? '99+' : String(value);
+};
+
+const getLastMessageSenderId = (message?: ChatSummary['last_message'] | null) => {
+  if (!message) return null;
+  if (message.sender?.user_id) return message.sender.user_id;
+  const raw = message.sender_id ?? message.senderId ?? null;
+  if (raw === null || raw === undefined) return null;
+  const parsed = typeof raw === 'string' ? Number(raw) : raw;
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 const getCounterparty = (chat: ChatSummary, currentUserId: number | null) => {
   if (currentUserId && chat.requester.user_id === currentUserId) {
     return chat.receiver;
@@ -166,6 +180,13 @@ export default function ChatList() {
           chats.map((chat) => {
             const counterparty = getCounterparty(chat, currentUser?.id ?? null);
             const lastMessage = chat.last_message;
+            const lastSenderId = getLastMessageSenderId(lastMessage);
+            const showUnread =
+              chat.unread_count > 0 &&
+              (currentUser?.id === null ||
+                currentUser?.id === undefined ||
+                lastSenderId === null ||
+                lastSenderId !== currentUser?.id);
             return (
               <li key={chat.chat_id} className="border-b border-neutral-200/70">
                 <Link
@@ -197,6 +218,11 @@ export default function ChatList() {
                   </div>
                   <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
                     <span>{lastMessage ? formatChatTime(lastMessage.created_at) : ''}</span>
+                    {showUnread ? (
+                      <span className="flex min-w-5 items-center justify-center rounded-full bg-[var(--color-primary-main)] px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                        {formatUnreadCount(chat.unread_count)}
+                      </span>
+                    ) : null}
                   </div>
                 </Link>
               </li>
