@@ -84,6 +84,71 @@ const mapEducationLevel = (
   return null;
 };
 
+const formatDateToken = (value: string) => {
+  if (/^\d{4}-\d{2}(-\d{2})?$/.test(value)) {
+    return value.replace(/-/g, '.');
+  }
+  return value;
+};
+
+const buildPeriodFromDates = (start?: string, end?: string, isCurrent?: boolean) => {
+  const startValue = start ? formatDateToken(start) : '';
+  const endValue = end ? formatDateToken(end) : isCurrent ? 'Present' : '';
+  return [startValue, endValue].filter(Boolean).join(' - ');
+};
+
+const normalizeYearMonth = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  const normalized = trimmed.replace(/[./]/g, '-');
+  if (/^\d{4}-\d{2}(-\d{2})?$/.test(normalized)) {
+    return normalized.slice(0, 7);
+  }
+  return trimmed;
+};
+
+const splitPeriod = (period: string) => {
+  const raw = period.replace(/[~–—]/g, '-');
+  const [startRaw = '', endRaw = ''] = raw.split('-').map((item) => item.trim());
+  const start = normalizeYearMonth(startRaw);
+  const end = normalizeYearMonth(endRaw);
+  return { start, end };
+};
+
+const normalizeCareerItems = (value: unknown): CareerItem[] => {
+  if (!Array.isArray(value)) {
+    return [{ id: createId(), company: '', period: '', role: '', title: '' }];
+  }
+
+  const parsed = value
+    .map((item) => {
+      if (typeof item === 'string') {
+        const [company = '', period = '', role = '', titleValue = ''] = item
+          .split('|')
+          .map((entry) => entry.trim());
+        return { id: createId(), company, period, role, title: titleValue };
+      }
+      if (item && typeof item === 'object') {
+        const career = item as ContentCareerItem;
+        const company = career.company ?? career.company_name ?? '';
+        const role = career.job ?? '';
+        const titleValue = career.position ?? '';
+        const period = buildPeriodFromDates(
+          career.start_date,
+          career.end_date,
+          career.is_current,
+        );
+        return { id: createId(), company, period, role, title: titleValue };
+      }
+      return null;
+    })
+    .filter((item): item is CareerItem => Boolean(item));
+
+  return parsed.length
+    ? parsed
+    : [{ id: createId(), company: '', period: '', role: '', title: '' }];
+};
+
 export default function ResumeEditPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -241,71 +306,6 @@ export default function ResumeEditPage() {
   const toSimpleItems = (values: string[]): SimpleItem[] => {
     if (!values.length) return [{ id: createId(), value: '' }];
     return values.map((value) => ({ id: createId(), value }));
-  };
-
-  const formatDateToken = (value: string) => {
-    if (/^\d{4}-\d{2}(-\d{2})?$/.test(value)) {
-      return value.replace(/-/g, '.');
-    }
-    return value;
-  };
-
-  const buildPeriodFromDates = (start?: string, end?: string, isCurrent?: boolean) => {
-    const startValue = start ? formatDateToken(start) : '';
-    const endValue = end ? formatDateToken(end) : isCurrent ? 'Present' : '';
-    return [startValue, endValue].filter(Boolean).join(' - ');
-  };
-
-  const normalizeYearMonth = (value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed) return '';
-    const normalized = trimmed.replace(/[./]/g, '-');
-    if (/^\d{4}-\d{2}(-\d{2})?$/.test(normalized)) {
-      return normalized.slice(0, 7);
-    }
-    return trimmed;
-  };
-
-  const splitPeriod = (period: string) => {
-    const raw = period.replace(/[~–—]/g, '-');
-    const [startRaw = '', endRaw = ''] = raw.split('-').map((item) => item.trim());
-    const start = normalizeYearMonth(startRaw);
-    const end = normalizeYearMonth(endRaw);
-    return { start, end };
-  };
-
-  const normalizeCareerItems = (value: unknown): CareerItem[] => {
-    if (!Array.isArray(value)) {
-      return [{ id: createId(), company: '', period: '', role: '', title: '' }];
-    }
-
-    const parsed = value
-      .map((item) => {
-        if (typeof item === 'string') {
-          const [company = '', period = '', role = '', titleValue = ''] = item
-            .split('|')
-            .map((entry) => entry.trim());
-          return { id: createId(), company, period, role, title: titleValue };
-        }
-        if (item && typeof item === 'object') {
-          const career = item as ContentCareerItem;
-          const company = career.company ?? career.company_name ?? '';
-          const role = career.job ?? '';
-          const titleValue = career.position ?? '';
-          const period = buildPeriodFromDates(
-            career.start_date,
-            career.end_date,
-            career.is_current,
-          );
-          return { id: createId(), company, period, role, title: titleValue };
-        }
-        return null;
-      })
-      .filter((item): item is CareerItem => Boolean(item));
-
-    return parsed.length
-      ? parsed
-      : [{ id: createId(), company: '', period: '', role: '', title: '' }];
   };
 
   const applyParsedResult = (result: ResumeParseSyncResult | null) => {

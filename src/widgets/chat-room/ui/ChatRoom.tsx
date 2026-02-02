@@ -98,7 +98,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const {
     messages,
     setMessages,
-    loading: historyLoading,
     error: historyError,
   } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
