@@ -181,6 +181,9 @@ export default function MyPage() {
 
               <button
                 type="button"
+                onClick={() => {
+                  window.location.href = 'mailto:corp.refit@gmail.com';
+                }}
                 className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
               >
                 <div className="flex items-center gap-3">
