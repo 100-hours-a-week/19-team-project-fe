@@ -16,7 +16,7 @@ import type { ChatMessageItem } from '@/entities/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { BusinessError, HttpError } from '@/shared/api/errors';
 import { useToast } from '@/shared/ui/toast';
-import { getUserMe } from '@/features/users/api/getUserMe';
+import { getUserMe } from '@/features/users';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
