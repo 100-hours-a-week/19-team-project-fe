@@ -1,18 +1,25 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse } from '@/shared/api';
 import { markChatRead } from '@/features/chat.server';
 
+function getAccessToken(req: Request, cookieToken?: string) {
+  const authHeader = req.headers.get('authorization');
+  const rawToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : (authHeader ?? undefined);
+  return rawToken?.trim() || cookieToken?.trim() || undefined;
+}
+
 export async function PATCH(req: Request) {
   try {
     const payload = await req.json();
-    const authHeader = req.headers.get('authorization');
-    const rawToken = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7)
-      : (authHeader ?? undefined);
-    const accessToken = rawToken?.trim() || undefined;
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get('access_token')?.value;
+    const accessToken = getAccessToken(req, cookieToken);
 
-    const data = await markChatRead(payload, accessToken);
+    const data = await markChatRead(payload, accessToken, false);
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: 'success',

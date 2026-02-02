@@ -105,6 +105,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
+  const [isVerificationFailSheetOpen, setIsVerificationFailSheetOpen] = useState(false);
   const [verificationExpiresAt, setVerificationExpiresAt] = useState<Date | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [nickname, setNickname] = useState('');
@@ -269,7 +270,8 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         oauth_provider: 'KAKAO' as const,
         oauth_id: oauthId,
         email,
-        company_email: isExpert ? verificationEmail.trim() : undefined,
+        company_email:
+          isExpert && isVerified ? (lastSentEmail ?? verificationEmail.trim()) : undefined,
         nickname: resolvedNickname,
         user_type: userType,
         career_level_id: selectedCareer.id,
@@ -400,6 +402,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         setSendVerificationMessage('인증번호를 전송했습니다.');
       })
       .catch(async (error: unknown) => {
+        setIsVerificationFailSheetOpen(true);
         if (await handleCommonApiError(error)) {
           return;
         }
@@ -484,6 +487,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       await verifyEmailVerification({ email: lastSentEmail, code });
       setIsVerified(true);
     } catch (error: unknown) {
+      setIsVerificationFailSheetOpen(true);
       if (await handleCommonApiError(error)) {
         return;
       }
@@ -510,18 +514,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
   const profileFormContent = (
     <>
-      {isExpert ? (
-        <div className="onboarding-form-stagger__item flex justify-end">
-          <button
-            type="button"
-            onClick={() => setCurrentStep(0)}
-            className="text-xs font-semibold text-text-caption"
-          >
-            ← 이전 단계
-          </button>
-        </div>
-      ) : null}
-
       <div className="onboarding-form-stagger__item rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
         <div className="text-base font-semibold text-black">닉네임</div>
         <Input.Root className="mt-2">
@@ -575,7 +567,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       </div>
 
       <div
-        className={`onboarding-form-stagger__item flex flex-col gap-3 ${isExpert ? 'mt-2' : ''}`}
+        className={`onboarding-form-stagger__item flex flex-col gap-3 ${
+          isExpert ? 'mt-2 mb-5' : 'mb-5'
+        }`}
       >
         <button
           type="button"
@@ -586,7 +580,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             <Image src={iconJob} alt="직무" width={40} height={40} />
             <div className="text-left">
               <span className="text-base font-semibold text-text-body">직무</span>
-              <p className="mt-1 text-xs text-text-caption">
+              <p className="mt-2 text-xs leading-relaxed text-text-caption">
                 {selectedJob?.name || '직무를 선택해 주세요'}
               </p>
             </div>
@@ -609,7 +603,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             <Image src={iconCareer} alt="경력" width={40} height={40} />
             <div className="text-left">
               <span className="text-base font-semibold text-text-body">경력</span>
-              <p className="mt-1 text-xs text-text-caption">
+              <p className="mt-2 text-xs leading-relaxed text-text-caption">
                 {selectedCareer?.level || '경력을 선택해 주세요'}
               </p>
             </div>
@@ -632,7 +626,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             <Image src={iconTech} alt="기술스택" width={40} height={40} />
             <div className="text-left">
               <span className="text-base font-semibold text-text-body">기술스택</span>
-              <p className="mt-1 text-xs text-text-caption">기술을 선택해 주세요</p>
+              <p className="mt-2 text-xs leading-relaxed text-text-caption">기술을 선택해 주세요</p>
             </div>
           </div>
           <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
@@ -741,7 +735,12 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                 <div className="onboarding-form-stagger__item rounded-xl border border-gray-200 bg-white p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-text-title">이메일 인증</p>
+                      <p className="text-sm font-semibold text-text-title">
+                        이메일 인증
+                        <span className="ml-1 text-sm font-semibold text-[var(--color-primary-main)]">
+                          (회사 이메일로만 인증이 가능합니다.)
+                        </span>
+                      </p>
                     </div>
                   </div>
                   <Input.Root className="mt-4">
@@ -918,6 +917,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                             type="button"
                             onClick={handleVerifySubmit}
                             disabled={isVerificationSubmitDisabled}
+                            icon={<Image src={iconMark} alt="" width={20} height={20} />}
                           >
                             제출
                           </Button>
@@ -940,6 +940,8 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         title={
           activeSheet === 'job' ? '직무 선택' : activeSheet === 'career' ? '경력 선택' : '기술스택'
         }
+        actionLabel="완료"
+        onAction={() => setActiveSheet(null)}
         onClose={() => setActiveSheet(null)}
       >
         {activeSheet === 'tech' ? (
@@ -976,9 +978,11 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                         key={item.id}
                         type="button"
                         onClick={() => toggleTech(item)}
-                        className="flex items-center justify-between border-b border-gray-100 pb-3 text-left"
+                        className="flex items-center justify-between border-b border-gray-100 pb-5 pt-2 text-left"
                       >
-                        <span className="text-sm font-medium text-text-body">{item.name}</span>
+                        <span className="text-sm font-medium leading-relaxed text-text-body">
+                          {item.name}
+                        </span>
                         <span
                           className={`h-5 w-5 rounded-full border ${
                             isSelected ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
@@ -1003,9 +1007,11 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedJob(item)}
-                    className="flex items-center justify-between py-2 text-left"
+                    className="flex items-center justify-between py-4 text-left"
                   >
-                    <span className="text-xl font-semibold text-text-body">{item.name}</span>
+                    <span className="text-xl font-semibold leading-relaxed text-text-body">
+                      {item.name}
+                    </span>
                     <span
                       className={`h-5 w-5 rounded-md border ${
                         selectedJob?.id === item.id
@@ -1031,9 +1037,11 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedCareer(item)}
-                    className="flex items-center justify-between py-2 text-left"
+                    className="flex items-center justify-between py-4 text-left"
                   >
-                    <span className="text-xl font-semibold text-text-body">{item.level}</span>
+                    <span className="text-xl font-semibold leading-relaxed text-text-body">
+                      {item.level}
+                    </span>
                     <span
                       className={`h-5 w-5 rounded-md border ${
                         selectedCareer?.id === item.id
@@ -1047,6 +1055,40 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             ) : null}
           </div>
         ) : null}
+      </BottomSheet>
+
+      <BottomSheet
+        open={isVerificationFailSheetOpen}
+        title="안내"
+        actionLabel="완료"
+        onAction={() => setIsVerificationFailSheetOpen(false)}
+        onClose={() => setIsVerificationFailSheetOpen(false)}
+      >
+        <div className="flex flex-col gap-4 px-1 text-sm text-text-body">
+          <div className="rounded-2xl border border-[#f5d08a] bg-[#fff4d6] px-4 py-3 text-center text-[13px] font-semibold text-[#8a5a00]">
+            우선 프로필 입력으로 넘어가 주세요.
+          </div>
+          <div className="rounded-2xl border border-[#bcd1f5] bg-[#edf4ff] px-4 py-3 text-center text-[13px] font-semibold text-[#2b4b7e]">
+            이메일 인증은 추후 [마이페이지] &gt; [현직자 인증]
+            <br />
+            메뉴에서 진행할 수 있어요.
+          </div>
+          <div className="rounded-2xl border border-gray-100 bg-white px-4 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.06)]">
+            <ul className="space-y-3 text-[13px] leading-relaxed text-text-body">
+              <li className="flex gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2b4b7e]" />
+                <span>
+                  기업 이메일이 등록되지 않은 경우에는 <strong>[문의하기]</strong>를 통해 별도로
+                  문의해 주세요.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2b4b7e]" />
+                <span>이메일 인증을 완료하지 않으면 인증됨 뱃지를 받을 수 없습니다.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </BottomSheet>
     </main>
   );

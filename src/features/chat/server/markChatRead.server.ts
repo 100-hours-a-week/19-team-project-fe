@@ -1,6 +1,5 @@
-import { cookies } from 'next/headers';
-
-import { apiFetch, buildApiUrl } from '@/shared/api';
+import { buildApiUrl } from '@/shared/api';
+import { apiFetchWithRefresh } from '@/shared/api/server';
 
 const CHAT_READ_PATH = '/api/v1/chats/messages/read';
 
@@ -12,22 +11,20 @@ export interface MarkChatReadRequest {
 export async function markChatRead(
   payload: MarkChatReadRequest,
   accessTokenOverride?: string,
+  allowRefresh: boolean = true,
 ): Promise<null> {
-  const cookieStore = await cookies();
-  const accessToken = accessTokenOverride ?? cookieStore.get('access_token')?.value;
-
-  if (!accessToken) {
-    throw new Error('UNAUTHORIZED');
-  }
-
   const url = buildApiUrl(CHAT_READ_PATH);
 
-  return apiFetch<null>(url, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
+  return apiFetchWithRefresh<null>(
+    url,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+    accessTokenOverride,
+    allowRefresh,
+  );
 }

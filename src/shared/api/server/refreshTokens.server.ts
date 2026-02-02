@@ -31,8 +31,27 @@ export async function refreshAuthTokens(): Promise<{
 
   const body = await res.json();
   const data = body.data as RefreshTokenResponse;
-  return {
+  const nextTokens = {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
   };
+
+  try {
+    cookieStore.set('access_token', nextTokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+    cookieStore.set('refresh_token', nextTokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+  } catch {
+    // Cookies may be immutable in server components; ignore and return tokens.
+  }
+
+  return nextTokens;
 }

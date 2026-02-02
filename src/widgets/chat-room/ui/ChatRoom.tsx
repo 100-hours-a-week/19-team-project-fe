@@ -13,6 +13,7 @@ import {
   useChatSocket,
 } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
+import { useCommonApiErrorHandler } from '@/shared/api';
 import { BusinessError, HttpError } from '@/shared/api/errors';
 import { useToast } from '@/shared/ui/toast';
 
@@ -90,17 +91,13 @@ interface ChatRoomProps {
 export default function ChatRoom({ chatId }: ChatRoomProps) {
   const router = useRouter();
   const { pushToast } = useToast();
+  const handleCommonApiError = useCommonApiErrorHandler();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const isComposingRef = useRef(false);
   const currentUserId = useMemo(() => readCurrentUserId(), []);
-  const {
-    messages,
-    setMessages,
-    loading: historyLoading,
-    error: historyError,
-  } = useChatHistory(chatId, currentUserId);
+  const { messages, setMessages, error: historyError } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
   const [draft, setDraft] = useState('');
   const [headerTitle, setHeaderTitle] = useState('채팅');
@@ -110,16 +107,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const handleInvalidAccess = useCallback(
     (error: unknown): boolean => {
       const invalidAccess =
-        (error instanceof BusinessError &&
-          [
-            'AUTH_UNAUTHORIZED',
-            'AUTH_INVALID_TOKEN',
-            'AUTH_TOKEN_EXPIRED',
-            'AUTH_FORBIDDEN',
-            'CHAT_NOT_FOUND',
-            'FORBIDDEN',
-          ].includes(error.code)) ||
-        (error instanceof HttpError && [401, 403, 404].includes(error.status));
+        (error instanceof BusinessError && ['CHAT_NOT_FOUND', 'FORBIDDEN'].includes(error.code)) ||
+        (error instanceof HttpError && [403, 404].includes(error.status));
 
       if (!invalidAccess) return false;
       pushToast('잘못된 접근입니다.', { variant: 'warning' });
@@ -148,25 +137,36 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     let cancelled = false;
 
     (async () => {
-      try {
-        const detail = await getChatDetail({ chatId });
-        if (cancelled) return;
-        const meId = currentUserId;
-        const counterpart =
-          meId !== null && detail.receiver.user_id === meId ? detail.requester : detail.receiver;
-        setHeaderTitle(counterpart.nickname ?? '채팅');
-        setChatStatus(detail.status);
-      } catch (error) {
-        if (cancelled) return;
-        if (handleInvalidAccess(error)) return;
-        console.warn('Chat detail load failed:', error);
-      }
+      const loadDetail = async (allowRetry: boolean) => {
+        try {
+          const detail = await getChatDetail({ chatId });
+          if (cancelled) return;
+          const meId = currentUserId;
+          const counterpart =
+            meId !== null && detail.receiver.user_id === meId ? detail.requester : detail.receiver;
+          setHeaderTitle(counterpart.nickname ?? '채팅');
+          setChatStatus(detail.status);
+        } catch (error) {
+          if (cancelled) return;
+          const handled = await handleCommonApiError(error);
+          if (handled) {
+            if (allowRetry && !cancelled) {
+              await loadDetail(false);
+            }
+            return;
+          }
+          if (handleInvalidAccess(error)) return;
+          console.warn('Chat detail load failed:', error);
+        }
+      };
+
+      await loadDetail(true);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [chatId, currentUserId, handleInvalidAccess]);
+  }, [chatId, currentUserId, handleCommonApiError, handleInvalidAccess]);
 
   const sendOptimisticMessage = useCallback(
     (content: string) => {
@@ -206,31 +206,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     },
     [chatId, chatStatus, currentUserId, setMessages, wsStatus],
   );
-
-  useEffect(() => {
-    if (!chatId) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const detail = await getChatDetail({ chatId });
-        if (cancelled) return;
-        const meId = currentUserId;
-        const counterpart =
-          meId !== null && detail.receiver.user_id === meId ? detail.requester : detail.receiver;
-        setHeaderTitle(counterpart.nickname ?? '채팅');
-        setChatStatus(detail.status);
-      } catch (error) {
-        if (cancelled) return;
-        if (handleInvalidAccess(error)) return;
-        console.warn('Chat detail load failed:', error);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [chatId, currentUserId, handleInvalidAccess]);
 
   /**
    * 최신 메시지 위치로 포커스

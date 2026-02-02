@@ -1,5 +1,4 @@
-import { getChatDetail } from '@/features/chat.server';
-import { ChatDetail } from '@/widgets/chat-detail';
+import { ChatDetailLoader } from '@/widgets/chat-detail';
 
 type ChatDetailPageProps = {
   params: Promise<{
@@ -10,8 +9,13 @@ type ChatDetailPageProps = {
 export default async function ChatDetailPage({ params }: ChatDetailPageProps) {
   const { chatId: rawChatId } = await params;
   const chatId = Number(rawChatId);
-  if (Number.isNaN(chatId)) return null;
+  if (Number.isNaN(chatId)) {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-[#f7f7f7] text-sm text-neutral-600">
+        잘못된 채팅 정보입니다.
+      </div>
+    );
+  }
 
-  const detail = await getChatDetail({ chatId });
-  return <ChatDetail chatId={chatId} detail={detail} />;
+  return <ChatDetailLoader chatId={chatId} />;
 }
