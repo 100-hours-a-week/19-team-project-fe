@@ -95,11 +95,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const isComposingRef = useRef(false);
   const currentUserId = useMemo(() => readCurrentUserId(), []);
-  const {
-    messages,
-    setMessages,
-    error: historyError,
-  } = useChatHistory(chatId, currentUserId);
+  const { messages, setMessages, error: historyError } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
   const [draft, setDraft] = useState('');
   const [headerTitle, setHeaderTitle] = useState('채팅');

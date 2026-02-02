@@ -1206,3 +1206,29 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-02 Raw Log
+
+- Logged at: 2026-02-02 06:05:25Z
+
+```
+> re-fit@1.0.0 lint /Users/junseopark/re-fit
+> eslint
+
+
+/Users/junseopark/re-fit/scripts/ast-api-graph.cjs
+  1:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/junseopark/re-fit/src/widgets/chat-room/ui/ChatRoom.tsx
+  101:14  warning  'historyLoading' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/Users/junseopark/re-fit/src/widgets/resume-edit/ui/ResumeEditPage.tsx
+  236:6  warning  React Hook useEffect has missing dependencies: 'buildPeriodFromDates' and 'normalizeCareerItems'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 5 problems (3 errors, 2 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
