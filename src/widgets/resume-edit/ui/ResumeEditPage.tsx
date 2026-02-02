@@ -375,7 +375,7 @@ export default function ResumeEditPage() {
     (async () => {
       try {
         const { presignedUrl, fileUrl: uploadedUrl } = await createPresignedUrl({
-          target_type: 'PROFILE_IMAGE',
+          target_type: 'RESUME_PDF',
           file_name: file.name,
         });
         await uploadToPresignedUrl(file, presignedUrl);
@@ -529,9 +529,7 @@ export default function ResumeEditPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
           </button>
-          <h1 className="text-2xl font-semibold text-black">
-            {isEditMode ? '이력서 수정' : '이력서 생성'}
-          </h1>
+          {isEditMode ? <h1 className="text-2xl font-semibold text-black">이력서 수정</h1> : null}
           <button
             type="button"
             onClick={handleAutoFill}
