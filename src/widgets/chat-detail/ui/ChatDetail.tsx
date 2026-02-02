@@ -134,7 +134,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
     return () => {
       cancelled = true;
     };
-  }, [detail.resume_id]);
+  }, [detail.resume_id, handleCommonApiError]);
 
   const handleCloseChat = async () => {
     if (isClosed || isClosing) return;

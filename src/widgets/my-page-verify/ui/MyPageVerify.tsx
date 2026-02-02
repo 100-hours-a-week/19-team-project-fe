@@ -9,6 +9,7 @@ import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { Input } from '@/shared/ui/input';
 import { Button } from '@/shared/ui/button';
+import { useToast } from '@/shared/ui/toast';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
@@ -29,6 +30,7 @@ export default function MyPageVerify() {
   const router = useRouter();
   const { status: authStatus } = useAuthGate(getMe);
   const handleCommonApiError = useCommonApiErrorHandler();
+  const { pushToast } = useToast();
 
   const [verificationEmail, setVerificationEmail] = useState('');
   const [isVerificationVisible, setIsVerificationVisible] = useState(false);
@@ -159,7 +161,8 @@ export default function MyPageVerify() {
     try {
       await verifyEmailVerification({ email: lastSentEmail, code });
       setIsVerified(true);
-      router.replace('/');
+      pushToast('인증 성공', { variant: 'success' });
+      router.replace('/me');
     } catch (error: unknown) {
       if (await handleCommonApiError(error)) {
         return;
