@@ -71,12 +71,5 @@ export async function POST(req: Request) {
     path: '/',
   });
 
-  responseWithCookies.cookies.set('user_id', String(result.userId), {
-    httpOnly: false,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-  });
-
   return responseWithCookies;
 }
