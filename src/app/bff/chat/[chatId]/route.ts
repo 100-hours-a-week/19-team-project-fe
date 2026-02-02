@@ -43,7 +43,17 @@ export async function GET(req: Request, context: { params: Params }) {
         message: error.message,
         data: error.data ?? null,
       };
-      return NextResponse.json(response);
+      const status =
+        error.code === 'AUTH_UNAUTHORIZED' ||
+        error.code === 'AUTH_INVALID_TOKEN' ||
+        error.code === 'AUTH_TOKEN_EXPIRED'
+          ? 401
+          : error.code === 'AUTH_FORBIDDEN' || error.code === 'FORBIDDEN'
+            ? 403
+            : error.code === 'INVALID_REQUEST'
+              ? 400
+              : 200;
+      return NextResponse.json(response, status === 200 ? undefined : { status });
     }
 
     if (error instanceof Error && error.message === 'UNAUTHORIZED') {
