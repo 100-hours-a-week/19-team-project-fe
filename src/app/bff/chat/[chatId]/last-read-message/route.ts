@@ -12,10 +12,7 @@ function getAccessToken(req: Request, cookieToken?: string) {
   return rawToken?.trim() || cookieToken?.trim() || undefined;
 }
 
-export async function PATCH(
-  req: Request,
-  context?: { params?: { chatId?: string } },
-) {
+export async function PATCH(req: Request, context?: { params?: { chatId?: string } }) {
   try {
     const rawChatId = context?.params?.chatId;
     const url = new URL(req.url);

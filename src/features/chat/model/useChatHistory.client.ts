@@ -42,7 +42,7 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
         const latestId =
           typeof latest?.message_id === 'string'
             ? Number(latest.message_id)
-            : latest?.message_id ?? null;
+            : (latest?.message_id ?? null);
         if (
           latestId &&
           Number.isFinite(latestId) &&

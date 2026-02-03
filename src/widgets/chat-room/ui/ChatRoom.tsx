@@ -316,7 +316,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     const observer = new ResizeObserver(() => updateHeight());
     observer.observe(composer);
     return () => observer.disconnect();
-  }, []);
+  }, [scrollToBottom]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
