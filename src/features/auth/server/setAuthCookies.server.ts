@@ -26,11 +26,6 @@ export async function setAuthCookies({
   });
 
   if (userId !== null && userId !== undefined) {
-    cookieStore.set('user_id', String(userId), {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-    });
+    // Intentionally avoid setting user_id on the client for security.
   }
 }

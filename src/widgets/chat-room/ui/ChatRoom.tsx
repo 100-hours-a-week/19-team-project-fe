@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -16,18 +16,7 @@ import type { ChatMessageItem } from '@/entities/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { BusinessError, HttpError } from '@/shared/api/errors';
 import { useToast } from '@/shared/ui/toast';
-
-const readCurrentUserId = () => {
-  if (typeof document === 'undefined') return null;
-  const value = document.cookie
-    .split(';')
-    .map((item) => item.trim())
-    .find((item) => item.startsWith('user_id='))
-    ?.split('=')[1];
-  if (!value) return null;
-  const parsed = Number(decodeURIComponent(value));
-  return Number.isFinite(parsed) ? parsed : null;
-};
+import { getUserMe } from '@/features/users';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
@@ -96,7 +85,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const isComposingRef = useRef(false);
-  const currentUserId = useMemo(() => readCurrentUserId(), []);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const { messages, setMessages, error: historyError } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
   const [draft, setDraft] = useState('');
@@ -123,6 +112,29 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       alert('메시지를 불러오지 못했어요. 새로 고침해 주세요.');
     }
   }, [historyError]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const me = await getUserMe();
+        if (cancelled) return;
+        setCurrentUserId(Number.isFinite(me.id) ? me.id : null);
+      } catch (error) {
+        if (cancelled) return;
+        const handled = await handleCommonApiError(error);
+        if (!handled) {
+          console.warn('Failed to load current user:', error);
+        }
+        setCurrentUserId(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [handleCommonApiError]);
 
   useEffect(() => {
     const prev = prevWsStatusRef.current;
@@ -169,11 +181,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   }, [chatId, currentUserId, handleCommonApiError, handleInvalidAccess]);
 
   const sendOptimisticMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       const trimmed = content.trim();
       if (!trimmed) return;
       if (chatStatus === 'CLOSED') return;
-      if (wsStatus !== 'connected') return;
 
       const now = new Date();
       const optimisticId = -now.getTime();
@@ -193,7 +204,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       setMessages((prev) => sortMessagesByTime([...prev, optimistic]));
 
       try {
-        sendChatMessage({
+        await sendChatMessage({
           chat_id: chatId,
           content: trimmed,
           message_type: 'TEXT',
@@ -204,7 +215,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         console.warn('Send message failed:', sendError);
       }
     },
-    [chatId, chatStatus, currentUserId, setMessages, wsStatus],
+    [chatId, chatStatus, currentUserId, setMessages],
   );
 
   /**
@@ -224,7 +235,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    sendOptimisticMessage(draft);
+    void sendOptimisticMessage(draft);
     setDraft('');
     if (inputRef.current) {
       inputRef.current.style.height = '0px';
