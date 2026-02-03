@@ -60,7 +60,7 @@ export default function TechBlogTicker() {
   return (
     <div className="rounded-2xl bg-white px-2.5 pt-0 pb-4">
       <p className="text-sm font-semibold text-neutral-900">기업 기술 블로그</p>
-      <div className="mt-3 overflow-hidden" style={{ height: rowHeight * 3 + rowGap * 2 }}>
+      <div className="mt-2 overflow-hidden" style={{ height: rowHeight * 3 + rowGap * 2 }}>
         <div
           className={`flex flex-col gap-2 ${
             enableTransition ? 'transition-transform duration-300 ease-out' : ''

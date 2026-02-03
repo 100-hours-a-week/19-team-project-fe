@@ -79,7 +79,7 @@ const mapEducationLevel = (
   if (/고등학교/.test(normalized)) return '고등학교 졸업';
   if (/2년제/.test(normalized) && /재학|휴학/.test(normalized)) return '2년제 재학/휴학';
   if (/2년제/.test(normalized)) return '2년제 졸업';
-  if (/4년제/.test(normalized) && /재학|휴학/.test(normalized)) return '4년제 졸업/휴학';
+  if (/4년제/.test(normalized) && /재학|휴학/.test(normalized)) return '4년제 재학/휴학';
   if (/4년제/.test(normalized)) return '4년제 졸업';
 
   return null;
@@ -116,7 +116,7 @@ export default function ResumeEditPage() {
   const [isLoadingResume, setIsLoadingResume] = useState(false);
 
   const educationOptions = useMemo(
-    () => ['고등학교 졸업', '2년제 재학/휴학', '2년제 졸업', '4년제 졸업/휴학', '4년제 졸업'],
+    () => ['고등학교 졸업', '2년제 재학/휴학', '2년제 졸업', '4년제 재학/휴학', '4년제 졸업'],
     [],
   );
 

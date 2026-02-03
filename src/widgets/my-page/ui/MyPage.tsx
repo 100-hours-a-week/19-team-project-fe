@@ -41,6 +41,11 @@ export default function MyPage() {
       try {
         const data = await getUserMe();
         if (cancelled) return;
+        if (!data) {
+          setUser(null);
+          setLoadError(null);
+          return;
+        }
         setUser(data);
         setLoadError(null);
       } catch (error) {
@@ -126,6 +131,10 @@ export default function MyPage() {
         ) : loadError ? (
           <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
             <p className="text-base text-red-500">{loadError}</p>
+          </div>
+        ) : !user ? (
+          <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
+            <p className="text-base text-neutral-700">로그인이 필요합니다.</p>
           </div>
         ) : user ? (
           <div className="mt-6 flex flex-col gap-6">

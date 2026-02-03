@@ -14,6 +14,7 @@ import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
 const verificationCodeLength = 6;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const emailVerificationMessages: Record<string, string> = {
   EMAIL_FORMAT_INVALID: '이메일 형식이 올바르지 않습니다.',
@@ -55,6 +56,10 @@ export default function MyPageVerify() {
     const trimmedEmail = verificationEmail.trim();
     if (!trimmedEmail) {
       setSendVerificationError('이메일을 입력해 주세요.');
+      return;
+    }
+    if (!emailPattern.test(trimmedEmail)) {
+      setSendVerificationError(emailVerificationMessages.EMAIL_FORMAT_INVALID);
       return;
     }
     if (isSendingVerification) return;

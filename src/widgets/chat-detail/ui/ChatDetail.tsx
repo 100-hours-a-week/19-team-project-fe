@@ -1,12 +1,12 @@
 'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import type { ChatDetailData, ChatParticipant } from '@/entities/chat';
-import { getResumeDetail, type ResumeDetail } from '@/entities/resumes';
+import type { ResumeDetail } from '@/entities/resumes';
 import { closeChat } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import charIcon from '@/shared/icons/char_icon.png';
@@ -54,6 +54,22 @@ const normalizeContent = (value: ResumeDetail['contentJson']): ResumeContent | n
 
 const toArray = (value?: string[]) => (Array.isArray(value) ? value.filter(Boolean) : []);
 
+type ResumeLike = NonNullable<ChatDetailData['resume']> & {
+  resumeDetail?: NonNullable<ChatDetailData['resume']>;
+  resume_detail?: NonNullable<ChatDetailData['resume']>;
+};
+
+const normalizeResumeDetail = (resume: ResumeLike): ResumeDetail => ({
+  resumeId: resume.resumeId ?? resume.resume_id ?? 0,
+  title: resume.title ?? '',
+  isFresher: resume.isFresher ?? resume.is_fresher ?? false,
+  educationLevel: resume.educationLevel ?? resume.education_level ?? '',
+  fileUrl: resume.fileUrl ?? resume.file_url ?? '',
+  contentJson: resume.contentJson ?? resume.content_json ?? null,
+  createdAt: resume.createdAt ?? resume.created_at ?? '',
+  updatedAt: resume.updatedAt ?? resume.updated_at ?? '',
+});
+
 const DetailRow = ({ label, value }: { label: string; value: ReactNode }) => (
   <div className="flex items-start justify-between gap-4 text-sm text-neutral-700">
     <span className="text-neutral-500">{label}</span>
@@ -90,51 +106,20 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
   const [status, setStatus] = useState(detail.status);
   const [isClosing, setIsClosing] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
-  const [resumeDetail, setResumeDetail] = useState<ResumeDetail | null>(null);
-  const [resumeError, setResumeError] = useState<string | null>(null);
-  const [isLoadingResume, setIsLoadingResume] = useState(false);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const participants: Array<{ title: string; data: ChatParticipant }> = [
     { title: '요청자', data: detail.requester },
     { title: '수신자', data: detail.receiver },
   ];
   const isClosed = useMemo(() => status === 'CLOSED', [status]);
-
-  useEffect(() => {
-    if (!detail.resume_id) return;
-    let cancelled = false;
-    setIsLoadingResume(true);
-    setResumeError(null);
-
-    const loadResume = async (allowRetry: boolean) => {
-      try {
-        const data = await getResumeDetail(detail.resume_id);
-        if (cancelled) return;
-        setResumeDetail(data);
-        setResumeError(null);
-      } catch (error) {
-        if (cancelled) return;
-        const handled = await handleCommonApiError(error);
-        if (handled) {
-          if (allowRetry && !cancelled) {
-            await loadResume(false);
-          } else {
-            setIsLoadingResume(false);
-          }
-          return;
-        }
-        setResumeError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
-      } finally {
-        if (!cancelled) setIsLoadingResume(false);
-      }
-    };
-
-    loadResume(true);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [detail.resume_id, handleCommonApiError]);
+  const resumeSource =
+    detail.resume ??
+    (detail as { resume_detail?: ResumeLike | null }).resume_detail ??
+    (detail as { resumeDetail?: ResumeLike | null }).resumeDetail ??
+    null;
+  const resumeDetail: ResumeDetail | null = resumeSource
+    ? normalizeResumeDetail(resumeSource)
+    : null;
 
   const handleCloseChat = async () => {
     if (isClosed || isClosing) return;
@@ -240,11 +225,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
 
             <div className="flex flex-col gap-2 text-sm">
               <span className="text-neutral-500">이력서</span>
-              {isLoadingResume ? (
-                <span className="text-neutral-700">이력서를 불러오는 중...</span>
-              ) : resumeError ? (
-                <span className="text-red-500">{resumeError}</span>
-              ) : resumeDetail ? (
+              {resumeDetail ? (
                 <button
                   type="button"
                   onClick={() => setIsResumeModalOpen(true)}
@@ -279,11 +260,7 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
         title="이력서 상세"
         onClose={() => setIsResumeModalOpen(false)}
       >
-        {isLoadingResume ? (
-          <p className="text-sm text-neutral-700">이력서를 불러오는 중...</p>
-        ) : resumeError ? (
-          <p className="text-sm text-red-500">{resumeError}</p>
-        ) : resumeDetail ? (
+        {resumeDetail ? (
           <div className="flex flex-col gap-4">
             <div className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
               <p className="text-base font-semibold text-neutral-900">

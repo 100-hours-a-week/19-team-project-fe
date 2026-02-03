@@ -93,7 +93,7 @@ export default function ChatList() {
       try {
         const [userResult, chatResult] = await Promise.allSettled([getUserMe(), getChatList()]);
         if (cancelled) return;
-        if (userResult.status === 'fulfilled') {
+        if (userResult.status === 'fulfilled' && userResult.value) {
           setCurrentUser(userResult.value);
         } else {
           setCurrentUser(null);
@@ -183,10 +183,10 @@ export default function ChatList() {
             const lastSenderId = getLastMessageSenderId(lastMessage);
             const showUnread =
               chat.unread_count > 0 &&
-              (currentUser?.id === null ||
-                currentUser?.id === undefined ||
-                lastSenderId === null ||
-                lastSenderId !== currentUser?.id);
+              currentUser?.id !== null &&
+              currentUser?.id !== undefined &&
+              lastSenderId !== null &&
+              lastSenderId !== currentUser?.id;
             return (
               <li key={chat.chat_id} className="border-b border-neutral-200/70">
                 <Link
@@ -219,7 +219,7 @@ export default function ChatList() {
                   <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
                     <span>{lastMessage ? formatChatTime(lastMessage.created_at) : ''}</span>
                     {showUnread ? (
-                      <span className="flex min-w-5 items-center justify-center rounded-full bg-[var(--color-primary-main)] px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                      <span className="flex min-w-6 items-center justify-center rounded-full bg-[var(--color-primary-main)] px-2 py-1 text-[13px] font-semibold text-white">
                         {formatUnreadCount(chat.unread_count)}
                       </span>
                     ) : null}

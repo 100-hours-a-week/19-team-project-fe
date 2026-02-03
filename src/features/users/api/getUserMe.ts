@@ -30,6 +30,6 @@ export type UserMe = {
   skills: UserSkill[];
 };
 
-export async function getUserMe(): Promise<UserMe> {
-  return apiFetch<UserMe>('/bff/users/me');
+export async function getUserMe(): Promise<UserMe | null> {
+  return apiFetch<UserMe | null>('/bff/users/me');
 }
