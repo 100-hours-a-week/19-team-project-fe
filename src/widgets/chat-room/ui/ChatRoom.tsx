@@ -332,9 +332,12 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     void sendOptimisticMessage(draft);
     setDraft('');
     if (inputRef.current) {
-      inputRef.current.style.height = '44px';
       inputRef.current.style.overflowY = 'hidden';
-      inputRef.current.focus();
+      inputRef.current.style.height = '0px';
+      requestAnimationFrame(() => {
+        resizeInput();
+        inputRef.current?.focus();
+      });
     }
   };
 

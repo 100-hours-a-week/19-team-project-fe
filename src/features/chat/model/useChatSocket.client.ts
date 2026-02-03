@@ -70,8 +70,16 @@ export function useChatSocket(
             return sortMessagesByTime([...prev, message]);
           });
 
-          if (currentUserId !== null && message.sender.user_id !== currentUserId) {
-            pendingReadIdRef.current = message.message_id;
+          const messageId =
+            typeof message.message_id === 'string'
+              ? Number(message.message_id)
+              : message.message_id;
+          if (
+            currentUserId !== null &&
+            message.sender.user_id !== currentUserId &&
+            Number.isFinite(messageId)
+          ) {
+            pendingReadIdRef.current = messageId;
             if (readTimerRef.current) return;
             readTimerRef.current = setTimeout(() => {
               readTimerRef.current = null;
