@@ -92,6 +92,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [draft, setDraft] = useState('');
   const messageLength = draft.length;
   const isOverLimit = messageLength > 500;
+  const isBlankDraft = draft.trim().length === 0;
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
@@ -242,6 +243,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isBlankDraft) return;
     if (isOverLimit) {
       pushToast('최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
       return;
@@ -398,7 +400,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         />
         <button
           type="submit"
-          disabled={wsStatus !== 'connected' || chatStatus === 'CLOSED' || isOverLimit}
+          disabled={
+            wsStatus !== 'connected' || chatStatus === 'CLOSED' || isOverLimit || isBlankDraft
+          }
           className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-main)] text-sm font-semibold text-white disabled:bg-neutral-300"
         >
           <svg
