@@ -454,7 +454,10 @@ const PRIVACY_PLEDGE_TEXT = `### [Re-fit] 멘토 개인정보 보호 및 보안 
 
 function renderLegalText(text: string) {
   return text.split('\n').map((rawLine, index) => {
-    const cleaned = rawLine.replace(/^#+\s*/, '').replace(/\*\*/g, '').trim();
+    const cleaned = rawLine
+      .replace(/^#+\s*/, '')
+      .replace(/\*\*/g, '')
+      .trim();
     if (!cleaned) {
       return <div key={`legal-spacer-${index}`} className="h-3" />;
     }
@@ -1118,7 +1121,8 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
               className="flex w-full items-center justify-between text-left"
             >
               <span className="text-text-caption">
-                <span className="font-semibold text-primary-main">(필수)</span> 개인정보 수집 및 이용 동의서
+                <span className="font-semibold text-primary-main">(필수)</span> 개인정보 수집 및
+                이용 동의서
               </span>
               <span className="text-base text-gray-300">›</span>
             </button>
