@@ -129,6 +129,23 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     typeof navigator !== 'undefined' && /iphone|ipad|ipod|android/i.test(navigator.userAgent);
   const preventMobileSubmitRef = useRef(false);
   const skipAutoScrollRef = useRef(false);
+  const appFrameRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const html = document.documentElement;
+    const body = document.body;
+    const frame = document.querySelector<HTMLElement>('.app-frame');
+    appFrameRef.current = frame;
+    html.classList.add('chat-room-locked');
+    body.classList.add('chat-room-locked');
+    frame?.classList.add('chat-room-locked');
+    return () => {
+      html.classList.remove('chat-room-locked');
+      body.classList.remove('chat-room-locked');
+      appFrameRef.current?.classList.remove('chat-room-locked');
+    };
+  }, []);
 
   const handleInvalidAccess = useCallback(
     (error: unknown): boolean => {
@@ -336,7 +353,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       inputRef.current.style.height = '0px';
       requestAnimationFrame(() => {
         resizeInput();
-        inputRef.current?.focus();
+        inputRef.current?.focus({ preventScroll: true });
       });
     }
   };
@@ -512,6 +529,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           onChange={handleDraftChange}
           onFocus={() => {
             resizeInput();
+            inputRef.current?.focus({ preventScroll: true });
           }}
           onCompositionStart={() => {
             isComposingRef.current = true;

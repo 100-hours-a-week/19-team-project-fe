@@ -269,6 +269,17 @@ body.app-shell {
   justify-content: center;
 }
 
+html.chat-room-locked,
+body.chat-room-locked {
+  height: 100%;
+  overflow: hidden;
+}
+
+.app-frame.chat-room-locked {
+  height: 100dvh;
+  overflow: hidden;
+}
+
 .app-frame {
   min-height: 100dvh;
   width: min(100%, 600px);

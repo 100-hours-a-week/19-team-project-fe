@@ -240,9 +240,7 @@ export default function ChatList() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
-                    <span>
-                      {lastMessage ? formatChatTime(lastMessage.last_message_at) : ''}
-                    </span>
+                    <span>{lastMessage ? formatChatTime(lastMessage.last_message_at) : ''}</span>
                     {showUnread ? (
                       <span className="flex min-w-6 items-center justify-center rounded-full bg-[var(--color-primary-main)] px-2 py-1 text-[13px] font-semibold text-white">
                         {formatUnreadCount(chat.unread_count)}
