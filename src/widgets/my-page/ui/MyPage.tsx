@@ -308,18 +308,18 @@ export default function MyPage() {
         <div className="flex flex-col items-center">
           <Image src={charLogout} alt="" width={200} height={200} className="mb-4" />
           <div className="w-full space-y-3">
-          <button
-            type="button"
-            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
-          >
-            로그아웃
-          </button>
-          <button
-            type="button"
-            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
-          >
-            회원탈퇴
-          </button>
+            <button
+              type="button"
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
+            >
+              로그아웃
+            </button>
+            <button
+              type="button"
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
+            >
+              회원탈퇴
+            </button>
           </div>
         </div>
       </BottomSheet>
