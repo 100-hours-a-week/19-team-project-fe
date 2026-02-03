@@ -15,6 +15,6 @@ export function setAuthCookies({ accessToken, refreshToken, userId }: AuthCookie
     document.cookie = `refresh_token=${encodeURIComponent(refreshToken)}; ${base}${secure}`;
   }
   if (userId !== undefined) {
-    document.cookie = `user_id=${encodeURIComponent(String(userId))}; ${base}${secure}`;
+    // Intentionally avoid setting user_id on the client for security.
   }
 }
