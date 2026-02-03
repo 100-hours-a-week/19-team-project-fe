@@ -6,7 +6,7 @@ import type { ChatMessageItem } from '@/entities/chat';
 import { readAccessToken, refreshAuthTokens } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 
-import { markChatRead } from '../api/markChatRead';
+import { updateChatLastRead } from '../api/updateChatLastRead';
 import { sortMessagesByTime } from '../lib/message';
 import { subscribeChat } from '../subscribeChat';
 
@@ -17,12 +17,16 @@ export function useChatSocket(
   currentUserId: number | null,
   setMessages: React.Dispatch<React.SetStateAction<ChatMessageItem[]>>,
 ) {
+  const READ_DEBOUNCE_MS = 2500;
   const [status, setStatus] = useState<WsStatus>(
     stompManager.isConnected() ? 'connected' : 'disconnected',
   );
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const refreshedOnFailRef = useRef(false);
+  const pendingReadIdRef = useRef<number | null>(null);
+  const lastSentReadIdRef = useRef<number | null>(null);
+  const readTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!chatId) return;
@@ -67,10 +71,18 @@ export function useChatSocket(
           });
 
           if (currentUserId !== null && message.sender.user_id !== currentUserId) {
-            markChatRead({
-              chat_id: chatId,
-              message_id: message.message_id,
-            }).catch(() => {});
+            pendingReadIdRef.current = message.message_id;
+            if (readTimerRef.current) return;
+            readTimerRef.current = setTimeout(() => {
+              readTimerRef.current = null;
+              const pendingId = pendingReadIdRef.current;
+              if (!pendingId || pendingId === lastSentReadIdRef.current) return;
+              updateChatLastRead({ chatId, last_message_id: pendingId })
+                .then(() => {
+                  lastSentReadIdRef.current = pendingId;
+                })
+                .catch(() => {});
+            }, READ_DEBOUNCE_MS);
           }
         });
       } catch {
@@ -96,6 +108,18 @@ export function useChatSocket(
       cancelled = true;
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current);
+      }
+      if (readTimerRef.current) {
+        clearTimeout(readTimerRef.current);
+        readTimerRef.current = null;
+      }
+      const pendingId = pendingReadIdRef.current;
+      if (pendingId && pendingId !== lastSentReadIdRef.current) {
+        updateChatLastRead({ chatId, last_message_id: pendingId })
+          .then(() => {
+            lastSentReadIdRef.current = pendingId;
+          })
+          .catch(() => {});
       }
       refreshedOnFailRef.current = false;
       unsubscribe?.();

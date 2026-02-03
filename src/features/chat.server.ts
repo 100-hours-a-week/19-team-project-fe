@@ -5,4 +5,5 @@ export {
   getChatMessages,
   createChat,
   markChatRead,
+  updateChatLastRead,
 } from './chat/server';

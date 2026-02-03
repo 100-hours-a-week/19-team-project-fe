@@ -6,7 +6,7 @@ import type { ChatMessageItem } from '@/entities/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 import { getChatMessages } from '../api/getChatMessages';
-import { markChatRead } from '../api/markChatRead';
+import { updateChatLastRead } from '../api/updateChatLastRead';
 import { sortMessagesByTime } from '../lib/message';
 
 export function useChatHistory(chatId: number, currentUserId: number | null) {
@@ -40,7 +40,7 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
 
         const latest = sorted.at(-1);
         if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
-          markChatRead({ chat_id: chatId, message_id: latest.message_id }).catch(() => {});
+          updateChatLastRead({ chatId, last_message_id: latest.message_id }).catch(() => {});
         }
       } catch (err) {
         if (cancelled) return;
