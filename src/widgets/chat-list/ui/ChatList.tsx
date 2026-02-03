@@ -150,7 +150,7 @@ export default function ChatList() {
   }, [authStatus, fetchChats]);
 
   useEffect(() => {
-    if (authStatus !== 'member') return;
+    if (authStatus !== 'authed') return;
 
     const handleRefresh = () => {
       if (document.visibilityState !== 'visible') return;
