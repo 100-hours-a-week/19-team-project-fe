@@ -123,7 +123,7 @@ export function TechBlogBanner() {
   const slides = [bannerNum1, bannerNum2, bannerNum3, bannerNum1];
 
   return (
-    <div className="rounded-2xl bg-white px-2.5 py-4">
+    <div className="-mt-2 rounded-2xl bg-white px-2.5 py-4">
       <div className="relative w-full overflow-hidden rounded-2xl aspect-[600/174] shadow-[0_14px_32px_rgba(15,23,42,0.2)]">
         <div
           className={`flex h-full ${enableTransition ? 'transition-transform duration-500 ease-out' : ''}`}
@@ -136,7 +136,7 @@ export function TechBlogBanner() {
                 alt=""
                 fill
                 sizes="(max-width: 600px) 100vw, 600px"
-                className="object-contain"
+                className="object-contain object-[center_0px]"
                 priority={idx === 0}
               />
             </div>
