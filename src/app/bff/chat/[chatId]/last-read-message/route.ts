@@ -30,15 +30,29 @@ export async function PATCH(req: Request, context?: { params?: { chatId?: string
 
     const rawBody = await req.text();
     let payload: { last_message_id?: number | string } | null = null;
-    try {
-      payload = rawBody ? (JSON.parse(rawBody) as { last_message_id?: number | string }) : null;
-    } catch {
-      const response: ApiResponse<null> = {
-        code: 'INVALID_JSON_REQUEST',
-        message: '요청 JSON이 올바르지 않습니다.',
-        data: null,
-      };
-      return NextResponse.json(response, { status: 400 });
+    if (rawBody) {
+      try {
+        payload = JSON.parse(rawBody) as { last_message_id?: number | string };
+      } catch {
+        const params = new URLSearchParams(rawBody);
+        const paramValue = params.get('last_message_id');
+        if (paramValue !== null) {
+          payload = { last_message_id: paramValue };
+        } else {
+          const trimmed = rawBody.trim();
+          const match = trimmed.match(/last_message_id\s*[:=]\s*(\d+)/i);
+          if (match) {
+            payload = { last_message_id: match[1] };
+          } else {
+            const response: ApiResponse<null> = {
+              code: 'INVALID_JSON_REQUEST',
+              message: '요청 JSON이 올바르지 않습니다.',
+              data: null,
+            };
+            return NextResponse.json(response, { status: 400 });
+          }
+        }
+      }
     }
     const rawLastMessageId = payload?.last_message_id;
     const parsedLastMessageId =
