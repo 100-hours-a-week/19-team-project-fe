@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 're-fit',
-    short_name: 're-fit',
-    description: 're-fit',
+    name: 'RE:FIT',
+    short_name: 'RE:FIT',
+    description: 'RE:FIT',
     start_url: '/',
     scope: '/',
     display: 'standalone',

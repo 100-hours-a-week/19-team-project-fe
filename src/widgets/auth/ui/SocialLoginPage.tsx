@@ -11,15 +11,15 @@ import { useToast } from '@/shared/ui/toast';
 import { stompManager } from '@/shared/ws';
 import charSns from '@/shared/icons/char_sns.png';
 
-const TERMS_TEXT = `# Re-fit 이용약관
+const TERMS_TEXT = `# RE:FIT 이용약관
 
 ## 제1조 (목적)
 
-본 약관은 일구하조(이하 “회사”)가 제공하는 Re-fit(이하 “서비스”)의 이용과 관련하여 회사와 이용자 간의 권리·의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.
+본 약관은 일구하조(이하 “회사”)가 제공하는 RE:FIT(이하 “서비스”)의 이용과 관련하여 회사와 이용자 간의 권리·의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.
 
 ## 제2조 (정의)
 
-1. “서비스”란 회사가 제공하는 Re-fit 웹/모바일 및 관련 제반 서비스(이력서 업로드, AI 기반 파싱·분석·추천, 리포트 생성, 현직자 정보 탐색, 멘토링/상담 기능, 채팅 등)를 말합니다.
+1. “서비스”란 회사가 제공하는 RE:FIT 웹/모바일 및 관련 제반 서비스(이력서 업로드, AI 기반 파싱·분석·추천, 리포트 생성, 현직자 정보 탐색, 멘토링/상담 기능, 채팅 등)를 말합니다.
 2. “이용자”란 본 약관에 따라 서비스를 이용하는 회원 및 비회원을 말합니다.
 3. “회원”이란 서비스에 회원가입을 완료하고 회사가 제공하는 서비스를 이용하는 자를 말합니다.
 4. “콘텐츠”란 이용자가 서비스 내에 게시·업로드·전송하는 텍스트, 이미지, 파일(PDF/이미지 이력서 등), 링크, 메시지 등 일체의 정보를 말합니다.
@@ -147,7 +147,7 @@ const TERMS_TEXT = `# Re-fit 이용약관
 - 공고일자: [2026.02.03]
 - 시행일자: [2026.02.03]
 
-# Re-fit 개인정보처리방침
+# RE:FIT 개인정보처리방침
 
 일구하조(이하 “회사”)는 「개인정보 보호법」 등 관련 법령을 준수하며, 이용자의 개인정보를 보호하기 위해 다음과 같은 개인정보처리방침을 수립·공개합니다.
 
@@ -351,8 +351,8 @@ function renderLegalText(text: string) {
     if (
       /^제\d+조/.test(cleaned) ||
       cleaned.startsWith('부칙') ||
-      cleaned.startsWith('[Re-fit]') ||
-      cleaned.startsWith('Re-fit 개인정보처리방침')
+      cleaned.startsWith('[RE:FIT]') ||
+      cleaned.startsWith('RE:FIT 개인정보처리방침')
     ) {
       className = 'text-[14px] font-semibold text-text-body';
     } else if (/^\d+\.\s/.test(cleaned)) {

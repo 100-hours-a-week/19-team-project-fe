@@ -5,13 +5,13 @@ import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 're-fit',
-  description: 're-fit',
-  applicationName: 're-fit',
+  title: 'RE:FIT',
+  description: 'RE:FIT',
+  applicationName: 'RE:FIT',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    title: 're-fit',
+    title: 'RE:FIT',
     statusBarStyle: 'default',
   },
   icons: {
