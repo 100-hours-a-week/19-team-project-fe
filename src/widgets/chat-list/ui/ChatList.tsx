@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -76,23 +76,20 @@ export default function ChatList() {
   const [currentUser, setCurrentUser] = useState<UserMe | null>(null);
   const { status: authStatus } = useAuthGate(getMe);
   const handleCommonApiError = useCommonApiErrorHandler();
+  const isActiveRef = useRef(true);
 
   useEffect(() => {
-    if (authStatus === 'checking') {
-      setIsLoading(true);
-      return;
-    }
-    if (authStatus === 'guest') {
-      setIsLoading(false);
-      return;
-    }
+    return () => {
+      isActiveRef.current = false;
+    };
+  }, []);
 
-    let cancelled = false;
-
-    const loadChats = async (allowRetry: boolean) => {
+  const fetchChats = useCallback(
+    async (allowRetry: boolean, setLoadingState: boolean) => {
+      if (setLoadingState) setIsLoading(true);
       try {
         const [userResult, chatResult] = await Promise.allSettled([getUserMe(), getChatList()]);
-        if (cancelled) return;
+        if (!isActiveRef.current) return;
         if (userResult.status === 'fulfilled' && userResult.value) {
           setCurrentUser(userResult.value);
         } else {
@@ -119,11 +116,11 @@ export default function ChatList() {
         setChats(normalized);
         setLoadError(null);
       } catch (error) {
-        if (cancelled) return;
+        if (!isActiveRef.current) return;
         const handled = await handleCommonApiError(error);
         if (handled) {
-          if (allowRetry && !cancelled) {
-            await loadChats(false);
+          if (allowRetry) {
+            await fetchChats(false, false);
           } else {
             setIsLoading(false);
           }
@@ -131,17 +128,42 @@ export default function ChatList() {
         }
         setLoadError(error instanceof Error ? error.message : '채팅 목록을 불러오지 못했습니다.');
       } finally {
-        if (cancelled) return;
-        setIsLoading(false);
+        if (!isActiveRef.current) return;
+        if (setLoadingState) setIsLoading(false);
       }
+    },
+    [handleCommonApiError],
+  );
+
+  useEffect(() => {
+    if (authStatus === 'checking') {
+      setIsLoading(true);
+      return;
+    }
+    if (authStatus === 'guest') {
+      setIsLoading(false);
+      return;
+    }
+
+    void fetchChats(true, true);
+  }, [authStatus, fetchChats]);
+
+  useEffect(() => {
+    if (authStatus !== 'member') return;
+
+    const handleRefresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      void fetchChats(true, false);
     };
 
-    loadChats(true);
+    window.addEventListener('focus', handleRefresh);
+    document.addEventListener('visibilitychange', handleRefresh);
 
     return () => {
-      cancelled = true;
+      window.removeEventListener('focus', handleRefresh);
+      document.removeEventListener('visibilitychange', handleRefresh);
     };
-  }, [authStatus, handleCommonApiError]);
+  }, [authStatus, fetchChats]);
 
   const handleAuthSheetClose = () => {
     router.replace('/');

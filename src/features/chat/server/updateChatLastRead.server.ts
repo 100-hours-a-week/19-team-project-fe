@@ -1,4 +1,4 @@
-import { buildApiUrl } from '@/shared/api';
+import { BusinessError, buildApiUrl } from '@/shared/api';
 import { apiFetchWithRefresh } from '@/shared/api/server';
 
 const CHAT_LAST_READ_PATH = '/api/v1/chats';
@@ -14,20 +14,50 @@ export async function updateChatLastRead(
   allowRefresh: boolean = true,
 ): Promise<null> {
   const url = buildApiUrl(`${CHAT_LAST_READ_PATH}/${payload.chatId}/last-read-message`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.info('[ChatLastRead] PATCH', url, {
+      last_message_id: payload.last_message_id,
+    });
+  }
 
-  return apiFetchWithRefresh<null>(
-    url,
-    {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        last_message_id: payload.last_message_id,
-        chat_id: payload.chatId,
-      }),
+  const jsonInit: RequestInit = {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
     },
-    accessTokenOverride,
-    allowRefresh,
-  );
+    body: JSON.stringify({
+      last_message_id: payload.last_message_id,
+    }),
+  };
+
+  try {
+    return await apiFetchWithRefresh<null>(url, jsonInit, accessTokenOverride, allowRefresh);
+  } catch (error) {
+    if (!(error instanceof BusinessError) || error.code !== 'INVALID_JSON_REQUEST') {
+      throw error;
+    }
+
+    const fallbackUrl = new URL(url);
+    fallbackUrl.searchParams.set('last_message_id', String(payload.last_message_id));
+    const formBody = new URLSearchParams({
+      last_message_id: String(payload.last_message_id),
+    });
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.info('[ChatLastRead] retry with form-encoded payload');
+    }
+
+    return apiFetchWithRefresh<null>(
+      fallbackUrl.toString(),
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formBody.toString(),
+      },
+      accessTokenOverride,
+      allowRefresh,
+    );
+  }
 }
