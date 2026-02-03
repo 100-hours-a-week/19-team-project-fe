@@ -181,9 +181,7 @@ export default function ChatList() {
             const counterparty = getCounterparty(chat, currentUser?.id ?? null);
             const lastMessage = chat.last_message;
             const showUnread =
-              chat.unread_count > 0 &&
-              currentUser?.id !== null &&
-              currentUser?.id !== undefined;
+              chat.unread_count > 0 && currentUser?.id !== null && currentUser?.id !== undefined;
             return (
               <li key={chat.chat_id} className="border-b border-neutral-200/70">
                 <Link
