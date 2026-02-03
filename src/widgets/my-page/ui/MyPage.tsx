@@ -7,9 +7,11 @@ import { useRouter } from 'next/navigation';
 import { KakaoLoginButton, getMe } from '@/features/auth';
 import { getExpertStatus, getUserMe, type ExpertStatus, type UserMe } from '@/features/users';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
+import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import defaultUserImage from '@/shared/icons/char_icon.png';
+import charLogout from '@/shared/icons/char_logout.png';
 import iconCertification from '@/shared/icons/icon_certification.png';
 import iconInquiry from '@/shared/icons/icon_inquiry.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
@@ -25,6 +27,7 @@ export default function MyPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [expertStatus, setExpertStatus] = useState<ExpertStatus | null>(null);
   const [isLoadingExpertStatus, setIsLoadingExpertStatus] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (authStatus !== 'authed') {
@@ -259,6 +262,20 @@ export default function MyPage() {
                 </div>
                 <span className="text-xl text-gray-300">›</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+              >
+                <div className="text-left">
+                  <span className="flex items-center gap-1 text-base font-semibold text-text-body">
+                    <Image src={iconMarkB} alt="" width={18} height={18} />
+                    설정하기
+                  </span>
+                </div>
+                <span className="text-xl text-gray-300">›</span>
+              </button>
             </div>
           </div>
         ) : (
@@ -280,6 +297,32 @@ export default function MyPage() {
       >
         <KakaoLoginButton />
       </AuthGateSheet>
+
+      <BottomSheet
+        open={settingsOpen}
+        title="설정"
+        actionLabel="완료"
+        onAction={() => setSettingsOpen(false)}
+        onClose={() => setSettingsOpen(false)}
+      >
+        <div className="flex flex-col items-center">
+          <Image src={charLogout} alt="" width={200} height={200} className="mb-4" />
+          <div className="w-full space-y-3">
+          <button
+            type="button"
+            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
+          >
+            로그아웃
+          </button>
+          <button
+            type="button"
+            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
+          >
+            회원탈퇴
+          </button>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }
