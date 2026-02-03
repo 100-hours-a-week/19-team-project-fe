@@ -100,8 +100,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
   const maxInputHeight = 160;
   const isMobile =
-    typeof navigator !== 'undefined' &&
-    /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+    typeof navigator !== 'undefined' && /iphone|ipad|ipod|android/i.test(navigator.userAgent);
   const preventMobileSubmitRef = useRef(false);
 
   const handleInvalidAccess = useCallback(
