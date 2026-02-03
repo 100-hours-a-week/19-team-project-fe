@@ -1,7 +1,35 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { BusinessError, HttpError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { apiFetchWithRefresh } from '@/shared/api/server';
+import type { UserMe } from '@/features/users';
+
+type AuthErrorCode =
+  | 'AUTH_TOKEN_EXPIRED'
+  | 'AUTH_INVALID_TOKEN'
+  | 'AUTH_UNAUTHORIZED'
+  | 'UNAUTHORIZED';
+
+const AUTH_ERROR_CODES = new Set<AuthErrorCode>([
+  'AUTH_TOKEN_EXPIRED',
+  'AUTH_INVALID_TOKEN',
+  'AUTH_UNAUTHORIZED',
+  'UNAUTHORIZED',
+]);
+
+function isAuthError(error: unknown): boolean {
+  if (error instanceof BusinessError) {
+    return AUTH_ERROR_CODES.has(error.code as AuthErrorCode);
+  }
+  if (error instanceof HttpError) {
+    return error.status === 401;
+  }
+  if (error instanceof Error) {
+    return error.message === 'UNAUTHORIZED';
+  }
+  return false;
+}
 
 export async function GET(req: Request) {
   try {
@@ -16,39 +44,37 @@ export async function GET(req: Request) {
     const accessToken = rawToken?.trim() || cookieToken?.trim() || undefined;
     if (!accessToken) {
       const response: ApiResponse<null> = {
-        code: 'AUTH_UNAUTHORIZED',
-        message: 'unauthorized',
+        code: 'OK',
+        message: 'unauthenticated',
         data: null,
       };
-      return NextResponse.json(response, { status: 401 });
+      return NextResponse.json(response, { status: 200 });
     }
 
-    const res = await fetch(buildApiUrl('/api/v1/users/me'), {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      if (body && typeof body.code === 'string') {
-        const response: ApiResponse<unknown> = {
-          code: body.code,
-          message: body.message ?? 'error',
-          data: body.data ?? null,
+    try {
+      const data = await apiFetchWithRefresh<UserMe>(
+        buildApiUrl('/api/v1/users/me'),
+        undefined,
+        accessToken,
+        true,
+      );
+      const response: ApiResponse<UserMe> = {
+        code: 'OK',
+        message: 'ok',
+        data,
+      };
+      return NextResponse.json(response, { status: 200 });
+    } catch (error) {
+      if (isAuthError(error)) {
+        const response: ApiResponse<null> = {
+          code: 'OK',
+          message: 'unauthenticated',
+          data: null,
         };
-        return NextResponse.json(response, { status: res.status });
+        return NextResponse.json(response, { status: 200 });
       }
-      const response: ApiResponse<null> = {
-        code: 'USER_ME_FAILED',
-        message: 'USER_ME_FAILED',
-        data: null,
-      };
-      return NextResponse.json(response, { status: res.status });
+      throw error;
     }
-
-    const body = await res.json();
-    return NextResponse.json(body);
   } catch (error) {
     if (error instanceof BusinessError) {
       const response: ApiResponse<unknown> = {

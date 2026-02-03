@@ -42,14 +42,15 @@ const formatChatTime = (value: string) => {
 };
 
 const renderMessageContent = (content: string) => {
+  const normalized = content.replace(/\s+$/g, '');
   const nodes: ReactNode[] = [];
   const regex = /https?:\/\/[^\s]+/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
-  while ((match = regex.exec(content)) !== null) {
+  while ((match = regex.exec(normalized)) !== null) {
     if (match.index > lastIndex) {
-      nodes.push(content.slice(lastIndex, match.index));
+      nodes.push(normalized.slice(lastIndex, match.index));
     }
     const url = match[0];
     nodes.push(
@@ -66,8 +67,8 @@ const renderMessageContent = (content: string) => {
     lastIndex = match.index + url.length;
   }
 
-  if (lastIndex < content.length) {
-    nodes.push(content.slice(lastIndex));
+  if (lastIndex < normalized.length) {
+    nodes.push(normalized.slice(lastIndex));
   }
 
   return nodes;
@@ -89,6 +90,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const { messages, setMessages, error: historyError } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
   const [draft, setDraft] = useState('');
+  const messageLength = draft.length;
+  const isOverLimit = messageLength > 500;
+  const isBlankDraft = draft.trim().length === 0;
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
@@ -120,6 +124,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       try {
         const me = await getUserMe();
         if (cancelled) return;
+        if (!me) {
+          setCurrentUserId(null);
+          return;
+        }
         setCurrentUserId(Number.isFinite(me.id) ? me.id : null);
       } catch (error) {
         if (cancelled) return;
@@ -235,11 +243,17 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isBlankDraft) return;
+    if (isOverLimit) {
+      pushToast('최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
+      return;
+    }
     void sendOptimisticMessage(draft);
     setDraft('');
     if (inputRef.current) {
-      inputRef.current.style.height = '0px';
-      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+      inputRef.current.style.height = '44px';
+      inputRef.current.style.overflowY = 'hidden';
+      inputRef.current.focus();
     }
   };
 
@@ -247,7 +261,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     setDraft(event.target.value);
     if (inputRef.current) {
       inputRef.current.style.height = '0px';
-      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+      const nextHeight = Math.min(inputRef.current.scrollHeight, 160);
+      inputRef.current.style.height = `${nextHeight}px`;
+      inputRef.current.style.overflowY = inputRef.current.scrollHeight > 160 ? 'auto' : 'hidden';
     }
   };
 
@@ -308,7 +324,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
       <div
         ref={listRef}
-        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[calc(72px+24px)] pt-[calc(var(--app-header-height)+16px)]"
+        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[72px] pt-[calc(var(--app-header-height)+16px)]"
       >
         {chatStatus === 'CLOSED' ? (
           <div className="rounded-2xl bg-white px-4 py-3 text-center text-sm text-neutral-600 shadow-sm">
@@ -328,7 +344,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
             >
               <div className="max-w-[75%] flex flex-col">
                 <div
-                  className={`rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                  className={`inline-block ${isMine ? 'self-end' : 'self-start'} rounded-2xl px-4 py-2 text-sm shadow-sm ${
                     isMine
                       ? 'bg-[var(--color-primary-main)] text-white'
                       : 'bg-white text-neutral-900'
@@ -341,7 +357,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
                 {showTime && (
                   <span
                     className={`mt-1 text-[11px] text-neutral-400 ${
-                      isMine ? 'text-right' : 'text-left'
+                      isMine ? 'text-right self-end' : 'text-left self-start'
                     }`}
                   >
                     {displayTime}
@@ -380,11 +396,13 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           }}
           placeholder="메시지를 입력하세요"
           disabled={chatStatus === 'CLOSED'}
-          className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm leading-5 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"
+          className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-base leading-6 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 overflow-y-hidden"
         />
         <button
           type="submit"
-          disabled={wsStatus !== 'connected' || chatStatus === 'CLOSED'}
+          disabled={
+            wsStatus !== 'connected' || chatStatus === 'CLOSED' || isOverLimit || isBlankDraft
+          }
           className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-main)] text-sm font-semibold text-white disabled:bg-neutral-300"
         >
           <svg

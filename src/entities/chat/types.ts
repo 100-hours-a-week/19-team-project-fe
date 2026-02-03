@@ -80,6 +80,23 @@ export interface ChatDetailData {
   requester: ChatParticipant;
   receiver: ChatParticipant;
   resume_id: number;
+  resume?: {
+    resumeId?: number;
+    resume_id?: number;
+    title?: string;
+    isFresher?: boolean;
+    is_fresher?: boolean;
+    educationLevel?: string;
+    education_level?: string;
+    fileUrl?: string;
+    file_url?: string;
+    contentJson?: Record<string, unknown> | null;
+    content_json?: Record<string, unknown> | null;
+    createdAt?: string;
+    created_at?: string;
+    updatedAt?: string;
+    updated_at?: string;
+  } | null;
   job_post_url: string;
   status: 'ACTIVE' | 'CLOSED';
   created_at: string;
