@@ -170,8 +170,7 @@ export default function GuideButtons() {
         onClose={() => setActiveGuide(null)}
       >
         <p className="text-center text-[15px] font-bold text-text-body">
-          경험을 나누는 작은 시작, <span className="text-primary-main">re:fit</span>이
-          함께합니다.
+          경험을 나누는 작은 시작, <span className="text-primary-main">re:fit</span>이 함께합니다.
         </p>
         <div className="mt-3 space-y-3">
           {expertItems.map((item, index) => (
