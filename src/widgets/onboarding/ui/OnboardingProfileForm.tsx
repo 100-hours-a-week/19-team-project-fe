@@ -392,7 +392,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       return;
     }
     if (isSendingVerification) return;
-
     setIsSendingVerification(true);
     setSendVerificationError(null);
     setSendVerificationMessage(null);

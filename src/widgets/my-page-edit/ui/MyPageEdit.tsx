@@ -14,6 +14,7 @@ import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Input } from '@/shared/ui/input';
+import { useToast } from '@/shared/ui/toast';
 import iconCareer from '@/shared/icons/icon_career.png';
 import iconJob from '@/shared/icons/Icon_job.png';
 import iconTech from '@/shared/icons/Icon_tech.png';
@@ -25,6 +26,7 @@ import { Button } from '@/shared/ui/button';
 
 const nicknameLimit = 10;
 const introductionLimit = 100;
+const profileImageMaxBytes = 10 * 1024 * 1024;
 
 type SheetId = 'job' | 'career' | 'tech' | null;
 
@@ -54,6 +56,7 @@ export default function MyPageEdit() {
   const router = useRouter();
   const { status: authStatus } = useAuthGate(getMe);
   const handleCommonApiError = useCommonApiErrorHandler();
+  const { pushToast } = useToast();
 
   const [activeSheet, setActiveSheet] = useState<SheetId>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -218,6 +221,11 @@ export default function MyPageEdit() {
   const handleProfileImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (file.size > profileImageMaxBytes) {
+      pushToast('이미지는 10MB 이하만 업로드할 수 있어요.', { variant: 'error' });
+      event.target.value = '';
+      return;
+    }
     const previewUrl = URL.createObjectURL(file);
     setProfileImageFile(file);
     setProfileImagePreview(previewUrl);
@@ -471,7 +479,10 @@ export default function MyPageEdit() {
                     {profileImagePreview ? '다른 이미지 선택' : '이미지 업로드'}
                   </button>
                 </div>
-                <p className="text-xs text-text-caption">jpg/png 권장</p>
+                <div className="flex flex-col gap-1 text-xs">
+                  <p className="text-text-caption">jpg/png 권장</p>
+                  <p className="text-primary-main">최대 10MB까지 업로드할 수 있어요.</p>
+                </div>
               </div>
             </div>
             <input
@@ -641,7 +652,13 @@ export default function MyPageEdit() {
         <Footer />
       </div>
 
-      <BottomSheet open={activeSheet !== null} title="선택" onClose={() => setActiveSheet(null)}>
+      <BottomSheet
+        open={activeSheet !== null}
+        title="선택"
+        actionLabel="완료"
+        onAction={() => setActiveSheet(null)}
+        onClose={() => setActiveSheet(null)}
+      >
         <div className="flex h-full flex-col gap-4">
           {activeSheet === 'job' ? (
             <div className="flex flex-col gap-2">

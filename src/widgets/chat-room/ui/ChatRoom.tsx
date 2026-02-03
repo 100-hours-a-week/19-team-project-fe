@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -13,7 +13,7 @@ import {
   useChatSocket,
 } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
-import { useCommonApiErrorHandler } from '@/shared/api';
+import { refreshAuthTokens, useCommonApiErrorHandler } from '@/shared/api';
 import { BusinessError, HttpError } from '@/shared/api/errors';
 import { useToast } from '@/shared/ui/toast';
 import { getUserMe } from '@/features/users';
@@ -27,11 +27,16 @@ const createClientMessageId = () => {
   return `cm_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 };
 
-const formatChatTime = (value: string) => {
+const parseChatDate = (value: string) => {
   const normalized = value.replace(' ', 'T');
   const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
+};
 
-  if (Number.isNaN(parsed.getTime())) return value;
+const formatChatTime = (value: string) => {
+  const parsed = parseChatDate(value);
+  if (!parsed) return value;
 
   const hours = parsed.getHours();
   const minutes = pad2(parsed.getMinutes());
@@ -39,6 +44,18 @@ const formatChatTime = (value: string) => {
   const displayHours = pad2(hours % 12 === 0 ? 12 : hours % 12);
 
   return `${period} ${displayHours}:${minutes}`;
+};
+
+const formatChatDate = (value: string) => {
+  const parsed = parseChatDate(value);
+  if (!parsed) return value;
+  return `${parsed.getFullYear()}년 ${parsed.getMonth() + 1}월 ${parsed.getDate()}일`;
+};
+
+const getChatDateKey = (value: string) => {
+  const parsed = parseChatDate(value);
+  if (!parsed) return value;
+  return `${parsed.getFullYear()}-${pad2(parsed.getMonth() + 1)}-${pad2(parsed.getDate())}`;
 };
 
 const renderMessageContent = (content: string) => {
@@ -85,9 +102,19 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const composerRef = useRef<HTMLFormElement | null>(null);
   const isComposingRef = useRef(false);
+  const [composerHeight, setComposerHeight] = useState(72);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-  const { messages, setMessages, error: historyError } = useChatHistory(chatId, currentUserId);
+  const {
+    messages,
+    setMessages,
+    loading: historyLoading,
+    loadingMore: historyLoadingMore,
+    loadMore,
+    hasMore: historyHasMore,
+    error: historyError,
+  } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
   const [draft, setDraft] = useState('');
   const messageLength = draft.length;
@@ -96,6 +123,12 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
+  const didRetryUserRef = useRef(false);
+  const maxInputHeight = 160;
+  const isMobile =
+    typeof navigator !== 'undefined' && /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+  const preventMobileSubmitRef = useRef(false);
+  const skipAutoScrollRef = useRef(false);
 
   const handleInvalidAccess = useCallback(
     (error: unknown): boolean => {
@@ -125,6 +158,22 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         const me = await getUserMe();
         if (cancelled) return;
         if (!me) {
+          if (!didRetryUserRef.current) {
+            didRetryUserRef.current = true;
+            const refreshed = await refreshAuthTokens().catch(() => false);
+            if (!refreshed || cancelled) {
+              setCurrentUserId(null);
+              return;
+            }
+            const retryMe = await getUserMe().catch(() => null);
+            if (cancelled) return;
+            if (!retryMe) {
+              setCurrentUserId(null);
+              return;
+            }
+            setCurrentUserId(Number.isFinite(retryMe.id) ? retryMe.id : null);
+            return;
+          }
           setCurrentUserId(null);
           return;
         }
@@ -229,20 +278,52 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   /**
    * 최신 메시지 위치로 포커스
    */
+  const scrollToBottom = useCallback(() => {
+    const container = listRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+      return;
+    }
+    bottomRef.current?.scrollIntoView({ block: 'end' });
+  }, []);
+
   useLayoutEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      const container = listRef.current;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-        return;
-      }
-      bottomRef.current?.scrollIntoView({ block: 'end' });
-    });
+    if (skipAutoScrollRef.current) return;
+    const raf = requestAnimationFrame(scrollToBottom);
     return () => cancelAnimationFrame(raf);
-  }, [messages.length]);
+  }, [messages.length, scrollToBottom]);
+
+  const resizeInput = useCallback(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.style.height = '0px';
+    const nextHeight = Math.min(input.scrollHeight, maxInputHeight);
+    input.style.height = `${nextHeight}px`;
+    input.style.overflowY = input.scrollHeight > maxInputHeight ? 'auto' : 'hidden';
+  }, [maxInputHeight]);
+
+  useLayoutEffect(() => {
+    const composer = composerRef.current;
+    if (!composer) return;
+    const updateHeight = () => {
+      setComposerHeight(composer.offsetHeight);
+      requestAnimationFrame(scrollToBottom);
+    };
+    updateHeight();
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const observer = new ResizeObserver(() => updateHeight());
+    observer.observe(composer);
+    return () => observer.disconnect();
+  }, []);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isMobile && preventMobileSubmitRef.current) {
+      preventMobileSubmitRef.current = false;
+      return;
+    }
     if (isBlankDraft) return;
     if (isOverLimit) {
       pushToast('최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
@@ -259,13 +340,30 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   const handleDraftChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDraft(event.target.value);
-    if (inputRef.current) {
-      inputRef.current.style.height = '0px';
-      const nextHeight = Math.min(inputRef.current.scrollHeight, 160);
-      inputRef.current.style.height = `${nextHeight}px`;
-      inputRef.current.style.overflowY = inputRef.current.scrollHeight > 160 ? 'auto' : 'hidden';
-    }
+    resizeInput();
   };
+
+  const loadMoreMessages = useCallback(async () => {
+    const container = listRef.current;
+    if (!container) return;
+    if (!historyHasMore || historyLoadingMore) return;
+
+    const prevScrollHeight = container.scrollHeight;
+    const prevScrollTop = container.scrollTop;
+    skipAutoScrollRef.current = true;
+
+    const loaded = await loadMore();
+    if (!loaded || loaded.length === 0) {
+      skipAutoScrollRef.current = false;
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      const nextScrollHeight = container.scrollHeight;
+      container.scrollTop = nextScrollHeight - prevScrollHeight + prevScrollTop;
+      skipAutoScrollRef.current = false;
+    });
+  }, [historyHasMore, historyLoadingMore, loadMore]);
 
   return (
     <div
@@ -324,8 +422,27 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
       <div
         ref={listRef}
-        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[72px] pt-[calc(var(--app-header-height)+16px)]"
+        onScroll={() => {
+          const container = listRef.current;
+          if (!container) return;
+          if (container.scrollTop <= 8) {
+            void loadMoreMessages();
+          }
+        }}
+        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pt-[calc(var(--app-header-height)+16px)]"
+        style={{ paddingBottom: composerHeight + 12 }}
       >
+        {historyLoading && messages.length === 0 ? (
+          <div className="flex items-center justify-center py-6 text-sm text-neutral-500">
+            메시지를 불러오는 중...
+          </div>
+        ) : null}
+        {historyLoadingMore ? (
+          <div className="flex items-center justify-center gap-2 py-2 text-xs text-neutral-500">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
+            이전 메시지 불러오는 중...
+          </div>
+        ) : null}
         {chatStatus === 'CLOSED' ? (
           <div className="rounded-2xl bg-white px-4 py-3 text-center text-sm text-neutral-600 shadow-sm">
             종료된 채팅방입니다.
@@ -336,41 +453,52 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           const displayTime = formatChatTime(message.created_at);
           const nextMessage = messages[index + 1];
           const showTime = !nextMessage || formatChatTime(nextMessage.created_at) !== displayTime;
+          const prevMessage = messages[index - 1];
+          const currentDateKey = getChatDateKey(message.created_at);
+          const prevDateKey = prevMessage ? getChatDateKey(prevMessage.created_at) : null;
+          const showDateDivider = !prevMessage || currentDateKey !== prevDateKey;
 
           return (
-            <div
-              key={message.message_id}
-              className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className="max-w-[75%] flex flex-col">
-                <div
-                  className={`inline-block ${isMine ? 'self-end' : 'self-start'} rounded-2xl px-4 py-2 text-sm shadow-sm ${
-                    isMine
-                      ? 'bg-[var(--color-primary-main)] text-white'
-                      : 'bg-white text-neutral-900'
-                  }`}
-                >
-                  <span className="whitespace-pre-wrap break-words">
-                    {renderMessageContent(message.content)}
+            <Fragment key={message.message_id}>
+              {showDateDivider ? (
+                <div className="flex items-center justify-center py-1">
+                  <span className="rounded-full bg-neutral-200/70 px-3 py-1 text-[11px] text-neutral-600">
+                    {formatChatDate(message.created_at)}
                   </span>
                 </div>
-                {showTime && (
-                  <span
-                    className={`mt-1 text-[11px] text-neutral-400 ${
-                      isMine ? 'text-right self-end' : 'text-left self-start'
+              ) : null}
+              <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                <div className="max-w-[75%] flex flex-col">
+                  <div
+                    className={`inline-block ${isMine ? 'self-end' : 'self-start'} rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                      isMine
+                        ? 'bg-[var(--color-primary-main)] text-white'
+                        : 'bg-white text-neutral-900'
                     }`}
                   >
-                    {displayTime}
-                  </span>
-                )}
+                    <span className="whitespace-pre-wrap break-words">
+                      {renderMessageContent(message.content)}
+                    </span>
+                  </div>
+                  {showTime && (
+                    <span
+                      className={`mt-1 text-[11px] text-neutral-400 ${
+                        isMine ? 'text-right self-end' : 'text-left self-start'
+                      }`}
+                    >
+                      {displayTime}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
+            </Fragment>
           );
         })}
         <div ref={bottomRef} />
       </div>
 
       <form
+        ref={composerRef}
         onSubmit={handleSubmit}
         className="fixed bottom-0 left-1/2 flex w-full max-w-[600px] -translate-x-1/2 items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
       >
@@ -379,6 +507,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           value={draft}
           rows={1}
           onChange={handleDraftChange}
+          onFocus={() => {
+            resizeInput();
+          }}
           onCompositionStart={() => {
             isComposingRef.current = true;
           }}
@@ -389,11 +520,18 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
             if (event.nativeEvent.isComposing || isComposingRef.current) {
               return;
             }
+            if (isMobile) {
+              if (event.key === 'Enter') {
+                preventMobileSubmitRef.current = true;
+              }
+              return;
+            }
             if (event.key === 'Enter' && !event.shiftKey) {
               event.preventDefault();
               (event.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
             }
           }}
+          enterKeyHint="enter"
           placeholder="메시지를 입력하세요"
           disabled={chatStatus === 'CLOSED'}
           className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-base leading-6 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 overflow-y-hidden"
