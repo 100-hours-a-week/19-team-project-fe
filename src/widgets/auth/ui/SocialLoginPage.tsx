@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
-import { KakaoLoginButton } from '@/features/auth';
+import { KakaoLoginButton, restoreAccount } from '@/features/auth';
+import { readAccessToken, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
+import { useToast } from '@/shared/ui/toast';
+import { stompManager } from '@/shared/ws';
 import charSns from '@/shared/icons/char_sns.png';
 
 const TERMS_TEXT = `# Re-fit 이용약관
@@ -366,7 +370,144 @@ function renderLegalText(text: string) {
 }
 
 export default function SocialLoginPage() {
+  const router = useRouter();
+  const handleCommonApiError = useCommonApiErrorHandler();
+  const { pushToast } = useToast();
   const [termsOpen, setTermsOpen] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [restoreData, setRestoreData] = useState<{
+    oauth_provider: 'KAKAO';
+    oauth_id: string;
+    email: string | null;
+    nickname: string | null;
+    email_conflict?: boolean;
+    nickname_conflict?: boolean;
+  } | null>(null);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = sessionStorage.getItem('kakaoRestoreRequired');
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as {
+        restore_required?: {
+          oauth_provider?: 'KAKAO';
+          oauth_id?: string;
+          email?: string | null;
+          nickname?: string | null;
+          email_conflict?: boolean;
+          nickname_conflict?: boolean;
+        };
+      };
+      if (parsed.restore_required?.oauth_provider && parsed.restore_required.oauth_id) {
+        setRestoreData(parsed.restore_required as typeof restoreData);
+        setRestoreOpen(true);
+        return;
+      }
+    } catch {
+      // ignore parse error
+    }
+    sessionStorage.removeItem('kakaoRestoreRequired');
+  }, []);
+
+  const handleSignupChoice = () => {
+    if (typeof window === 'undefined') return;
+    const raw = sessionStorage.getItem('kakaoRestoreRequired');
+    let signupRequired: {
+      oauth_provider: 'KAKAO';
+      oauth_id: string;
+      email: string | null;
+      nickname: string | null;
+    } | null = null;
+    try {
+      const parsed = JSON.parse(raw ?? '{}') as {
+        signup_required?: {
+          oauth_provider?: 'KAKAO';
+          oauth_id?: string;
+          email?: string | null;
+          nickname?: string | null;
+        } | null;
+        restore_required?: {
+          oauth_provider?: 'KAKAO';
+          oauth_id?: string;
+          email?: string | null;
+          nickname?: string | null;
+        };
+      };
+      if (parsed.signup_required?.oauth_provider && parsed.signup_required.oauth_id) {
+        signupRequired = parsed.signup_required as typeof signupRequired;
+      } else if (parsed.restore_required?.oauth_provider && parsed.restore_required.oauth_id) {
+        signupRequired = parsed.restore_required as typeof signupRequired;
+      }
+    } catch {
+      signupRequired = null;
+    }
+
+    if (!signupRequired) {
+      setRestoreError('회원가입 정보를 불러오지 못했습니다. 다시 로그인해 주세요.');
+      return;
+    }
+
+    sessionStorage.setItem('kakaoLoginResult', JSON.stringify({ signup_required: signupRequired }));
+    sessionStorage.removeItem('kakaoRestoreRequired');
+    setRestoreOpen(false);
+    router.replace('/onboarding');
+  };
+
+  const handleRestoreChoice = async () => {
+    if (!restoreData || isRestoring) return;
+    if (!restoreData.email || !restoreData.nickname) {
+      setRestoreError('복구에 필요한 정보가 부족합니다. 다시 로그인해 주세요.');
+      return;
+    }
+    setIsRestoring(true);
+    setRestoreError(null);
+    try {
+      const result = await restoreAccount({
+        oauth_provider: restoreData.oauth_provider,
+        oauth_id: restoreData.oauth_id,
+        email: restoreData.email,
+        nickname: restoreData.nickname,
+      });
+
+      setAuthCookies({
+        accessToken: result.access_token,
+        refreshToken: result.refresh_token,
+        userId: result.user_id,
+      });
+
+      try {
+        const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+        if (!wsUrl) {
+          console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
+        } else {
+          const accessToken = readAccessToken();
+          const connectHeaders = accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined;
+          await stompManager.connect(wsUrl, { connectHeaders });
+        }
+      } catch (err) {
+        console.warn('[WS] connect after restore failed', err);
+      }
+
+      sessionStorage.removeItem('kakaoRestoreRequired');
+      setRestoreOpen(false);
+      pushToast('계정이 복구되었습니다.', { variant: 'success' });
+      router.replace('/');
+    } catch (error) {
+      if (await handleCommonApiError(error)) {
+        return;
+      }
+      setRestoreError(
+        error instanceof Error ? error.message : '계정 복구에 실패했습니다. 다시 시도해 주세요.',
+      );
+    } finally {
+      setIsRestoring(false);
+    }
+  };
 
   return (
     <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#fff8cc] via-white to-white px-2.5 py-16 text-gray-900">
@@ -393,6 +534,70 @@ export default function SocialLoginPage() {
 
       <BottomSheet open={termsOpen} title="이용약관" onClose={() => setTermsOpen(false)}>
         <div className="space-y-1">{renderLegalText(TERMS_TEXT)}</div>
+      </BottomSheet>
+
+      <BottomSheet
+        open={restoreOpen}
+        title="탈퇴 계정 복구"
+        actionLabel="닫기"
+        onAction={() => setRestoreOpen(false)}
+        onClose={() => setRestoreOpen(false)}
+      >
+        <div className="rounded-2xl border border-[#e6ebf2] bg-gradient-to-b from-white to-[#f4f7ff] p-4 text-text-body">
+          <div className="flex items-center justify-between">
+            <span className="rounded-full bg-[#e9efff] px-3 py-1 text-[11px] font-semibold text-[#3b5bcc]">
+              ACCOUNT
+            </span>
+            <span className="text-[11px] font-semibold text-[#7a8aa5]">RESTORE</span>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            <p className="text-base font-semibold text-text-title">탈퇴한 계정이 확인되었습니다</p>
+            <p className="text-sm text-text-caption">
+              기존 계정을 복구하면 이전 프로필과 이용 기록이 그대로 복원됩니다.
+            </p>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-[#dbe3f3] bg-white/70 px-4 py-3">
+            <div className="flex items-center justify-between text-xs text-text-caption">
+              <span>계정 정보</span>
+              {restoreData?.email_conflict || restoreData?.nickname_conflict ? (
+                <span className="rounded-full bg-[#fff3f3] px-2 py-0.5 text-[11px] font-semibold text-[#d14d4d]">
+                  중복 확인 필요
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-2 space-y-1 text-sm">
+              <p className="font-semibold text-text-body">{restoreData?.email ?? '-'}</p>
+              <p className="text-text-caption">{restoreData?.nickname ?? '-'}</p>
+            </div>
+            {(restoreData?.email_conflict || restoreData?.nickname_conflict) && (
+              <p className="mt-2 text-[11px] text-[#d14d4d]">
+                이메일 또는 닉네임이 이미 사용 중일 수 있습니다.
+              </p>
+            )}
+          </div>
+
+          {restoreError ? <p className="mt-3 text-xs text-red-500">{restoreError}</p> : null}
+
+          <div className="mt-4 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handleRestoreChoice}
+              disabled={isRestoring}
+              className="rounded-xl bg-[#3b5bcc] px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(59,91,204,0.2)]"
+            >
+              {isRestoring ? '복구 중...' : '기존 계정 복구'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSignupChoice}
+              className="rounded-xl border border-[#d7dfef] bg-white px-4 py-3 text-sm font-semibold text-[#2b3a55]"
+            >
+              새로 가입하기
+            </button>
+          </div>
+        </div>
       </BottomSheet>
     </main>
   );

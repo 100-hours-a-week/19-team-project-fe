@@ -5,7 +5,13 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe, logout } from '@/features/auth';
-import { deleteMe, getExpertStatus, getUserMe, type ExpertStatus, type UserMe } from '@/features/users';
+import {
+  deleteMe,
+  getExpertStatus,
+  getUserMe,
+  type ExpertStatus,
+  type UserMe,
+} from '@/features/users';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
