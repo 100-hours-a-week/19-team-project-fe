@@ -39,8 +39,17 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
         setError(null);
 
         const latest = sorted.at(-1);
-        if (latest && currentUserId !== null && latest.sender.user_id !== currentUserId) {
-          updateChatLastRead({ chatId, last_message_id: latest.message_id }).catch(() => {});
+        const latestId =
+          typeof latest?.message_id === 'string'
+            ? Number(latest.message_id)
+            : (latest?.message_id ?? null);
+        if (
+          latestId &&
+          Number.isFinite(latestId) &&
+          currentUserId !== null &&
+          latest?.sender.user_id !== currentUserId
+        ) {
+          updateChatLastRead({ chatId, last_message_id: latestId }).catch(() => {});
         }
       } catch (err) {
         if (cancelled) return;
