@@ -335,7 +335,10 @@ const TERMS_TEXT = `# Re-fit 이용약관
 
 function renderLegalText(text: string) {
   return text.split('\n').map((rawLine, index) => {
-    const cleaned = rawLine.replace(/^#+\s*/, '').replace(/\*\*/g, '').trim();
+    const cleaned = rawLine
+      .replace(/^#+\s*/, '')
+      .replace(/\*\*/g, '')
+      .trim();
     if (!cleaned) {
       return <div key={`legal-spacer-${index}`} className="h-3" />;
     }
