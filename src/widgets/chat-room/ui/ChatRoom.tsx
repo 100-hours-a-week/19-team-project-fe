@@ -13,7 +13,7 @@ import {
   useChatSocket,
 } from '@/features/chat';
 import type { ChatMessageItem } from '@/entities/chat';
-import { useCommonApiErrorHandler } from '@/shared/api';
+import { refreshAuthTokens, useCommonApiErrorHandler } from '@/shared/api';
 import { BusinessError, HttpError } from '@/shared/api/errors';
 import { useToast } from '@/shared/ui/toast';
 import { getUserMe } from '@/features/users';
@@ -98,6 +98,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
+  const didRetryUserRef = useRef(false);
   const maxInputHeight = 160;
   const isMobile =
     typeof navigator !== 'undefined' && /iphone|ipad|ipod|android/i.test(navigator.userAgent);
@@ -131,6 +132,22 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         const me = await getUserMe();
         if (cancelled) return;
         if (!me) {
+          if (!didRetryUserRef.current) {
+            didRetryUserRef.current = true;
+            const refreshed = await refreshAuthTokens().catch(() => false);
+            if (!refreshed || cancelled) {
+              setCurrentUserId(null);
+              return;
+            }
+            const retryMe = await getUserMe().catch(() => null);
+            if (cancelled) return;
+            if (!retryMe) {
+              setCurrentUserId(null);
+              return;
+            }
+            setCurrentUserId(Number.isFinite(retryMe.id) ? retryMe.id : null);
+            return;
+          }
           setCurrentUserId(null);
           return;
         }
