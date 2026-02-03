@@ -7,6 +7,7 @@ import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
 import {
   HomeGuardToast,
+  GuideButtons,
   RecruitmentLinksTicker,
   SignupConfetti,
   TechBlogBanner,
@@ -47,6 +48,7 @@ export default function Home() {
                   />
                   <div className="flex flex-col gap-0">
                     <TechBlogBanner />
+                    <GuideButtons />
                     <RecruitmentLinksTicker />
                     <TechBlogTicker />
                   </div>

@@ -349,6 +349,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     void sendOptimisticMessage(draft);
     setDraft('');
     if (inputRef.current) {
+      inputRef.current.focus({ preventScroll: true });
       inputRef.current.style.overflowY = 'hidden';
       inputRef.current.style.height = '0px';
       requestAnimationFrame(() => {
@@ -555,13 +556,15 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           enterKeyHint="enter"
           placeholder="메시지를 입력하세요"
           disabled={chatStatus === 'CLOSED'}
-          className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-base leading-6 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 overflow-y-hidden"
+          className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-1.5 text-[16px] leading-5 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 overflow-y-hidden"
         />
         <button
           type="submit"
           disabled={
             wsStatus !== 'connected' || chatStatus === 'CLOSED' || isOverLimit || isBlankDraft
           }
+          onMouseDown={(event) => event.preventDefault()}
+          onTouchStart={(event) => event.preventDefault()}
           className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-main)] text-sm font-semibold text-white disabled:bg-neutral-300"
         >
           <svg
