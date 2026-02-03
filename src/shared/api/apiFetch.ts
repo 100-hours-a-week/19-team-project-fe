@@ -25,7 +25,6 @@ function refreshInitWithLatestToken(init?: ApiFetchOptions): ApiFetchOptions | u
   const token = readAccessToken();
   if (!token) return init;
   const headers = new Headers(init.headers);
-  if (!headers.has('Authorization')) return init;
   headers.set('Authorization', `Bearer ${token}`);
   return { ...init, headers };
 }

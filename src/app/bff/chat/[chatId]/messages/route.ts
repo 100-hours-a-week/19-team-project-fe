@@ -47,7 +47,7 @@ export async function GET(req: Request, context: { params: Params }) {
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
-    const data = await getChatMessages({ chatId, cursor, size, accessToken, allowRefresh: false });
+    const data = await getChatMessages({ chatId, cursor, size, accessToken });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: '',
