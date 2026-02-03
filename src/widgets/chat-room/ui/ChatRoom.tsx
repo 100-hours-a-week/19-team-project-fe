@@ -255,8 +255,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       inputRef.current.style.height = '0px';
       const nextHeight = Math.min(inputRef.current.scrollHeight, 160);
       inputRef.current.style.height = `${nextHeight}px`;
-      inputRef.current.style.overflowY =
-        inputRef.current.scrollHeight > 160 ? 'auto' : 'hidden';
+      inputRef.current.style.overflowY = inputRef.current.scrollHeight > 160 ? 'auto' : 'hidden';
     }
   };
 
