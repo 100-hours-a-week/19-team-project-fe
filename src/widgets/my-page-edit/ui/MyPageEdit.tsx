@@ -652,7 +652,13 @@ export default function MyPageEdit() {
         <Footer />
       </div>
 
-      <BottomSheet open={activeSheet !== null} title="선택" onClose={() => setActiveSheet(null)}>
+      <BottomSheet
+        open={activeSheet !== null}
+        title="선택"
+        actionLabel="완료"
+        onAction={() => setActiveSheet(null)}
+        onClose={() => setActiveSheet(null)}
+      >
         <div className="flex h-full flex-col gap-4">
           {activeSheet === 'job' ? (
             <div className="flex flex-col gap-2">
