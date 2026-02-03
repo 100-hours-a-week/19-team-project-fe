@@ -39,10 +39,16 @@ function normalizeJsonBody(init?: ApiFetchOptions): ApiFetchOptions | undefined 
   const isBlob = typeof Blob !== 'undefined' && body instanceof Blob;
   const isArrayBuffer = typeof ArrayBuffer !== 'undefined' && body instanceof ArrayBuffer;
   const isArrayBufferView = typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(body);
-  const isReadableStream =
-    typeof ReadableStream !== 'undefined' && body instanceof ReadableStream;
+  const isReadableStream = typeof ReadableStream !== 'undefined' && body instanceof ReadableStream;
 
-  if (isFormData || isSearchParams || isBlob || isArrayBuffer || isArrayBufferView || isReadableStream) {
+  if (
+    isFormData ||
+    isSearchParams ||
+    isBlob ||
+    isArrayBuffer ||
+    isArrayBufferView ||
+    isReadableStream
+  ) {
     return init;
   }
 

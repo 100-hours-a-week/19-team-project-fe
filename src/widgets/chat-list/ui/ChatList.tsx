@@ -180,13 +180,10 @@ export default function ChatList() {
           chats.map((chat) => {
             const counterparty = getCounterparty(chat, currentUser?.id ?? null);
             const lastMessage = chat.last_message;
-            const lastSenderId = getLastMessageSenderId(lastMessage);
             const showUnread =
               chat.unread_count > 0 &&
               currentUser?.id !== null &&
-              currentUser?.id !== undefined &&
-              lastSenderId !== null &&
-              lastSenderId !== currentUser?.id;
+              currentUser?.id !== undefined;
             return (
               <li key={chat.chat_id} className="border-b border-neutral-200/70">
                 <Link
