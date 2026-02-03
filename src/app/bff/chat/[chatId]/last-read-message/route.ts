@@ -28,7 +28,18 @@ export async function PATCH(req: Request, context?: { params?: { chatId?: string
       return NextResponse.json(response, { status: 400 });
     }
 
-    const payload = await req.json();
+    const rawBody = await req.text();
+    let payload: { last_message_id?: number | string } | null = null;
+    try {
+      payload = rawBody ? (JSON.parse(rawBody) as { last_message_id?: number | string }) : null;
+    } catch {
+      const response: ApiResponse<null> = {
+        code: 'INVALID_JSON_REQUEST',
+        message: '요청 JSON이 올바르지 않습니다.',
+        data: null,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
     const rawLastMessageId = payload?.last_message_id;
     const lastMessageId =
       typeof rawLastMessageId === 'string' ? Number(rawLastMessageId) : rawLastMessageId;

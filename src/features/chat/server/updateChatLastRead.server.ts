@@ -22,10 +22,7 @@ export async function updateChatLastRead(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        last_message_id: payload.last_message_id,
-        chat_id: payload.chatId,
-      }),
+      body: JSON.stringify({ last_message_id: payload.last_message_id }),
     },
     accessTokenOverride,
     allowRefresh,
