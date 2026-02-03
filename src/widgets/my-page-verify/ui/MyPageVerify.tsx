@@ -18,6 +18,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const emailVerificationMessages: Record<string, string> = {
   EMAIL_FORMAT_INVALID: '이메일 형식이 올바르지 않습니다.',
+  EMAIL_ALREADY_VERIFIED: '이미 인증이 완료된 이메일입니다.',
   EMAIL_VERIFICATION_RATE_LIMIT: '인증 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.',
   VERIFICATION_CODE_INVALID: '인증번호 형식이 올바르지 않습니다.',
   AUTH_UNAUTHORIZED: '인증 정보가 만료되었습니다. 다시 전송해 주세요.',

@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import { KakaoLoginButton, getMe } from '@/features/auth';
-import { getExpertStatus, getUserMe, type ExpertStatus, type UserMe } from '@/features/users';
+import { KakaoLoginButton, getMe, logout } from '@/features/auth';
+import { deleteMe, getExpertStatus, getUserMe, type ExpertStatus, type UserMe } from '@/features/users';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
@@ -20,7 +20,7 @@ import { Header } from '@/widgets/header';
 
 export default function MyPage() {
   const router = useRouter();
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus, refresh: refreshAuthStatus } = useAuthGate(getMe);
   const handleCommonApiError = useCommonApiErrorHandler();
   const [user, setUser] = useState<UserMe | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
@@ -28,6 +28,8 @@ export default function MyPage() {
   const [expertStatus, setExpertStatus] = useState<ExpertStatus | null>(null);
   const [isLoadingExpertStatus, setIsLoadingExpertStatus] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   useEffect(() => {
     if (authStatus !== 'authed') {
@@ -75,7 +77,7 @@ export default function MyPage() {
       setIsLoadingExpertStatus(false);
       return;
     }
-    if (!user || user.user_type !== 'EXPERT') {
+    if (!user) {
       setExpertStatus(null);
       setIsLoadingExpertStatus(false);
       return;
@@ -111,8 +113,41 @@ export default function MyPage() {
     router.replace('/');
   };
 
-  const shouldShowExpertVerifyButton =
-    user?.user_type === 'EXPERT' && !expertStatus?.verified && !isLoadingExpertStatus;
+  const shouldShowExpertVerifyButton = !!user && !expertStatus?.verified && !isLoadingExpertStatus;
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch (error) {
+      if (await handleCommonApiError(error)) {
+        return;
+      }
+    } finally {
+      setSettingsOpen(false);
+      await refreshAuthStatus();
+      setIsLoggingOut(false);
+      router.replace('/');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (isDeletingAccount) return;
+    setIsDeletingAccount(true);
+    try {
+      await deleteMe();
+    } catch (error) {
+      if (await handleCommonApiError(error)) {
+        return;
+      }
+    } finally {
+      setSettingsOpen(false);
+      await refreshAuthStatus();
+      setIsDeletingAccount(false);
+      router.replace('/');
+    }
+  };
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
@@ -310,15 +345,19 @@ export default function MyPage() {
           <div className="w-full space-y-3">
             <button
               type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
               className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
             >
-              로그아웃
+              {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
             </button>
             <button
               type="button"
+              onClick={handleDeleteAccount}
+              disabled={isDeletingAccount}
               className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
             >
-              회원탈퇴
+              {isDeletingAccount ? '회원탈퇴 중...' : '회원탈퇴'}
             </button>
           </div>
         </div>
