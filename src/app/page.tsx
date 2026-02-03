@@ -23,9 +23,9 @@ export default function Home() {
         <SplashGate>
           <SignupConfetti />
           <HomeGuardToast />
-          <div className="flex min-h-full flex-col bg-[#D2DEEA]">
+          <div className="min-h-screen bg-[#D2DEEA]">
             <Header />
-            <div className="flex min-h-[calc(100dvh-var(--app-header-height))] flex-col">
+            <div className="flex min-h-[calc(100vh-var(--app-header-height))] flex-col">
               <div className="px-2.5 pt-6 text-text-body">
                 <div className="flex items-center">
                   <Image src={iconMarkB} alt="" width={22} height={22} />
@@ -37,8 +37,8 @@ export default function Home() {
                 <SearchBar />
               </div>
 
-              <div className="flex flex-col pb-[calc(var(--app-footer-height)+16px)]">
-                <div className="relative mt-8 w-full rounded-t-3xl bg-white px-2.5 py-8 shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
+              <div className="flex flex-1 flex-col pb-0">
+                <div className="relative mt-30 flex-1 w-full rounded-t-3xl bg-white px-2.5 py-8 shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
                   <Image
                     src={charBtn}
                     alt=""
