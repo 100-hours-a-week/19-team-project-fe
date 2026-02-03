@@ -42,6 +42,7 @@ export interface ChatMessageSummary {
   message_id: number;
   content: string;
   created_at: string;
+  last_message_at?: string;
   sender?: ChatParticipant;
   sender_id?: number;
   senderId?: number;
