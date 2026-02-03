@@ -45,7 +45,9 @@ export default function Home() {
                     className="pointer-events-none absolute -top-52 left-1/2 -translate-x-1/2"
                   />
                   <div className="flex flex-col gap-0">
-                    <TechBlogBanner />
+                    <div className="-mt-3">
+                      <TechBlogBanner />
+                    </div>
                     <GuideButtons />
                     <RecruitmentLinksTicker />
                     <TechBlogTicker />
