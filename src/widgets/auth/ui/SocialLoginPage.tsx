@@ -415,12 +415,13 @@ export default function SocialLoginPage() {
   const handleSignupChoice = () => {
     if (typeof window === 'undefined') return;
     const raw = sessionStorage.getItem('kakaoRestoreRequired');
-    let signupRequired: {
+    type SignupRequiredPayload = {
       oauth_provider: 'KAKAO';
       oauth_id: string;
       email: string | null;
       nickname: string | null;
-    } | null = null;
+    };
+    let signupRequired: SignupRequiredPayload | null = null;
     try {
       const parsed = JSON.parse(raw ?? '{}') as {
         signup_required?: {
@@ -437,9 +438,9 @@ export default function SocialLoginPage() {
         };
       };
       if (parsed.signup_required?.oauth_provider && parsed.signup_required.oauth_id) {
-        signupRequired = parsed.signup_required as typeof signupRequired;
+        signupRequired = parsed.signup_required as SignupRequiredPayload;
       } else if (parsed.restore_required?.oauth_provider && parsed.restore_required.oauth_id) {
-        signupRequired = parsed.restore_required as typeof signupRequired;
+        signupRequired = parsed.restore_required as SignupRequiredPayload;
       }
     } catch {
       signupRequired = null;
