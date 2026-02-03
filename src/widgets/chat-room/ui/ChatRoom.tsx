@@ -130,6 +130,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const preventMobileSubmitRef = useRef(false);
   const skipAutoScrollRef = useRef(false);
   const appFrameRef = useRef<HTMLElement | null>(null);
+  const composerShiftRef = useRef(0);
+  const isComposerFocusedRef = useRef(false);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -335,6 +337,29 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     return () => observer.disconnect();
   }, [scrollToBottom]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const viewport = window.visualViewport;
+    const composer = composerRef.current;
+    if (!viewport || !composer) return;
+
+    const updateComposerShift = () => {
+      const keyboardHeight = Math.max(0, window.innerHeight - viewport.height);
+      const nextShift = isComposerFocusedRef.current ? keyboardHeight : 0;
+      if (composerShiftRef.current === nextShift) return;
+      composerShiftRef.current = nextShift;
+      composer.style.transform = nextShift ? `translateY(-${nextShift}px)` : 'translateY(0)';
+    };
+
+    updateComposerShift();
+    viewport.addEventListener('resize', updateComposerShift);
+    viewport.addEventListener('scroll', updateComposerShift);
+    return () => {
+      viewport.removeEventListener('resize', updateComposerShift);
+      viewport.removeEventListener('scroll', updateComposerShift);
+    };
+  }, []);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isMobile && preventMobileSubmitRef.current) {
@@ -388,7 +413,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   return (
     <div
-      className="flex h-full flex-col overflow-hidden bg-[#f7f7f7]"
+      className="relative flex min-h-[100svh] w-full flex-col overflow-hidden bg-[#f7f7f7]"
       style={{ '--app-header-height': '64px' } as CSSProperties}
     >
       <header className="fixed top-0 left-1/2 z-10 flex h-16 w-full max-w-[600px] -translate-x-1/2 items-center bg-white px-4">
@@ -450,7 +475,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
             void loadMoreMessages();
           }
         }}
-        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pt-[calc(var(--app-header-height)+16px)]"
+        className="flex flex-1 min-h-0 flex-col gap-3 overflow-y-auto px-4 pt-[calc(var(--app-header-height)+16px)]"
         style={{ paddingBottom: composerHeight + 12 }}
       >
         {historyLoading && messages.length === 0 ? (
@@ -521,7 +546,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       <form
         ref={composerRef}
         onSubmit={handleSubmit}
-        className="fixed bottom-0 left-1/2 flex w-full max-w-[600px] -translate-x-1/2 items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
+        className="absolute bottom-0 left-1/2 flex w-full max-w-[600px] -translate-x-1/2 items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
       >
         <textarea
           ref={inputRef}
@@ -529,8 +554,12 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           rows={1}
           onChange={handleDraftChange}
           onFocus={() => {
+            isComposerFocusedRef.current = true;
             resizeInput();
             inputRef.current?.focus({ preventScroll: true });
+          }}
+          onBlur={() => {
+            isComposerFocusedRef.current = false;
           }}
           onCompositionStart={() => {
             isComposingRef.current = true;
@@ -556,7 +585,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           enterKeyHint="enter"
           placeholder="메시지를 입력하세요"
           disabled={chatStatus === 'CLOSED'}
-          className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-1.5 text-[16px] leading-5 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 overflow-y-hidden"
+          className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-[16px] leading-5 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 overflow-y-hidden"
         />
         <button
           type="submit"

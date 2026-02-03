@@ -38,7 +38,7 @@ export default function RecruitmentLinksTicker() {
   const current = LINKS[index];
 
   return (
-    <div className="rounded-2xl bg-white px-4 pt-2 pb-4">
+    <div className="mt-4 rounded-2xl bg-white px-4 pt-2 pb-4">
       <p className="text-sm font-semibold text-neutral-900">채용공고 사이트</p>
       <div
         className={`mt-2 flex flex-col gap-2 transition duration-300 ${
