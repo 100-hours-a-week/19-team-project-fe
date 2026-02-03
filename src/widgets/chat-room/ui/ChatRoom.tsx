@@ -98,6 +98,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
+  const maxInputHeight = 160;
 
   const handleInvalidAccess = useCallback(
     (error: unknown): boolean => {
@@ -245,6 +246,15 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     return () => cancelAnimationFrame(raf);
   }, [messages.length, scrollToBottom]);
 
+  const resizeInput = useCallback(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.style.height = '0px';
+    const nextHeight = Math.min(input.scrollHeight, maxInputHeight);
+    input.style.height = `${nextHeight}px`;
+    input.style.overflowY = input.scrollHeight > maxInputHeight ? 'auto' : 'hidden';
+  }, [maxInputHeight]);
+
   useLayoutEffect(() => {
     const composer = composerRef.current;
     if (!composer) return;
@@ -279,12 +289,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   const handleDraftChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDraft(event.target.value);
-    if (inputRef.current) {
-      inputRef.current.style.height = '0px';
-      const nextHeight = Math.min(inputRef.current.scrollHeight, 160);
-      inputRef.current.style.height = `${nextHeight}px`;
-      inputRef.current.style.overflowY = inputRef.current.scrollHeight > 160 ? 'auto' : 'hidden';
-    }
+    resizeInput();
   };
 
   return (
@@ -401,6 +406,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           value={draft}
           rows={1}
           onChange={handleDraftChange}
+          onFocus={() => {
+            resizeInput();
+          }}
           onCompositionStart={() => {
             isComposingRef.current = true;
           }}
