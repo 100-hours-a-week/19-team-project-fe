@@ -41,9 +41,9 @@ export async function PATCH(req: Request, context?: { params?: { chatId?: string
       return NextResponse.json(response, { status: 400 });
     }
     const rawLastMessageId = payload?.last_message_id;
-    const lastMessageId =
+    const parsedLastMessageId =
       typeof rawLastMessageId === 'string' ? Number(rawLastMessageId) : rawLastMessageId;
-    if (!Number.isFinite(lastMessageId)) {
+    if (!Number.isFinite(parsedLastMessageId)) {
       const response: ApiResponse<null> = {
         code: 'INVALID_REQUEST',
         message: '요청이 올바르지 않습니다.',
@@ -51,6 +51,7 @@ export async function PATCH(req: Request, context?: { params?: { chatId?: string
       };
       return NextResponse.json(response, { status: 400 });
     }
+    const lastMessageId = parsedLastMessageId as number;
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
