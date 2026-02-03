@@ -130,6 +130,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const preventMobileSubmitRef = useRef(false);
   const skipAutoScrollRef = useRef(false);
   const appFrameRef = useRef<HTMLElement | null>(null);
+  const composerShiftRef = useRef(0);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -335,6 +336,29 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     return () => observer.disconnect();
   }, [scrollToBottom]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const viewport = window.visualViewport;
+    const composer = composerRef.current;
+    if (!viewport || !composer) return;
+
+    const updateComposerShift = () => {
+      const keyboardHeight = window.innerHeight - viewport.height - viewport.offsetTop;
+      const nextShift = keyboardHeight > 0 ? keyboardHeight : 0;
+      if (composerShiftRef.current === nextShift) return;
+      composerShiftRef.current = nextShift;
+      composer.style.transform = nextShift ? `translateY(-${nextShift}px)` : 'translateY(0)';
+    };
+
+    updateComposerShift();
+    viewport.addEventListener('resize', updateComposerShift);
+    viewport.addEventListener('scroll', updateComposerShift);
+    return () => {
+      viewport.removeEventListener('resize', updateComposerShift);
+      viewport.removeEventListener('scroll', updateComposerShift);
+    };
+  }, []);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isMobile && preventMobileSubmitRef.current) {
@@ -388,7 +412,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   return (
     <div
-      className="flex h-full flex-col overflow-hidden bg-[#f7f7f7]"
+      className="relative flex h-full w-full flex-col overflow-hidden bg-[#f7f7f7]"
       style={{ '--app-header-height': '64px' } as CSSProperties}
     >
       <header className="fixed top-0 left-1/2 z-10 flex h-16 w-full max-w-[600px] -translate-x-1/2 items-center bg-white px-4">
@@ -521,7 +545,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       <form
         ref={composerRef}
         onSubmit={handleSubmit}
-        className="fixed bottom-0 left-1/2 flex w-full max-w-[600px] -translate-x-1/2 items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
+        className="absolute bottom-0 left-1/2 flex w-full max-w-[600px] -translate-x-1/2 items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
       >
         <textarea
           ref={inputRef}
