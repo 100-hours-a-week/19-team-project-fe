@@ -20,10 +20,10 @@ export default function ChatStack({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="onboarding-stack min-h-[100dvh]">
+    <div className="onboarding-stack h-full w-full">
       <div
         key={pathname}
-        className={`onboarding-stack__screen ${
+        className={`onboarding-stack__screen h-full ${
           direction === 'forward'
             ? 'onboarding-stack__screen--forward'
             : 'onboarding-stack__screen--back'

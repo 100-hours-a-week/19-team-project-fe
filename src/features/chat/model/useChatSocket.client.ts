@@ -70,22 +70,21 @@ export function useChatSocket(
             return sortMessagesByTime([...prev, message]);
           });
 
-          const messageId =
-            typeof message.message_id === 'string'
-              ? Number(message.message_id)
-              : message.message_id;
+          const messageSeqRaw = message.room_sequence ?? message.message_id;
+          const messageSeq =
+            typeof messageSeqRaw === 'string' ? Number(messageSeqRaw) : messageSeqRaw;
           if (
             currentUserId !== null &&
             message.sender.user_id !== currentUserId &&
-            Number.isFinite(messageId)
+            Number.isFinite(messageSeq)
           ) {
-            pendingReadIdRef.current = messageId;
+            pendingReadIdRef.current = messageSeq;
             if (readTimerRef.current) return;
             readTimerRef.current = setTimeout(() => {
               readTimerRef.current = null;
               const pendingId = pendingReadIdRef.current;
               if (!pendingId || pendingId === lastSentReadIdRef.current) return;
-              updateChatLastRead({ chatId, last_message_id: pendingId })
+              updateChatLastRead({ chatId, last_read_seq: pendingId })
                 .then(() => {
                   lastSentReadIdRef.current = pendingId;
                 })
@@ -123,7 +122,7 @@ export function useChatSocket(
       }
       const pendingId = pendingReadIdRef.current;
       if (pendingId && pendingId !== lastSentReadIdRef.current) {
-        updateChatLastRead({ chatId, last_message_id: pendingId })
+        updateChatLastRead({ chatId, last_read_seq: pendingId })
           .then(() => {
             lastSentReadIdRef.current = pendingId;
           })
