@@ -35,7 +35,7 @@ export async function GET(req: Request, context: { params: Params }) {
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
-    const data = await getChatDetail({ chatId, accessToken, allowRefresh: false });
+    const data = await getChatDetail({ chatId, accessToken });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: '',
@@ -91,7 +91,7 @@ export async function PATCH(req: Request, context: { params: Params }) {
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
-    const data = await closeChat({ chatId, accessToken, allowRefresh: false });
+    const data = await closeChat({ chatId, accessToken });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: '',

@@ -19,7 +19,7 @@ export async function PATCH(req: Request) {
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
 
-    const data = await markChatRead(payload, accessToken, false);
+    const data = await markChatRead(payload, accessToken);
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: 'success',

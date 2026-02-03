@@ -41,7 +41,7 @@ export async function apiFetchWithRefresh<T>(
   allowRefresh: boolean = true,
 ): Promise<T> {
   const cookieStore = await cookies();
-  const token = accessToken ?? cookieStore.get('access_token')?.value;
+  let token = accessToken ?? cookieStore.get('access_token')?.value;
 
   if (!token) {
     throw new Error('UNAUTHORIZED');
@@ -68,10 +68,11 @@ export async function apiFetchWithRefresh<T>(
     if (!refreshed) {
       throw error;
     }
+    token = refreshed.accessToken;
 
     return apiFetch<T>(input, {
       ...init,
-      headers: withAuthorization(init?.headers, refreshed.accessToken),
+      headers: withAuthorization(init?.headers, token),
     });
   }
 }

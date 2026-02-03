@@ -18,7 +18,9 @@ export async function refreshAuthTokens(): Promise<boolean> {
       },
       retryOnUnauthorized: false,
       successCodes: ['CREATED'],
-    });
+    }).catch(() => null);
+
+    if (!data?.access_token) return false;
 
     setAuthCookies({
       accessToken: data.access_token,
