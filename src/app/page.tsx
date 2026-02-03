@@ -29,7 +29,7 @@ export default function Home() {
               <div className="px-2.5 pt-6 text-text-body">
                 <div className="flex items-center">
                   <Image src={iconMarkB} alt="" width={22} height={22} />
-                  <p className="text-2xl font-bold">re:fit에 오신 걸 환영합니다.</p>
+                  <p className="text-2xl font-bold">RE:FIT에 오신 걸 환영합니다.</p>
                 </div>
               </div>
 

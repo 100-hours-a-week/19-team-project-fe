@@ -16,11 +16,28 @@ type KakaoLoginResult =
         email: string | null;
         nickname: string | null;
       };
+    }
+  | {
+      status: 'ACCOUNT_CHOICE_REQUIRED';
+      signup_required: {
+        oauth_provider: 'KAKAO';
+        oauth_id: string;
+        email: string | null;
+        nickname: string | null;
+      } | null;
+      restore_required: {
+        oauth_provider: 'KAKAO';
+        oauth_id: string;
+        email: string | null;
+        nickname: string | null;
+        email_conflict?: boolean;
+        nickname_conflict?: boolean;
+      };
     };
 
 export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
   const data = await apiFetch<{
-    status: 'LOGIN_SUCCESS' | 'SIGNUP_REQUIRED';
+    status: 'LOGIN_SUCCESS' | 'SIGNUP_REQUIRED' | 'ACCOUNT_CHOICE_REQUIRED';
     login_success: {
       user_id: number;
       user_type: string;
@@ -33,6 +50,14 @@ export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
       email: string | null;
       nickname: string | null;
     } | null;
+    restore_required: {
+      oauth_provider: 'KAKAO';
+      oauth_id: string;
+      email: string | null;
+      nickname: string | null;
+      email_conflict?: boolean;
+      nickname_conflict?: boolean;
+    } | null;
   }>('/bff/auth/kakao/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -43,6 +68,14 @@ export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
     return {
       status: 'SIGNUP_REQUIRED',
       signup_required: data.signup_required,
+    };
+  }
+
+  if (data.status === 'ACCOUNT_CHOICE_REQUIRED' && data.restore_required) {
+    return {
+      status: 'ACCOUNT_CHOICE_REQUIRED',
+      signup_required: data.signup_required ?? null,
+      restore_required: data.restore_required,
     };
   }
 

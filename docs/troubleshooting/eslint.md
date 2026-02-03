@@ -1242,3 +1242,39 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-03 Raw Log
+
+- Logged at: 2026-02-03 13:52:46Z
+
+```
+> re-fit@1.0.9 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/auth/server/restoreAccount.server.ts
+  1:1  error  '@/shared/api/server/authApi.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 1 problem (1 error, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-03 Raw Log
+
+- Logged at: 2026-02-03 13:53:22Z
+
+```
+> re-fit@1.0.9 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/auth/server/restoreAccount.server.ts
+  1:1  error  '@/shared/api/server/authApi.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 1 problem (1 error, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

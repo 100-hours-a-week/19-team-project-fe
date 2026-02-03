@@ -31,6 +31,38 @@ export async function POST(req: Request) {
     return NextResponse.json(response);
   }
 
+  if (result.status === 'ACCOUNT_CHOICE_REQUIRED') {
+    const response: ApiResponse<{
+      status: 'ACCOUNT_CHOICE_REQUIRED';
+      login_success: null;
+      signup_required: {
+        oauth_provider: 'KAKAO';
+        oauth_id: string;
+        email: string | null;
+        nickname: string | null;
+      } | null;
+      restore_required: {
+        oauth_provider: 'KAKAO';
+        oauth_id: string;
+        email: string | null;
+        nickname: string | null;
+        email_conflict?: boolean;
+        nickname_conflict?: boolean;
+      };
+    }> = {
+      code: 'OK',
+      message: '',
+      data: {
+        status: 'ACCOUNT_CHOICE_REQUIRED',
+        login_success: null,
+        signup_required: result.signupRequired ?? null,
+        restore_required: result.restoreRequired,
+      },
+    };
+
+    return NextResponse.json(response);
+  }
+
   const response: ApiResponse<{
     status: 'LOGIN_SUCCESS';
     login_success: {
