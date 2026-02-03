@@ -85,7 +85,9 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const composerRef = useRef<HTMLFormElement | null>(null);
   const isComposingRef = useRef(false);
+  const [composerHeight, setComposerHeight] = useState(72);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const { messages, setMessages, error: historyError } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
@@ -229,17 +231,35 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   /**
    * 최신 메시지 위치로 포커스
    */
+  const scrollToBottom = useCallback(() => {
+    const container = listRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+      return;
+    }
+    bottomRef.current?.scrollIntoView({ block: 'end' });
+  }, []);
+
   useLayoutEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      const container = listRef.current;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-        return;
-      }
-      bottomRef.current?.scrollIntoView({ block: 'end' });
-    });
+    const raf = requestAnimationFrame(scrollToBottom);
     return () => cancelAnimationFrame(raf);
-  }, [messages.length]);
+  }, [messages.length, scrollToBottom]);
+
+  useLayoutEffect(() => {
+    const composer = composerRef.current;
+    if (!composer) return;
+    const updateHeight = () => {
+      setComposerHeight(composer.offsetHeight);
+      requestAnimationFrame(scrollToBottom);
+    };
+    updateHeight();
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const observer = new ResizeObserver(() => updateHeight());
+    observer.observe(composer);
+    return () => observer.disconnect();
+  }, []);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -324,7 +344,8 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
       <div
         ref={listRef}
-        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-[72px] pt-[calc(var(--app-header-height)+16px)]"
+        className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pt-[calc(var(--app-header-height)+16px)]"
+        style={{ paddingBottom: composerHeight + 12 }}
       >
         {chatStatus === 'CLOSED' ? (
           <div className="rounded-2xl bg-white px-4 py-3 text-center text-sm text-neutral-600 shadow-sm">
@@ -371,6 +392,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       </div>
 
       <form
+        ref={composerRef}
         onSubmit={handleSubmit}
         className="fixed bottom-0 left-1/2 flex w-full max-w-[600px] -translate-x-1/2 items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
       >
