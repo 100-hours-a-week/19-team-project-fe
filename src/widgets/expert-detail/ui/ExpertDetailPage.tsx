@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
@@ -12,6 +12,7 @@ import { BusinessError, HttpError, useCommonApiErrorHandler } from '@/shared/api
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
+import { useToast } from '@/shared/ui/toast';
 import defaultUserImage from '@/shared/icons/char_icon.png';
 import iconMark from '@/shared/icons/icon-mark.png';
 import ExpertDetailHeader from './ExpertDetailHeader';
@@ -34,6 +35,16 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const [jobPostUrl, setJobPostUrl] = useState('');
   const handleCommonApiError = useCommonApiErrorHandler();
   const { status: authStatus } = useAuthGate(getMe);
+  const { pushToast } = useToast();
+  const isJobPostOverLimit = jobPostUrl.trim().length > 500;
+  const wasJobPostOverLimit = useRef(false);
+
+  useEffect(() => {
+    if (isJobPostOverLimit && !wasJobPostOverLimit.current) {
+      pushToast('공고 링크는 최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
+    }
+    wasJobPostOverLimit.current = isJobPostOverLimit;
+  }, [isJobPostOverLimit, pushToast]);
 
   useEffect(() => {
     let isMounted = true;
@@ -107,6 +118,10 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
 
   const handleChatRequestClick = async () => {
     if (isCheckingAuth) return;
+    if (isJobPostOverLimit) {
+      pushToast('공고 링크는 최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
+      return;
+    }
     setIsCheckingAuth(true);
     try {
       const auth = await getMe();
@@ -300,7 +315,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         <Button
           type="button"
           onClick={handleChatRequestClick}
-          disabled={isCheckingAuth || !expert}
+          disabled={isCheckingAuth || !expert || isJobPostOverLimit}
           icon={<Image src={iconMark} alt="" width={18} height={18} />}
         >
           채팅 요청하기
