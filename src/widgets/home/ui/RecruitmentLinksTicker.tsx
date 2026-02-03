@@ -38,10 +38,10 @@ export default function RecruitmentLinksTicker() {
   const current = LINKS[index];
 
   return (
-    <div className="rounded-2xl bg-white px-4 py-4">
+    <div className="rounded-2xl bg-white px-4 pt-2 pb-4">
       <p className="text-sm font-semibold text-neutral-900">채용공고 사이트</p>
       <div
-        className={`mt-3 flex flex-col gap-2 transition duration-300 ${
+        className={`mt-2 flex flex-col gap-2 transition duration-300 ${
           visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'
         }`}
       >
