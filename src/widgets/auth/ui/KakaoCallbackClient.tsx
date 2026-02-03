@@ -53,6 +53,18 @@ export default function KakaoCallbackClient() {
           return;
         }
 
+        if (result.status === 'ACCOUNT_CHOICE_REQUIRED') {
+          sessionStorage.setItem(
+            'kakaoRestoreRequired',
+            JSON.stringify({
+              restore_required: result.restore_required,
+              signup_required: result.signup_required ?? null,
+            }),
+          );
+          router.replace('/login?account_choice=1');
+          return;
+        }
+
         setAuthCookies({
           accessToken: result.accessToken,
           refreshToken: result.refreshToken,

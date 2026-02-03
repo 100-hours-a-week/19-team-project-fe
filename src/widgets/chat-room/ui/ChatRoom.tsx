@@ -388,7 +388,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   return (
     <div
-      className="flex h-[100dvh] flex-col overflow-hidden bg-[#f7f7f7]"
+      className="flex h-full flex-col overflow-hidden bg-[#f7f7f7]"
       style={{ '--app-header-height': '64px' } as CSSProperties}
     >
       <header className="fixed top-0 left-1/2 z-10 flex h-16 w-full max-w-[600px] -translate-x-1/2 items-center bg-white px-4">

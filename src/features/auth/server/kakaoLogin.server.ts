@@ -18,7 +18,28 @@ type KakaoSignupRequiredResult = {
   };
 };
 
-type KakaoLoginResult = KakaoLoginSuccessResult | KakaoSignupRequiredResult;
+type KakaoAccountChoiceRequiredResult = {
+  status: 'ACCOUNT_CHOICE_REQUIRED';
+  signupRequired?: {
+    oauth_provider: 'KAKAO';
+    oauth_id: string;
+    email: string | null;
+    nickname: string | null;
+  } | null;
+  restoreRequired: {
+    oauth_provider: 'KAKAO';
+    oauth_id: string;
+    email: string | null;
+    nickname: string | null;
+    email_conflict?: boolean;
+    nickname_conflict?: boolean;
+  };
+};
+
+type KakaoLoginResult =
+  | KakaoLoginSuccessResult
+  | KakaoSignupRequiredResult
+  | KakaoAccountChoiceRequiredResult;
 
 export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
   const response = await loginWithKakao(code);
@@ -27,6 +48,14 @@ export async function kakaoLogin(code: string): Promise<KakaoLoginResult> {
     return {
       status: 'SIGNUP_REQUIRED',
       signupRequired: response.signup_required,
+    };
+  }
+
+  if (response.status === 'ACCOUNT_CHOICE_REQUIRED' && response.restore_required) {
+    return {
+      status: 'ACCOUNT_CHOICE_REQUIRED',
+      signupRequired: response.signup_required ?? null,
+      restoreRequired: response.restore_required,
     };
   }
 

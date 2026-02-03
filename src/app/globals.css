@@ -280,9 +280,17 @@ body.chat-room-locked {
   overflow: hidden;
 }
 
+@supports (height: 100svh) {
+  .app-frame.chat-room-locked {
+    height: 100svh;
+  }
+}
+
 .app-frame {
-  min-height: 100dvh;
+  height: 100dvh;
   width: min(100%, 600px);
   background: #ffffff;
   position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
