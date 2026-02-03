@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { ChatMessageItem } from '@/entities/chat';
-import { readAccessToken } from '@/shared/api';
+import { readAccessToken, refreshAuthTokens } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 
 import { markChatRead } from '../api/markChatRead';
@@ -22,6 +22,7 @@ export function useChatSocket(
   );
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refreshedOnFailRef = useRef(false);
 
   useEffect(() => {
     if (!chatId) return;
@@ -31,7 +32,13 @@ export function useChatSocket(
     const connect = async () => {
       try {
         setStatus('connecting');
-        const token = readAccessToken();
+        let token = readAccessToken();
+        if (!token) {
+          const refreshed = await refreshAuthTokens().catch(() => false);
+          if (refreshed) {
+            token = readAccessToken();
+          }
+        }
         await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!, {
           connectHeaders: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
@@ -68,6 +75,14 @@ export function useChatSocket(
         });
       } catch {
         if (cancelled) return;
+        if (!refreshedOnFailRef.current) {
+          const refreshed = await refreshAuthTokens().catch(() => false);
+          refreshedOnFailRef.current = refreshed;
+          if (refreshed && !cancelled) {
+            retryTimerRef.current = setTimeout(connect, 0);
+            return;
+          }
+        }
         setStatus('disconnected');
         const delay = Math.min(1000 * 2 ** retryCountRef.current, 10_000);
         retryCountRef.current += 1;
@@ -82,6 +97,7 @@ export function useChatSocket(
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current);
       }
+      refreshedOnFailRef.current = false;
       unsubscribe?.();
       setStatus('disconnected');
     };
