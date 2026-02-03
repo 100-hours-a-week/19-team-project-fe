@@ -413,10 +413,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   return (
     <div
-      className="relative flex min-h-[100svh] w-full flex-col overflow-hidden bg-[#f7f7f7]"
+      className="relative flex h-full w-full flex-col overflow-hidden bg-[#f7f7f7]"
       style={{ '--app-header-height': '64px' } as CSSProperties}
     >
-      <header className="fixed top-0 left-1/2 z-10 flex h-16 w-full max-w-[600px] -translate-x-1/2 items-center bg-white px-4">
+      <header className="absolute top-0 left-0 right-0 z-10 flex h-16 w-full items-center bg-white px-4">
         <button
           type="button"
           onClick={() => {
@@ -546,7 +546,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       <form
         ref={composerRef}
         onSubmit={handleSubmit}
-        className="absolute bottom-0 left-1/2 flex w-full max-w-[600px] -translate-x-1/2 items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
+        className="absolute bottom-0 left-0 right-0 flex w-full max-w-none items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
       >
         <textarea
           ref={inputRef}

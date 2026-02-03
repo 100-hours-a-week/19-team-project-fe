@@ -36,14 +36,21 @@ export async function PATCH(
     if (process.env.NODE_ENV !== 'production') {
       console.info('[ChatLastRead BFF] raw body', rawBody);
     }
-    let payload: { last_message_id?: number | string } | null = null;
+    let payload: { last_read_seq?: number | string; last_message_id?: number | string } | null =
+      null;
     if (rawBody) {
       try {
         const parsed = JSON.parse(rawBody) as unknown;
         if (typeof parsed === 'string') {
-          payload = JSON.parse(parsed) as { last_message_id?: number | string };
+          payload = JSON.parse(parsed) as {
+            last_read_seq?: number | string;
+            last_message_id?: number | string;
+          };
         } else {
-          payload = parsed as { last_message_id?: number | string };
+          payload = parsed as {
+            last_read_seq?: number | string;
+            last_message_id?: number | string;
+          };
         }
       } catch (parseError) {
         if (process.env.NODE_ENV !== 'production') {
@@ -52,17 +59,19 @@ export async function PATCH(
           });
         }
         const params = new URLSearchParams(rawBody);
-        const paramValue = params.get('last_message_id');
+        const paramValue = params.get('last_read_seq') ?? params.get('last_message_id');
         if (paramValue !== null) {
-          payload = { last_message_id: paramValue };
+          payload = { last_read_seq: paramValue };
         } else {
           const trimmed = rawBody.trim();
           const match =
+            trimmed.match(/last_read_seq\s*[:=]\s*(\d+)/i) ??
+            trimmed.match(/"last_read_seq"\s*:\s*"?(\d+)"?/i) ??
             trimmed.match(/last_message_id\s*[:=]\s*(\d+)/i) ??
             trimmed.match(/"last_message_id"\s*:\s*"?(\d+)"?/i) ??
             trimmed.match(/lastMessageId\s*[:=]\s*(\d+)/i);
           if (match?.[1]) {
-            payload = { last_message_id: match[1] };
+            payload = { last_read_seq: match[1] };
           } else {
             const response: ApiResponse<null> = {
               code: 'INVALID_JSON_REQUEST',
@@ -74,10 +83,10 @@ export async function PATCH(
         }
       }
     }
-    const rawLastMessageId = payload?.last_message_id;
-    const parsedLastMessageId =
-      typeof rawLastMessageId === 'string' ? Number(rawLastMessageId) : rawLastMessageId;
-    if (!Number.isFinite(parsedLastMessageId)) {
+    const rawLastReadSeq = payload?.last_read_seq ?? payload?.last_message_id;
+    const parsedLastReadSeq =
+      typeof rawLastReadSeq === 'string' ? Number(rawLastReadSeq) : rawLastReadSeq;
+    if (!Number.isFinite(parsedLastReadSeq)) {
       const response: ApiResponse<null> = {
         code: 'INVALID_REQUEST',
         message: '요청이 올바르지 않습니다.',
@@ -85,13 +94,13 @@ export async function PATCH(
       };
       return NextResponse.json(response, { status: 400 });
     }
-    const lastMessageId = parsedLastMessageId as number;
+    const lastReadSeq = parsedLastReadSeq as number;
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
 
     const data = await updateChatLastRead(
-      { chatId, last_message_id: lastMessageId },
+      { chatId, last_read_seq: lastReadSeq },
       accessToken,
       false,
     );

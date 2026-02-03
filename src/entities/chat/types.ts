@@ -69,6 +69,7 @@ export interface ChatListData {
 export interface ChatMessageItem {
   message_id: number;
   chat_id: number;
+  room_sequence?: number;
   sender: ChatParticipant;
   message_type: ChatMessageType;
   content: string;

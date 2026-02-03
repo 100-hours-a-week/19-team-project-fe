@@ -4,7 +4,7 @@ const CHAT_LAST_READ_PATH = '/bff/chat';
 
 export interface UpdateChatLastReadRequest {
   chatId: number;
-  last_message_id: number;
+  last_read_seq: number;
 }
 
 export async function updateChatLastRead(payload: UpdateChatLastReadRequest): Promise<null> {
@@ -15,6 +15,6 @@ export async function updateChatLastRead(payload: UpdateChatLastReadRequest): Pr
       'Content-Type': 'application/json',
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     },
-    body: JSON.stringify({ last_message_id: payload.last_message_id }),
+    body: JSON.stringify({ last_read_seq: payload.last_read_seq }),
   });
 }

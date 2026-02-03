@@ -5,7 +5,7 @@ const CHAT_LAST_READ_PATH = '/api/v1/chats';
 
 export interface UpdateChatLastReadRequest {
   chatId: number;
-  last_message_id: number;
+  last_read_seq: number;
 }
 
 export async function updateChatLastRead(
@@ -16,7 +16,7 @@ export async function updateChatLastRead(
   const url = buildApiUrl(`${CHAT_LAST_READ_PATH}/${payload.chatId}/last-read-message`);
   if (process.env.NODE_ENV !== 'production') {
     console.info('[ChatLastRead] PATCH', url, {
-      last_message_id: payload.last_message_id,
+      last_read_seq: payload.last_read_seq,
     });
   }
 
@@ -26,7 +26,7 @@ export async function updateChatLastRead(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      last_message_id: payload.last_message_id,
+      last_read_seq: payload.last_read_seq,
     }),
   };
 
@@ -38,9 +38,9 @@ export async function updateChatLastRead(
     }
 
     const fallbackUrl = new URL(url);
-    fallbackUrl.searchParams.set('last_message_id', String(payload.last_message_id));
+    fallbackUrl.searchParams.set('last_read_seq', String(payload.last_read_seq));
     const formBody = new URLSearchParams({
-      last_message_id: String(payload.last_message_id),
+      last_read_seq: String(payload.last_read_seq),
     });
 
     if (process.env.NODE_ENV !== 'production') {

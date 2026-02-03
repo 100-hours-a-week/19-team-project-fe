@@ -160,7 +160,7 @@ export default function ChatList() {
     const intervalId = window.setInterval(() => {
       if (document.visibilityState !== 'visible') return;
       void fetchChats(false, false);
-    }, 10_000);
+    }, 1_000);
 
     window.addEventListener('focus', handleRefresh);
     document.addEventListener('visibilitychange', handleRefresh);
