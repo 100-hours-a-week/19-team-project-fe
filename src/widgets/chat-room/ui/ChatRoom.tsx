@@ -503,7 +503,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       <form
         ref={composerRef}
         onSubmit={handleSubmit}
-        className="absolute bottom-0 left-0 right-0 flex w-full max-w-none items-end gap-2 bg-[#f7f7f7] px-4 pb-[calc(6px+env(safe-area-inset-bottom))] pt-3"
+        className="absolute bottom-0 left-0 right-0 flex w-full max-w-none items-end gap-2 bg-[#f7f7f7] px-4 pb-0 pt-3"
       >
         <textarea
           ref={inputRef}
