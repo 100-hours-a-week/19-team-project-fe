@@ -120,6 +120,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       try {
         const me = await getUserMe();
         if (cancelled) return;
+        if (!me) {
+          setCurrentUserId(null);
+          return;
+        }
         setCurrentUserId(Number.isFinite(me.id) ? me.id : null);
       } catch (error) {
         if (cancelled) return;

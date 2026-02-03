@@ -93,7 +93,7 @@ export default function ChatList() {
       try {
         const [userResult, chatResult] = await Promise.allSettled([getUserMe(), getChatList()]);
         if (cancelled) return;
-        if (userResult.status === 'fulfilled') {
+        if (userResult.status === 'fulfilled' && userResult.value) {
           setCurrentUser(userResult.value);
         } else {
           setCurrentUser(null);

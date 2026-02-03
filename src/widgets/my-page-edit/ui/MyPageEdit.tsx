@@ -172,6 +172,10 @@ export default function MyPageEdit() {
     getUserMe()
       .then((data) => {
         if (!mounted) return;
+        if (!data) {
+          router.replace('/me');
+          return;
+        }
         setNickname(data.nickname ?? '');
         setInitialNickname(data.nickname ?? '');
         setIntroduction(data.introduction ?? '');
@@ -194,7 +198,7 @@ export default function MyPageEdit() {
     return () => {
       mounted = false;
     };
-  }, [authStatus, handleCommonApiError]);
+  }, [authStatus, handleCommonApiError, router]);
 
   useEffect(() => {
     const trimmed = nickname.trim();
