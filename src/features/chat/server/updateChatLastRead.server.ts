@@ -24,7 +24,6 @@ export async function updateChatLastRead(
       },
       body: JSON.stringify({
         last_message_id: payload.last_message_id,
-        chat_id: payload.chatId,
       }),
     },
     accessTokenOverride,

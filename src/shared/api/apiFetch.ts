@@ -30,6 +30,37 @@ function refreshInitWithLatestToken(init?: ApiFetchOptions): ApiFetchOptions | u
   return { ...init, headers };
 }
 
+function normalizeJsonBody(init?: ApiFetchOptions): ApiFetchOptions | undefined {
+  if (!init) return init;
+  const body = init.body;
+  if (!body || typeof body !== 'object') return init;
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const isSearchParams = typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams;
+  const isBlob = typeof Blob !== 'undefined' && body instanceof Blob;
+  const isArrayBuffer = typeof ArrayBuffer !== 'undefined' && body instanceof ArrayBuffer;
+  const isArrayBufferView = typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(body);
+  const isReadableStream =
+    typeof ReadableStream !== 'undefined' && body instanceof ReadableStream;
+
+  if (isFormData || isSearchParams || isBlob || isArrayBuffer || isArrayBufferView || isReadableStream) {
+    return init;
+  }
+
+  const headers = new Headers(init.headers);
+  const contentType = headers.get('Content-Type') ?? headers.get('content-type');
+  if (!contentType) {
+    headers.set('Content-Type', 'application/json');
+  } else if (!contentType.includes('application/json')) {
+    return init;
+  }
+
+  return {
+    ...init,
+    headers,
+    body: JSON.stringify(body),
+  };
+}
+
 async function tryRefreshAuthTokens(): Promise<boolean> {
   if (!isBrowser()) return false;
   try {
@@ -46,9 +77,10 @@ export async function apiFetch<T>(input: RequestInfo, init?: ApiFetchOptions): P
     retryOnUnauthorized = true,
     ...fetchInit
   } = init ?? {};
+  const normalizedInit = normalizeJsonBody(fetchInit);
   const res = await fetch(input, {
     credentials: 'include',
-    ...fetchInit,
+    ...(normalizedInit ?? fetchInit),
   });
 
   if (res.status === 401 && retryOnUnauthorized) {
