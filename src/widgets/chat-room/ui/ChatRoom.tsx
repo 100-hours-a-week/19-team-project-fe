@@ -124,10 +124,14 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
   const didRetryUserRef = useRef(false);
+  const maxInputHeight = 160;
   const isMobile =
     typeof navigator !== 'undefined' && /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+  const preventMobileSubmitRef = useRef(false);
   const skipAutoScrollRef = useRef(false);
   const appFrameRef = useRef<HTMLElement | null>(null);
+  const composerShiftRef = useRef(0);
+  const isComposerFocusedRef = useRef(false);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -312,17 +316,56 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     const input = inputRef.current;
     if (!input) return;
     input.style.height = '0px';
-    const nextHeight = Math.min(input.scrollHeight, 160);
+    const nextHeight = Math.min(input.scrollHeight, maxInputHeight);
     input.style.height = `${nextHeight}px`;
-    input.style.overflowY = input.scrollHeight > 160 ? 'auto' : 'hidden';
+    input.style.overflowY = input.scrollHeight > maxInputHeight ? 'auto' : 'hidden';
+  }, [maxInputHeight]);
+
+  useLayoutEffect(() => {
     const composer = composerRef.current;
-    if (composer) {
+    if (!composer) return;
+    const updateHeight = () => {
       setComposerHeight(composer.offsetHeight);
+      requestAnimationFrame(scrollToBottom);
+    };
+    updateHeight();
+    if (typeof ResizeObserver === 'undefined') {
+      return;
     }
+    const observer = new ResizeObserver(() => updateHeight());
+    observer.observe(composer);
+    return () => observer.disconnect();
+  }, [scrollToBottom]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const viewport = window.visualViewport;
+    const composer = composerRef.current;
+    if (!viewport || !composer) return;
+
+    const updateComposerShift = () => {
+      const keyboardHeight = Math.max(0, window.innerHeight - viewport.height);
+      const nextShift = isComposerFocusedRef.current ? keyboardHeight : 0;
+      if (composerShiftRef.current === nextShift) return;
+      composerShiftRef.current = nextShift;
+      composer.style.transform = nextShift ? `translateY(-${nextShift}px)` : 'translateY(0)';
+    };
+
+    updateComposerShift();
+    viewport.addEventListener('resize', updateComposerShift);
+    viewport.addEventListener('scroll', updateComposerShift);
+    return () => {
+      viewport.removeEventListener('resize', updateComposerShift);
+      viewport.removeEventListener('scroll', updateComposerShift);
+    };
   }, []);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isMobile && preventMobileSubmitRef.current) {
+      preventMobileSubmitRef.current = false;
+      return;
+    }
     if (isBlankDraft) return;
     if (isOverLimit) {
       pushToast('최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
@@ -373,7 +416,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       className="relative flex h-full w-full flex-col overflow-hidden bg-[#f7f7f7]"
       style={{ '--app-header-height': '64px' } as CSSProperties}
     >
-      <header className="absolute top-0 left-0 right-0 z-10 flex h-16 w-full items-center bg-white px-4">
+      <header className="sticky top-0 z-10 flex h-16 w-full items-center bg-white px-4">
         <button
           type="button"
           onClick={() => {
@@ -503,7 +546,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       <form
         ref={composerRef}
         onSubmit={handleSubmit}
-        className="absolute bottom-0 left-0 right-0 flex w-full max-w-none items-end gap-2 bg-[#f7f7f7] px-4 pb-0 pt-3"
+        className="sticky bottom-4 z-10 flex w-full max-w-none items-end gap-2 bg-[#f7f7f7] px-4 pb-0 pt-3"
       >
         <textarea
           ref={inputRef}
@@ -511,8 +554,12 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           rows={1}
           onChange={handleDraftChange}
           onFocus={() => {
+            isComposerFocusedRef.current = true;
             resizeInput();
             inputRef.current?.focus({ preventScroll: true });
+          }}
+          onBlur={() => {
+            isComposerFocusedRef.current = false;
           }}
           onCompositionStart={() => {
             isComposingRef.current = true;
@@ -525,7 +572,14 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
               return;
             }
             if (isMobile) {
+              if (event.key === 'Enter') {
+                preventMobileSubmitRef.current = true;
+              }
               return;
+            }
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              (event.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
             }
           }}
           enterKeyHint="enter"
