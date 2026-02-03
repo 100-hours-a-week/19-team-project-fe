@@ -21,6 +21,8 @@ export async function refreshAuthTokens(): Promise<{
     headers: {
       'Content-Type': 'application/json',
       'Refresh-Token': refreshToken,
+      // Some auth servers only read RT from cookies; include it explicitly.
+      Cookie: `refresh_token=${refreshToken}`,
     },
     body: JSON.stringify({ refresh_token: refreshToken }),
   });
