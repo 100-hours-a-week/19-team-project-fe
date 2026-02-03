@@ -12,10 +12,13 @@ function getAccessToken(req: Request, cookieToken?: string) {
   return rawToken?.trim() || cookieToken?.trim() || undefined;
 }
 
-export async function PATCH(req: Request, { params }: { params: { chatId: string } }) {
+export async function PATCH(req: Request, context?: { params?: { chatId?: string } }) {
   try {
-    const rawChatId = params?.chatId;
-    const chatId = Number(rawChatId);
+    const rawChatId = context?.params?.chatId;
+    const url = new URL(req.url);
+    const pathSegments = url.pathname.split('/').filter(Boolean);
+    const fallbackChatId = pathSegments.at(-2);
+    const chatId = Number(rawChatId ?? fallbackChatId);
     if (Number.isNaN(chatId)) {
       const response: ApiResponse<null> = {
         code: 'INVALID_REQUEST',
@@ -26,12 +29,23 @@ export async function PATCH(req: Request, { params }: { params: { chatId: string
     }
 
     const payload = await req.json();
+    const rawLastMessageId = payload?.last_message_id;
+    const lastMessageId =
+      typeof rawLastMessageId === 'string' ? Number(rawLastMessageId) : rawLastMessageId;
+    if (!Number.isFinite(lastMessageId)) {
+      const response: ApiResponse<null> = {
+        code: 'INVALID_REQUEST',
+        message: '요청이 올바르지 않습니다.',
+        data: null,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
 
     const data = await updateChatLastRead(
-      { chatId, last_message_id: payload?.last_message_id },
+      { chatId, last_message_id: lastMessageId },
       accessToken,
       false,
     );
