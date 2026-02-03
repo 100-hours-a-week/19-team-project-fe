@@ -49,15 +49,6 @@ const formatUnreadCount = (value?: number | null) => {
   return value > 99 ? '99+' : String(value);
 };
 
-const getLastMessageSenderId = (message?: ChatSummary['last_message'] | null) => {
-  if (!message) return null;
-  if (message.sender?.user_id) return message.sender.user_id;
-  const raw = message.sender_id ?? message.senderId ?? null;
-  if (raw === null || raw === undefined) return null;
-  const parsed = typeof raw === 'string' ? Number(raw) : raw;
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
 const getCounterparty = (chat: ChatSummary, currentUserId: number | null) => {
   if (currentUserId && chat.requester.user_id === currentUserId) {
     return chat.receiver;
@@ -66,6 +57,15 @@ const getCounterparty = (chat: ChatSummary, currentUserId: number | null) => {
     return chat.requester;
   }
   return chat.receiver;
+};
+
+const getChatSortKey = (chat: ChatSummary) => {
+  const lastMessageAt = chat.last_message?.last_message_at ?? null;
+  const updatedAt = chat.updated_at ?? null;
+  const raw = lastMessageAt ?? updatedAt ?? null;
+  if (!raw) return 0;
+  const parsed = new Date(raw.replace(' ', 'T')).getTime();
+  return Number.isNaN(parsed) ? 0 : parsed;
 };
 
 export default function ChatList() {
@@ -112,7 +112,8 @@ export default function ChatList() {
               chat_id: chatId,
             };
           })
-          .filter((chat): chat is ChatSummary => !!chat);
+          .filter((chat): chat is ChatSummary => !!chat)
+          .sort((a, b) => getChatSortKey(b) - getChatSortKey(a));
         setChats(normalized);
         setLoadError(null);
       } catch (error) {
@@ -156,10 +157,16 @@ export default function ChatList() {
       void fetchChats(true, false);
     };
 
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      void fetchChats(false, false);
+    }, 10_000);
+
     window.addEventListener('focus', handleRefresh);
     document.addEventListener('visibilitychange', handleRefresh);
 
     return () => {
+      window.clearInterval(intervalId);
       window.removeEventListener('focus', handleRefresh);
       document.removeEventListener('visibilitychange', handleRefresh);
     };
@@ -202,13 +209,7 @@ export default function ChatList() {
           chats.map((chat) => {
             const counterparty = getCounterparty(chat, currentUser?.id ?? null);
             const lastMessage = chat.last_message;
-            const lastSenderId = getLastMessageSenderId(lastMessage);
-            const showUnread =
-              chat.unread_count > 0 &&
-              currentUser?.id !== null &&
-              currentUser?.id !== undefined &&
-              lastSenderId !== null &&
-              lastSenderId !== currentUser?.id;
+            const showUnread = chat.unread_count > 0;
             return (
               <li key={chat.chat_id} className="border-b border-neutral-200/70">
                 <Link
@@ -239,7 +240,9 @@ export default function ChatList() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
-                    <span>{lastMessage ? formatChatTime(lastMessage.created_at) : ''}</span>
+                    <span>
+                      {lastMessage ? formatChatTime(lastMessage.last_message_at) : ''}
+                    </span>
                     {showUnread ? (
                       <span className="flex min-w-6 items-center justify-center rounded-full bg-[var(--color-primary-main)] px-2 py-1 text-[13px] font-semibold text-white">
                         {formatUnreadCount(chat.unread_count)}
