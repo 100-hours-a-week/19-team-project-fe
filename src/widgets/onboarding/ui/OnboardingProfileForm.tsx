@@ -89,6 +89,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   const [skills, setSkills] = useState<Skill[]>([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
   const [skillsError, setSkillsError] = useState<string | null>(null);
+  const [techLimitMessage, setTechLimitMessage] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobsLoading, setJobsLoading] = useState(true);
   const [jobsError, setJobsError] = useState<string | null>(null);
@@ -203,9 +204,14 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
   const toggleTech = (value: Skill) => {
     setSelectedTech((prev) => {
       if (prev.some((item) => item.id === value.id)) {
+        setTechLimitMessage(null);
         return prev.filter((item) => item.id !== value.id);
       }
-      if (prev.length >= 5) return prev;
+      if (prev.length >= 5) {
+        setTechLimitMessage('기술스택은 최대 5개까지 선택할 수 있어요.');
+        return prev;
+      }
+      setTechLimitMessage(null);
       return [...prev, value];
     });
   };
@@ -947,7 +953,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         {activeSheet === 'tech' ? (
           <div className="flex h-full flex-col">
             <div className="flex items-center gap-2 rounded-full bg-[#edf4ff] px-4 py-3">
-              <span className="text-sm text-text-caption">🔍</span>
               <input
                 value={techQuery}
                 onChange={(event) => setTechQuery(event.target.value)}
@@ -970,6 +975,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             <div className="mt-6 flex flex-col gap-3 pr-1">
               {skillsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
               {skillsError ? <p className="text-sm text-red-500">{skillsError}</p> : null}
+              {techLimitMessage ? <p className="text-xs text-red-500">{techLimitMessage}</p> : null}
               {!skillsLoading && !skillsError
                 ? filteredTech.map((item) => {
                     const isSelected = selectedTech.some((tech) => tech.id === item.id);
