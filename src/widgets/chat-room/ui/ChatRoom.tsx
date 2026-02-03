@@ -99,6 +99,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
   const maxInputHeight = 160;
+  const isMobile =
+    typeof navigator !== 'undefined' &&
+    /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+  const preventMobileSubmitRef = useRef(false);
 
   const handleInvalidAccess = useCallback(
     (error: unknown): boolean => {
@@ -273,6 +277,10 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isMobile && preventMobileSubmitRef.current) {
+      preventMobileSubmitRef.current = false;
+      return;
+    }
     if (isBlankDraft) return;
     if (isOverLimit) {
       pushToast('최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
@@ -419,11 +427,18 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
             if (event.nativeEvent.isComposing || isComposingRef.current) {
               return;
             }
+            if (isMobile) {
+              if (event.key === 'Enter') {
+                preventMobileSubmitRef.current = true;
+              }
+              return;
+            }
             if (event.key === 'Enter' && !event.shiftKey) {
               event.preventDefault();
               (event.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
             }
           }}
+          enterKeyHint="enter"
           placeholder="메시지를 입력하세요"
           disabled={chatStatus === 'CLOSED'}
           className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-base leading-6 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 overflow-y-hidden"
