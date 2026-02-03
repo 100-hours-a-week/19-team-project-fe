@@ -546,7 +546,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
       <form
         ref={composerRef}
         onSubmit={handleSubmit}
-        className="absolute bottom-0 left-0 right-0 flex w-full max-w-none items-end gap-2 bg-[#f7f7f7] px-4 pb-4 pt-3"
+        className="absolute bottom-0 left-0 right-0 flex w-full max-w-none items-end gap-2 bg-[#f7f7f7] px-4 pb-[calc(6px+env(safe-area-inset-bottom))] pt-3"
       >
         <textarea
           ref={inputRef}
@@ -585,6 +585,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           enterKeyHint="enter"
           placeholder="메시지를 입력하세요"
           disabled={chatStatus === 'CLOSED'}
+          style={{ fontSize: '16px' }}
           className="min-h-11 max-h-40 flex-1 resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-[16px] leading-5 text-neutral-900 placeholder:text-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 overflow-y-hidden"
         />
         <button
