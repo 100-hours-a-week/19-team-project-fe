@@ -1,0 +1,67 @@
+# 의존성
+node_modules
+npm-debug.log
+
+# Next.js
+.next
+out
+dist
+
+# 빌드 파일
+*.tsbuildinfo
+next-env.d.ts
+
+# 환경 변수 파일
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 테스팅
+coverage
+.nyc_output
+
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 기타
+README.md
+docs
+*.md
+.husky
+.prettierrc.json
+.nvmrc
+commitlint.config.cjs
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# 로그
+*.log
+logs
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 기타 불필요한 파일
+.eslintrc
+.eslintcache
+.prettierignore
+tsconfig.tsbuildinfo
