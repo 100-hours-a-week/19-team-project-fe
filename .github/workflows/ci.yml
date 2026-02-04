@@ -19,7 +19,8 @@ on:
         options:
           - lint-and-test
           - integration
-          - release
+          - release-dev
+          - release-prod
           - all
 
 env:
@@ -81,12 +82,91 @@ jobs:
         run: pnpm audit --audit-level=moderate
         continue-on-error: true
 
-  # 3. 릴리즈 확정 단계 (main 브랜치만 배포)
-  release:
-    # develop 브랜치는 integration까지만 실행, 배포는 main에서만 수행
+  # 3. 개발 환경 릴리즈 (develop 브랜치 - Docker 기반)
+  release-dev:
+    needs: [integration]
+    if: |
+      always() &&
+      needs.integration.result != 'failure' &&
+      (
+        (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+        (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release-dev' || github.event.inputs.job_to_run == 'all'))
+      )
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Generate Image Metadata
+        id: meta
+        run: |
+          SHA_SHORT="${GITHUB_SHA::7}"
+          IMAGE_TAG="develop-${SHA_SHORT}"
+          FULL_IMAGE="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:${IMAGE_TAG}"
+          LATEST_IMAGE="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_FRONTEND }}:develop-latest"
+
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "full_image=${FULL_IMAGE}" >> $GITHUB_OUTPUT
+          echo "latest_image=${LATEST_IMAGE}" >> $GITHUB_OUTPUT
+          echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
+          echo "🐳 Docker Image: ${FULL_IMAGE}"
+
+      - name: Setup Environment Variables
+        run: |
+          echo "${{ secrets.DEV_ENV_FILE }}" > .env.production
+          echo "✅ .env.production created from DEV_ENV_FILE"
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.full_image }}
+            ${{ steps.meta.outputs.latest_image }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/arm64
+
+      - name: Trigger CD-Dev Workflow
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PAT }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'cd-dev.yml',
+              ref: 'develop',
+              inputs: {
+                image_tag: '${{ steps.meta.outputs.image_tag }}',
+                sha: '${{ github.sha }}',
+                run_id: '${{ github.run_id }}'
+              }
+            });
+            console.log('✅ CD-Dev workflow triggered successfully');
+
+  # 4. 프로덕션 릴리즈 (main 브랜치 - 아티팩트 기반)
+  release-prod:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release' || github.event.inputs.job_to_run == 'all'))
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release-prod' || github.event.inputs.job_to_run == 'all'))
     runs-on: ubuntu-latest
     outputs:
       version_tag: ${{ steps.version.outputs.version_tag }}
@@ -107,20 +187,11 @@ jobs:
         id: version
         run: |
           SHA_SHORT="${GITHUB_SHA::7}"
+          VERSION=$(node -p "require('./package.json').version")
+          VERSION_TAG="v${VERSION}"
+          ARTIFACT_PREFIX="v${VERSION}-${SHA_SHORT}"
 
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            # Main 브랜치: package.json에서 버전 읽기
-            VERSION=$(node -p "require('./package.json').version")
-            VERSION_TAG="v${VERSION}"
-            ARTIFACT_PREFIX="v${VERSION}-${SHA_SHORT}"
-            echo "📦 Production Release: ${VERSION_TAG} (${SHA_SHORT})"
-          else
-            # Develop 브랜치: develop-{sha} 형식
-            VERSION_TAG="develop-${SHA_SHORT}"
-            ARTIFACT_PREFIX="develop-${SHA_SHORT}"
-            echo "🔧 Development Build: ${ARTIFACT_PREFIX}"
-          fi
-
+          echo "📦 Production Release: ${VERSION_TAG} (${SHA_SHORT})"
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
           echo "artifact_prefix=${ARTIFACT_PREFIX}" >> $GITHUB_OUTPUT
           echo "sha_short=${SHA_SHORT}" >> $GITHUB_OUTPUT
@@ -129,12 +200,7 @@ jobs:
         run: pnpm run test:all || echo "⚠️  Full tests not yet implemented"
 
       - name: Setup Environment Variables
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "${{ secrets.PROD_ENV_FILE }}" > .env.production
-          else
-            echo "${{ secrets.DEV_ENV_FILE }}" > .env.production
-          fi
+        run: echo "${{ secrets.PROD_ENV_FILE }}" > .env.production
 
       - name: Production Build
         run: pnpm run build
@@ -181,8 +247,7 @@ jobs:
             scripts/
           retention-days: 7
 
-      - name: Create Release Tag (Main Branch Only)
-        if: github.ref == 'refs/heads/main'
+      - name: Create Release Tag
         run: |
           TAG_NAME="${{ steps.version.outputs.version_tag }}"
 
@@ -206,7 +271,7 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'cd.yml',
+              workflow_id: 'cd-prod.yml',
               ref: context.ref,
               inputs: {
                 run_id: '${{ github.run_id }}',
