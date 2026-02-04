@@ -102,7 +102,7 @@ jobs:
             cd "${COMPOSE_DIR}"
 
             # 이미지 태그를 환경 변수로 설정하여 compose pull & up
-            export FRONTEND_IMAGE="${FULL_IMAGE}"
+            export FRONTEND_TAG="${IMAGE_TAG}"
 
             echo "📥 Pulling new image..."
             docker compose pull frontend
