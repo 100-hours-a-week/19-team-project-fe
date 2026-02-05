@@ -1,0 +1,173 @@
+graph TD
+  page__["/"]
+  widget_Footer_page__["src/widgets/footer/ui/Footer.tsx"]
+  page__ --> widget_Footer_page__
+  widget_Header_page__["src/widgets/header/ui/Header.tsx"]
+  page__ --> widget_Header_page__
+  widget_SearchBar_page__["src/widgets/search-bar/ui/SearchBar.tsx"]
+  page__ --> widget_SearchBar_page__
+  widget_SplashGate_page__["src/widgets/splash-screen/ui/SplashGate.tsx"]
+  page__ --> widget_SplashGate_page__
+  widget_HomeGuardToast_page__["src/widgets/home/ui/HomeGuardToast.tsx"]
+  page__ --> widget_HomeGuardToast_page__
+  widget_RecruitmentLinksTicker_page__["src/widgets/home/ui/RecruitmentLinksTicker.tsx"]
+  page__ --> widget_RecruitmentLinksTicker_page__
+  widget_SignupConfetti_page__["src/widgets/home/ui/SignupConfetti.tsx"]
+  page__ --> widget_SignupConfetti_page__
+  widget_TechBlogBanner_page__["src/widgets/home/ui/TechBlogTicker.tsx"]
+  page__ --> widget_TechBlogBanner_page__
+  widget_TechBlogTicker_page__["src/widgets/home/ui/TechBlogTicker.tsx"]
+  page__ --> widget_TechBlogTicker_page__
+  page__chat["/chat"]
+  widget_ChatList_page__chat["src/widgets/chat-list/ui/ChatList.tsx"]
+  page__chat --> widget_ChatList_page__chat
+  api_getChatList["getChatList()"]
+  widget_ChatList_page__chat --> api_getChatList
+  api_getUserMe["getUserMe()"]
+  widget_ChatList_page__chat --> api_getUserMe
+  widget_Footer_page__chat["src/widgets/footer/ui/Footer.tsx"]
+  page__chat --> widget_Footer_page__chat
+  api_getChatList["getChatList()"]
+  api_getUserMe["getUserMe()"]
+  page__chat__chatId_["/chat/[chatId]"]
+  page__chat__chatId__detail["/chat/[chatId]/detail"]
+  page__experts["/experts"]
+  widget_ExpertSearchPage_page__experts["src/widgets/expert-search/ui/ExpertSearchPage.tsx"]
+  page__experts --> widget_ExpertSearchPage_page__experts
+  api_getExperts["getExperts()"]
+  widget_ExpertSearchPage_page__experts --> api_getExperts
+  api_getExperts["getExperts()"]
+  page__experts__id_["/experts/[id]"]
+  widget_ExpertDetailPage_page__experts__id_["src/widgets/expert-detail/ui/ExpertDetailPage.tsx"]
+  page__experts__id_ --> widget_ExpertDetailPage_page__experts__id_
+  api_createChat["createChat()"]
+  widget_ExpertDetailPage_page__experts__id_ --> api_createChat
+  api_getChatList["getChatList()"]
+  widget_ExpertDetailPage_page__experts__id_ --> api_getChatList
+  api_getExpertDetail["getExpertDetail()"]
+  widget_ExpertDetailPage_page__experts__id_ --> api_getExpertDetail
+  api_getMe["getMe()"]
+  widget_ExpertDetailPage_page__experts__id_ --> api_getMe
+  api_getResumes["getResumes()"]
+  widget_ExpertDetailPage_page__experts__id_ --> api_getResumes
+  api_createChat["createChat()"]
+  api_getChatList["getChatList()"]
+  api_getExpertDetail["getExpertDetail()"]
+  api_getMe["getMe()"]
+  api_getResumes["getResumes()"]
+  page__me["/me"]
+  widget_MyPage_page__me["src/widgets/my-page/ui/MyPage.tsx"]
+  page__me --> widget_MyPage_page__me
+  api_getUserMe["getUserMe()"]
+  widget_MyPage_page__me --> api_getUserMe
+  api_getUserMe["getUserMe()"]
+  page__me_edit["/me/edit"]
+  widget_MyPageEdit_page__me_edit["src/widgets/my-page-edit/ui/MyPageEdit.tsx"]
+  page__me_edit --> widget_MyPageEdit_page__me_edit
+  api_checkNickname["checkNickname()"]
+  widget_MyPageEdit_page__me_edit --> api_checkNickname
+  api_createPresignedUrl["createPresignedUrl()"]
+  widget_MyPageEdit_page__me_edit --> api_createPresignedUrl
+  api_getCareerLevels["getCareerLevels()"]
+  widget_MyPageEdit_page__me_edit --> api_getCareerLevels
+  api_getJobs["getJobs()"]
+  widget_MyPageEdit_page__me_edit --> api_getJobs
+  api_getSkills["getSkills()"]
+  widget_MyPageEdit_page__me_edit --> api_getSkills
+  api_getUserMe["getUserMe()"]
+  widget_MyPageEdit_page__me_edit --> api_getUserMe
+  api_updateUserMe["updateUserMe()"]
+  widget_MyPageEdit_page__me_edit --> api_updateUserMe
+  api_uploadToPresignedUrl["uploadToPresignedUrl()"]
+  widget_MyPageEdit_page__me_edit --> api_uploadToPresignedUrl
+  api_checkNickname["checkNickname()"]
+  api_createPresignedUrl["createPresignedUrl()"]
+  api_getCareerLevels["getCareerLevels()"]
+  api_getJobs["getJobs()"]
+  api_getSkills["getSkills()"]
+  api_getUserMe["getUserMe()"]
+  api_updateUserMe["updateUserMe()"]
+  api_uploadToPresignedUrl["uploadToPresignedUrl()"]
+  page__me_verify["/me/verify"]
+  widget_MyPageVerify_page__me_verify["src/widgets/my-page-verify/ui/MyPageVerify.tsx"]
+  page__me_verify --> widget_MyPageVerify_page__me_verify
+  api_sendEmailVerification["sendEmailVerification()"]
+  widget_MyPageVerify_page__me_verify --> api_sendEmailVerification
+  api_verifyEmailVerification["verifyEmailVerification()"]
+  widget_MyPageVerify_page__me_verify --> api_verifyEmailVerification
+  api_sendEmailVerification["sendEmailVerification()"]
+  api_verifyEmailVerification["verifyEmailVerification()"]
+  page__oauth_kakao_callback["/oauth/kakao/callback"]
+  widget_KakaoCallbackClient_page__oauth_kakao_callback["src/widgets/auth/ui/KakaoCallbackClient.tsx"]
+  page__oauth_kakao_callback --> widget_KakaoCallbackClient_page__oauth_kakao_callback
+  api_kakaoLogin["kakaoLogin()"]
+  widget_KakaoCallbackClient_page__oauth_kakao_callback --> api_kakaoLogin
+  api_kakaoLogin["kakaoLogin()"]
+  page__onboarding["/onboarding"]
+  widget_OnboardingRoleSelect_page__onboarding["src/widgets/onboarding/ui/OnboardingRoleSelect.tsx"]
+  page__onboarding --> widget_OnboardingRoleSelect_page__onboarding
+  page__onboarding_profile["/onboarding/profile"]
+  widget_OnboardingProfileForm_page__onboarding_profile["src/widgets/onboarding/ui/OnboardingProfileForm.tsx"]
+  page__onboarding_profile --> widget_OnboardingProfileForm_page__onboarding_profile
+  api_checkNickname["checkNickname()"]
+  widget_OnboardingProfileForm_page__onboarding_profile --> api_checkNickname
+  api_getCareerLevels["getCareerLevels()"]
+  widget_OnboardingProfileForm_page__onboarding_profile --> api_getCareerLevels
+  api_getJobs["getJobs()"]
+  widget_OnboardingProfileForm_page__onboarding_profile --> api_getJobs
+  api_getSkills["getSkills()"]
+  widget_OnboardingProfileForm_page__onboarding_profile --> api_getSkills
+  api_sendEmailVerification["sendEmailVerification()"]
+  widget_OnboardingProfileForm_page__onboarding_profile --> api_sendEmailVerification
+  api_signup["signup()"]
+  widget_OnboardingProfileForm_page__onboarding_profile --> api_signup
+  api_verifyEmailVerification["verifyEmailVerification()"]
+  widget_OnboardingProfileForm_page__onboarding_profile --> api_verifyEmailVerification
+  api_checkNickname["checkNickname()"]
+  api_getCareerLevels["getCareerLevels()"]
+  api_getJobs["getJobs()"]
+  api_getSkills["getSkills()"]
+  api_sendEmailVerification["sendEmailVerification()"]
+  api_signup["signup()"]
+  api_verifyEmailVerification["verifyEmailVerification()"]
+  page__report["/report"]
+  widget_Footer_page__report["src/widgets/footer/ui/Footer.tsx"]
+  page__report --> widget_Footer_page__report
+  widget_Header_page__report["src/widgets/header/ui/Header.tsx"]
+  page__report --> widget_Header_page__report
+  page__resume["/resume"]
+  widget_ResumePage_page__resume["src/widgets/resume/ui/ResumePage.tsx"]
+  page__resume --> widget_ResumePage_page__resume
+  api_deleteResume["deleteResume()"]
+  widget_ResumePage_page__resume --> api_deleteResume
+  api_getResumes["getResumes()"]
+  widget_ResumePage_page__resume --> api_getResumes
+  api_deleteResume["deleteResume()"]
+  api_getResumes["getResumes()"]
+  page__resume__resumeId_["/resume/[resumeId]"]
+  widget_ResumeDetailPage_page__resume__resumeId_["src/widgets/resume-detail/ui/ResumeDetailPage.tsx"]
+  page__resume__resumeId_ --> widget_ResumeDetailPage_page__resume__resumeId_
+  api_getResumeDetail["getResumeDetail()"]
+  widget_ResumeDetailPage_page__resume__resumeId_ --> api_getResumeDetail
+  api_getResumeDetail["getResumeDetail()"]
+  page__resume_edit["/resume/edit"]
+  widget_ResumeEditPage_page__resume_edit["src/widgets/resume-edit/ui/ResumeEditPage.tsx"]
+  page__resume_edit --> widget_ResumeEditPage_page__resume_edit
+  api_createPresignedUrl["createPresignedUrl()"]
+  widget_ResumeEditPage_page__resume_edit --> api_createPresignedUrl
+  api_createResume["createResume()"]
+  widget_ResumeEditPage_page__resume_edit --> api_createResume
+  api_getResumeDetail["getResumeDetail()"]
+  widget_ResumeEditPage_page__resume_edit --> api_getResumeDetail
+  api_parseResumeSync["parseResumeSync()"]
+  widget_ResumeEditPage_page__resume_edit --> api_parseResumeSync
+  api_updateResume["updateResume()"]
+  widget_ResumeEditPage_page__resume_edit --> api_updateResume
+  api_uploadToPresignedUrl["uploadToPresignedUrl()"]
+  widget_ResumeEditPage_page__resume_edit --> api_uploadToPresignedUrl
+  api_createPresignedUrl["createPresignedUrl()"]
+  api_createResume["createResume()"]
+  api_getResumeDetail["getResumeDetail()"]
+  api_parseResumeSync["parseResumeSync()"]
+  api_updateResume["updateResume()"]
+  api_uploadToPresignedUrl["uploadToPresignedUrl()"]
