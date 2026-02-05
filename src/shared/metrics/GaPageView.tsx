@@ -23,8 +23,7 @@ export function GaPageView() {
     const pagePath = query ? `${pathname}?${query}` : pathname;
 
     const last = window.__gaLastPageView;
-    const recentlySentSamePath =
-      last && last.path === pagePath && Date.now() - last.ts < 1000;
+    const recentlySentSamePath = last && last.path === pagePath && Date.now() - last.ts < 1000;
 
     if (typeof window.gtag === 'function' && !recentlySentSamePath) {
       window.gtag('event', 'page_view', {
