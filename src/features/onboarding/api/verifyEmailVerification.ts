@@ -1,6 +1,6 @@
-import { apiFetch, buildApiUrl } from '@/shared/api';
+import { apiFetch } from '@/shared/api';
 
-const EMAIL_VERIFICATION_PATH = '/api/v1/email-verifications/public';
+const EMAIL_VERIFICATION_PATH = '/bff/email-verifications';
 
 type VerifyEmailVerificationRequest = {
   email: string;
@@ -9,11 +9,11 @@ type VerifyEmailVerificationRequest = {
 
 type VerifyEmailVerificationResponse = {
   email: string;
-  verified_at: string;
+  code: string;
 };
 
 export async function verifyEmailVerification(payload: VerifyEmailVerificationRequest) {
-  return apiFetch<VerifyEmailVerificationResponse>(buildApiUrl(EMAIL_VERIFICATION_PATH), {
+  return apiFetch<VerifyEmailVerificationResponse>(EMAIL_VERIFICATION_PATH, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

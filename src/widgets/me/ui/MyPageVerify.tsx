@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { getMe } from '@/features/auth';
-import { sendEmailVerification, verifyEmailVerification } from '@/features/email-verification';
+import { sendEmailVerification, verifyEmailVerification } from '@/features/onboarding';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { Input } from '@/shared/ui/input';
