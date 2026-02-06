@@ -11,12 +11,7 @@ import {
   signup,
   verifyEmailVerification,
 } from '@/features/onboarding';
-import {
-  BusinessError,
-  readAccessToken,
-  setAuthCookies,
-  useCommonApiErrorHandler,
-} from '@/shared/api';
+import { BusinessError, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 
 const nicknameLimit = 10;
@@ -90,6 +85,8 @@ export function useOnboardingProfileForm(isExpert: boolean) {
   const [introduction, setIntroduction] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [oauthId, setOauthId] = useState<string | null>(null);
+  const [oauthEmail, setOauthEmail] = useState<string | null>(null);
   const [termsOpen, setTermsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [pledgeOpen, setPledgeOpen] = useState(false);
@@ -126,6 +123,31 @@ export function useOnboardingProfileForm(isExpert: boolean) {
       mounted = false;
     };
   }, [handleCommonApiError]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = sessionStorage.getItem('kakaoLoginResult');
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        signup_required?: {
+          oauth_provider?: 'KAKAO';
+          oauth_id?: string;
+          email?: string | null;
+          nickname?: string | null;
+        } | null;
+      };
+      const signupRequired = parsed.signup_required;
+      if (!signupRequired?.oauth_id) return;
+      setOauthId(signupRequired.oauth_id);
+      if (signupRequired.email) setOauthEmail(signupRequired.email);
+      if (signupRequired.nickname && nickname.trim().length === 0) {
+        setNickname(signupRequired.nickname);
+      }
+    } catch {
+      // ignore invalid session storage
+    }
+  }, [nickname]);
 
   useEffect(() => {
     let mounted = true;
@@ -232,37 +254,40 @@ export function useOnboardingProfileForm(isExpert: boolean) {
     setIsSubmitting(true);
 
     try {
-      const accessToken = readAccessToken();
-      if (!accessToken) {
-        throw new Error('LOGIN_REQUIRED');
+      if (!oauthId || !oauthEmail) {
+        setSubmitError('회원가입 정보를 불러오지 못했습니다. 다시 로그인해 주세요.');
+        return;
       }
 
       const userType: UserType = isExpert ? 'EXPERT' : 'JOB_SEEKER';
+      const companyEmail = isExpert ? (lastSentEmail ?? verificationEmail.trim()) : undefined;
       const response = await signup({
         oauth_provider: 'KAKAO',
-        oauth_id: accessToken,
+        oauth_id: oauthId,
+        email: oauthEmail,
+        company_email: companyEmail,
         user_type: userType,
         nickname: trimmedNickname,
-        introduction: introduction.trim() || null,
+        introduction: introduction.trim(),
         career_level_id: selectedCareer.id,
-        job_id: selectedJob.id,
-        skill_ids: selectedTech.map((skill) => skill.id),
-        email: isExpert && isVerified ? (lastSentEmail ?? verificationEmail.trim()) : undefined,
+        job_ids: [selectedJob.id],
+        skills: selectedTech.map((skill, index) => ({
+          skill_id: skill.id,
+          display_order: index + 1,
+        })),
       });
 
-      if (response.login_success) {
-        setAuthCookies({
-          accessToken: response.login_success.access_token,
-          refreshToken: response.login_success.refresh_token,
-          userId: response.login_success.user_id,
-        });
-      }
+      setAuthCookies({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        userId: response.userId,
+      });
 
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
-      if (wsUrl && response.login_success?.access_token) {
+      if (wsUrl && response.accessToken) {
         try {
           await stompManager.connect(wsUrl, {
-            connectHeaders: { Authorization: `Bearer ${response.login_success.access_token}` },
+            connectHeaders: { Authorization: `Bearer ${response.accessToken}` },
           });
         } catch {
           // ignore
