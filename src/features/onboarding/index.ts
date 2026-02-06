@@ -5,3 +5,4 @@ export { signup } from './api/signup';
 export { checkNickname } from './api/checkNickname';
 export { sendEmailVerification } from './api/sendEmailVerification';
 export { verifyEmailVerification } from './api/verifyEmailVerification';
+export * from './model/useOnboardingProfileForm.client';
