@@ -12,7 +12,7 @@ import {
   type ResumeParseContentJson,
   type ResumeParseSyncResult,
 } from '@/entities/resumes';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
+import { useAuthGate } from '@/features/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 export type CareerItem = {

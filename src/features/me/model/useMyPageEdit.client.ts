@@ -6,7 +6,7 @@ import { deleteProfileImage, getUserMe, updateUserMe } from '@/features/me';
 import { createPresignedUrl, uploadToPresignedUrl } from '@/features/uploads';
 import { checkNickname, getCareerLevels, getJobs, getSkills } from '@/features/onboarding';
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
+import { useAuthGate } from '@/features/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 

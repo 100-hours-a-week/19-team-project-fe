@@ -1,8 +1,8 @@
 import Image from 'next/image';
-import { getKakaoAuthorizeUrl } from '../api/kakaoAuthorize';
+import { useKakaoLoginUrl } from '@/features/auth';
 
 export default function KakaoLoginButton() {
-  const kakaoAuthUrl = getKakaoAuthorizeUrl();
+  const kakaoAuthUrl = useKakaoLoginUrl();
 
   return (
     <a href={kakaoAuthUrl} className="block w-full transition duration-150 active:scale-[0.985]">

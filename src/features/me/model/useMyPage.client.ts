@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { getMe, logout } from '@/features/auth';
+import { getMe, useLogout } from '@/features/auth';
 import {
   deleteMe,
   getExpertStatus,
@@ -8,7 +8,7 @@ import {
   type ExpertStatus,
   type UserMe,
 } from '@/features/me';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
+import { useAuthGate } from '@/features/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 export function useMyPage() {
@@ -19,8 +19,8 @@ export function useMyPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [expertStatus, setExpertStatus] = useState<ExpertStatus | null>(null);
   const [isLoadingExpertStatus, setIsLoadingExpertStatus] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const { isLoggingOut, logout } = useLogout();
 
   useEffect(() => {
     if (authStatus !== 'authed') {
@@ -101,20 +101,9 @@ export function useMyPage() {
   }, [authStatus, handleCommonApiError, user]);
 
   const handleLogout = async () => {
-    if (isLoggingOut) return false;
-    setIsLoggingOut(true);
-    try {
-      await logout();
-      return true;
-    } catch (error) {
-      if (await handleCommonApiError(error)) {
-        return false;
-      }
-      return false;
-    } finally {
-      await refreshAuthStatus();
-      setIsLoggingOut(false);
-    }
+    const success = await logout();
+    await refreshAuthStatus();
+    return success;
   };
 
   const handleDeleteAccount = async () => {

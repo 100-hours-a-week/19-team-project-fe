@@ -9,7 +9,7 @@ import { getResumes, type Resume } from '@/entities/resumes';
 import { createChat, getChatList } from '@/features/chat';
 import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
 import { BusinessError, HttpError, useCommonApiErrorHandler } from '@/shared/api';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
+import { useAuthGate } from '@/features/auth';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { useToast } from '@/shared/ui/toast';

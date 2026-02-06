@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 
 import { getMe } from '@/features/auth';
 import { sendEmailVerification, verifyEmailVerification } from '@/features/onboarding';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
+import { useAuthGate } from '@/features/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 

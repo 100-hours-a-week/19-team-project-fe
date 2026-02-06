@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { getMe } from '@/features/auth';
 import { deleteResume, getResumes, type Resume } from '@/entities/resumes';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
+import { useAuthGate } from '@/features/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 export function useResumeList() {

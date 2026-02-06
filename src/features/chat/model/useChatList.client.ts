@@ -5,7 +5,7 @@ import { getUserMe, type UserMe } from '@/features/me';
 import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
+import { useAuthGate } from '@/features/auth';
 
 import { normalizeChatList } from '@/entities/chat';
 
