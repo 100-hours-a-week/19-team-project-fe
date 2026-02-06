@@ -7,7 +7,7 @@ import type { ChatSummary } from '@/entities/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 
-import { normalizeChatList } from '../lib/chatList';
+import { normalizeChatList } from '@/entities/chat/lib/chatList';
 
 export function useChatList() {
   const [chats, setChats] = useState<ChatSummary[]>([]);

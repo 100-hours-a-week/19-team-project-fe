@@ -142,7 +142,6 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
     prevWsStatusRef.current = wsStatus;
   }, [wsStatus]);
 
-
   /**
    * 최신 메시지 위치로 포커스
    */

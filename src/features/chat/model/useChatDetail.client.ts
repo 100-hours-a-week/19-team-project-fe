@@ -3,46 +3,13 @@ import { useRouter } from 'next/navigation';
 
 import type { ChatDetailData } from '@/entities/chat';
 import type { ResumeDetail } from '@/entities/resumes';
+import {
+  normalizeResumeContent,
+  normalizeResumeDetail,
+  toStringArray,
+} from '@/entities/resumes/lib/normalizeResumeDetail';
 import { closeChat } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
-
-export type ResumeContent = {
-  summary?: string;
-  careers?: string[];
-  projects?: Array<{
-    title?: string;
-    start_date?: string;
-    end_date?: string;
-    description?: string;
-  }>;
-  education?: string[];
-  awards?: string[];
-  certificates?: string[];
-  activities?: string[];
-};
-
-const normalizeContent = (value: ResumeDetail['contentJson']): ResumeContent | null => {
-  if (!value || typeof value !== 'object') return null;
-  return value as ResumeContent;
-};
-
-const toArray = (value?: string[]) => (Array.isArray(value) ? value.filter(Boolean) : []);
-
-type ResumeLike = NonNullable<ChatDetailData['resume']> & {
-  resumeDetail?: NonNullable<ChatDetailData['resume']>;
-  resume_detail?: NonNullable<ChatDetailData['resume']>;
-};
-
-const normalizeResumeDetail = (resume: ResumeLike): ResumeDetail => ({
-  resumeId: resume.resumeId ?? resume.resume_id ?? 0,
-  title: resume.title ?? '',
-  isFresher: resume.isFresher ?? resume.is_fresher ?? false,
-  educationLevel: resume.educationLevel ?? resume.education_level ?? '',
-  fileUrl: resume.fileUrl ?? resume.file_url ?? '',
-  contentJson: resume.contentJson ?? resume.content_json ?? null,
-  createdAt: resume.createdAt ?? resume.created_at ?? '',
-  updatedAt: resume.updatedAt ?? resume.updated_at ?? '',
-});
 
 export function useChatDetail(chatId: number, detail: ChatDetailData) {
   const router = useRouter();
@@ -55,8 +22,8 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
 
   const resumeSource =
     detail.resume ??
-    (detail as { resume_detail?: ResumeLike | null }).resume_detail ??
-    (detail as { resumeDetail?: ResumeLike | null }).resumeDetail ??
+    (detail as { resume_detail?: ChatDetailData['resume'] | null }).resume_detail ??
+    (detail as { resumeDetail?: ChatDetailData['resume'] | null }).resumeDetail ??
     null;
   const resumeDetail: ResumeDetail | null = resumeSource
     ? normalizeResumeDetail(resumeSource)
@@ -80,13 +47,13 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
     }
   };
 
-  const content = normalizeContent(resumeDetail?.contentJson ?? null);
-  const careers = toArray(content?.careers);
+  const content = normalizeResumeContent(resumeDetail?.contentJson ?? null);
+  const careers = toStringArray(content?.careers);
   const projects = Array.isArray(content?.projects) ? (content?.projects ?? []) : [];
-  const education = toArray(content?.education);
-  const awards = toArray(content?.awards);
-  const certificates = toArray(content?.certificates);
-  const activities = toArray(content?.activities);
+  const education = toStringArray(content?.education);
+  const awards = toStringArray(content?.awards);
+  const certificates = toStringArray(content?.certificates);
+  const activities = toStringArray(content?.activities);
   const summary = content?.summary?.trim();
   const hasContent =
     Boolean(summary) ||
