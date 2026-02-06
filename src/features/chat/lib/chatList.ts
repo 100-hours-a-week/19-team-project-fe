@@ -12,7 +12,8 @@ const getChatSortKey = (chat: ChatSummary) => {
 const normalizeChatId = (chat: ChatSummary): ChatSummary | null => {
   const rawChatId = chat.chat_id ?? chat.chatId ?? null;
   const parsedChatId = typeof rawChatId === 'string' ? Number(rawChatId) : rawChatId;
-  const chatId = typeof parsedChatId === 'number' && !Number.isNaN(parsedChatId) ? parsedChatId : null;
+  const chatId =
+    typeof parsedChatId === 'number' && !Number.isNaN(parsedChatId) ? parsedChatId : null;
 
   if (chatId === null) return null;
   return {

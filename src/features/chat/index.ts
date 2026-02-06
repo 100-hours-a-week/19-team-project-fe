@@ -8,6 +8,7 @@ export * from './api/createChat';
 export * from './api/markChatRead';
 export * from './api/updateChatLastRead';
 export * from './model/useChatList.client';
+export * from './model/useChatDetail.client';
 export * from './model/useChatHistory.client';
 export * from './model/useChatSocket.client';
 export * from './lib/message';
