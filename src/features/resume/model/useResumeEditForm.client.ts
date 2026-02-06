@@ -2,7 +2,11 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import type { ResumeDetail, ResumeParseContentJson, ResumeParseSyncResult } from '@/entities/resumes';
+import type {
+  ResumeDetail,
+  ResumeParseContentJson,
+  ResumeParseSyncResult,
+} from '@/entities/resumes';
 
 export type CareerItem = {
   id: string;
@@ -212,9 +216,7 @@ export function useResumeEditForm() {
       const awardsValue = Array.isArray((content as { awards?: string[] }).awards)
         ? ((content as { awards?: string[] }).awards ?? [])
         : [];
-      const certificatesValue = Array.isArray(
-        (content as { certificates?: string[] }).certificates,
-      )
+      const certificatesValue = Array.isArray((content as { certificates?: string[] }).certificates)
         ? ((content as { certificates?: string[] }).certificates ?? [])
         : [];
       const activitiesValue = Array.isArray((content as { activities?: string[] }).activities)
