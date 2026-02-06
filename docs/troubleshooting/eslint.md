@@ -1278,3 +1278,27 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-06 Raw Log
+
+- Logged at: 2026-02-06 11:56:51Z
+
+```
+> re-fit@1.0.18 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/chat/model/useChatDetail.client.ts
+  6:1  error  '@/entities/resumes/lib/normalizeResumeDetail' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/chat/model/useChatList.client.ts
+  10:1  error  '@/entities/chat/lib/chatList' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/shared/metrics/GaPageView.tsx
+  6:7  warning  'GA_MEASUREMENT_ID' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 3 problems (2 errors, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

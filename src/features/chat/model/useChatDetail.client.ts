@@ -3,11 +3,7 @@ import { useRouter } from 'next/navigation';
 
 import type { ChatDetailData } from '@/entities/chat';
 import type { ResumeDetail } from '@/entities/resumes';
-import {
-  normalizeResumeContent,
-  normalizeResumeDetail,
-  toStringArray,
-} from '@/entities/resumes/lib/normalizeResumeDetail';
+import { normalizeResumeContent, normalizeResumeDetail, toStringArray } from '@/entities/resumes';
 import { closeChat } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 

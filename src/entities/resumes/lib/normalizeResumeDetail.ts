@@ -32,9 +32,12 @@ export const normalizeResumeDetail = (resume: ResumeLike): ResumeDetail => ({
   updatedAt: resume.updatedAt ?? resume.updated_at ?? '',
 });
 
-export const normalizeResumeContent = (value: ResumeDetail['contentJson']): ResumeContent | null => {
+export const normalizeResumeContent = (
+  value: ResumeDetail['contentJson'],
+): ResumeContent | null => {
   if (!value || typeof value !== 'object') return null;
   return value as ResumeContent;
 };
 
-export const toStringArray = (value?: string[]) => (Array.isArray(value) ? value.filter(Boolean) : []);
+export const toStringArray = (value?: string[]) =>
+  Array.isArray(value) ? value.filter(Boolean) : [];

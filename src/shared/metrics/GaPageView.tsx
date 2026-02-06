@@ -3,8 +3,6 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
-const GA_MEASUREMENT_ID = 'G-8YM02T7012';
-
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
