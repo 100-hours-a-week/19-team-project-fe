@@ -18,12 +18,10 @@ import { Button } from '@/shared/ui/button';
 export default function MyPageEdit() {
   const router = useRouter();
   const {
-    authStatus,
     activeSheet,
     setActiveSheet,
     jobs,
     careerLevels,
-    skills,
     jobsLoading,
     careerLoading,
     skillsLoading,
@@ -44,7 +42,6 @@ export default function MyPageEdit() {
     setTechQuery,
     profileImageUrl,
     profileImagePreview,
-    profileImageReset,
     nicknameCheckMessage,
     isNicknameChecking,
     isSubmitting,
@@ -52,8 +49,6 @@ export default function MyPageEdit() {
     submitError,
     fileInputRef,
     filteredTech,
-    isNicknameCheckDisabled,
-    isSubmitDisabled,
     nicknameLimit,
     introductionLimit,
     handleProfileImageChange,

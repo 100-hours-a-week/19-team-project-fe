@@ -228,7 +228,7 @@ export function useMyPageEdit() {
     setIsNicknameChecking(true);
     setNicknameCheckMessage(null);
     try {
-      await checkNickname({ nickname: trimmed });
+      await checkNickname(trimmed);
       setCheckedNickname(trimmed);
       setNicknameCheckMessage({ tone: 'success', text: '사용 가능한 닉네임이에요.' });
     } catch (error: unknown) {
@@ -349,9 +349,7 @@ export function useMyPageEdit() {
   const filteredTech = useMemo(
     () =>
       skills.filter((item) =>
-        techQuery.trim()
-          ? item.name.toLowerCase().includes(techQuery.trim().toLowerCase())
-          : true,
+        techQuery.trim() ? item.name.toLowerCase().includes(techQuery.trim().toLowerCase()) : true,
       ),
     [skills, techQuery],
   );

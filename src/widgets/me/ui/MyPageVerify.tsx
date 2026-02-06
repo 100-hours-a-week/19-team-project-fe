@@ -11,12 +11,10 @@ import { Header } from '@/widgets/header';
 export default function MyPageVerify() {
   const router = useRouter();
   const {
-    authStatus,
     verificationEmail,
     setVerificationEmail,
     isVerificationVisible,
     verificationCode,
-    lastSentEmail,
     isSendingVerification,
     sendVerificationMessage,
     sendVerificationError,

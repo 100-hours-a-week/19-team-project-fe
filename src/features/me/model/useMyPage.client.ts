@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 
 import { getMe, logout } from '@/features/auth';
-import { deleteMe, getExpertStatus, getUserMe, type ExpertStatus, type UserMe } from '@/features/me';
+import {
+  deleteMe,
+  getExpertStatus,
+  getUserMe,
+  type ExpertStatus,
+  type UserMe,
+} from '@/features/me';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
