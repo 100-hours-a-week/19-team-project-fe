@@ -12,4 +12,8 @@ export * from './model/useChatDetail.client';
 export * from './model/useChatRoom.client';
 export * from './model/useChatHistory.client';
 export * from './model/useChatSocket.client';
+export * from './model/useChatDetailLoader.client';
+export * from './model/useChatCurrentUser.client';
+export * from './model/useChatRoomDetail.client';
+export * from './model/useChatSend.client';
 export * from './lib/message';
