@@ -281,6 +281,10 @@ export function useMyPageEdit() {
     }
 
     const normalizedSkillIds = selectedTech.map((skill) => skill.id);
+    const normalizedSkills = selectedTech.map((skill, index) => ({
+      skill_id: skill.id,
+      display_order: index + 1,
+    }));
     const hasProfileChanges =
       trimmed !== initialNickname ||
       introduction !== initialIntroduction ||
@@ -328,7 +332,7 @@ export function useMyPageEdit() {
         introduction: introduction.trim(),
         career_level_id: selectedCareer.id,
         job_ids: [selectedJob.id],
-        skill_ids: normalizedSkillIds,
+        skills: normalizedSkills,
         profile_image_url: uploadedImageUrl,
       });
 

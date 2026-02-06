@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 import { useOnboardingProfileForm } from '@/features/onboarding';
 import iconMark from '@/shared/icons/icon-mark.png';
@@ -24,7 +24,6 @@ const roleTitle: Record<RoleId, string> = {
   seeker: '구직자',
   expert: '현직자',
 };
-
 
 const TERMS_TEXT = `# RE:FIT 이용약관
 
@@ -439,7 +438,6 @@ function renderLegalText(text: string) {
 }
 
 export default function OnboardingProfileForm({ role }: OnboardingProfileFormProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const roleParam = searchParams.get('role')?.toLowerCase();
   const resolvedRole: RoleId =
@@ -457,7 +455,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     selectedCareer,
     setSelectedCareer,
     selectedTech,
-    setSelectedTech,
     techQuery,
     setTechQuery,
     skillsLoading,
@@ -486,7 +483,6 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     setNickname,
     introduction,
     setIntroduction,
-    isSubmitting,
     submitError,
     termsOpen,
     setTermsOpen,
@@ -496,19 +492,16 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     setPledgeOpen,
     privacyPledgeOpen,
     setPrivacyPledgeOpen,
-    termsAgreed,
     setTermsAgreed,
-    privacyAgreed,
     setPrivacyAgreed,
-    pledgeAgreed,
     setPledgeAgreed,
     nicknameCheckMessage,
-    isNicknameChecking,
     handleSubmit,
     handleNicknameCheck,
     handleSendVerification,
     handleKeypadPress,
     handleVerifySubmit,
+    handleTechToggle,
     filteredTech,
     allRequiredAgreed,
     isNicknameCheckDisabled,
@@ -518,6 +511,236 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     introductionLimit,
     verificationCodeLength,
   } = useOnboardingProfileForm(isExpert);
+
+  const profileFormContent = (
+    <>
+      <div className="onboarding-form-stagger__item rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+        <div className="text-base font-semibold text-black">닉네임</div>
+        <Input.Root className="mt-2">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Input.Field
+                placeholder="닉네임을 입력해 주세요"
+                value={nickname}
+                onChange={(event) => setNickname(event.target.value)}
+                maxLength={nicknameLimit}
+                className="rounded-none border-0 border-b-2 border-black bg-transparent px-0 py-2 pr-14 text-base text-black shadow-none focus:border-black focus:ring-0 disabled:border-black disabled:bg-transparent"
+              />
+              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-caption">
+                {nickname.length} / {nicknameLimit}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleNicknameCheck}
+              disabled={isNicknameCheckDisabled}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 bg-neutral-100 text-neutral-400 enabled:border-[var(--color-primary-main)] enabled:bg-[var(--color-primary-main)] enabled:text-white"
+            >
+              <svg
+                data-slot="icon"
+                fill="none"
+                strokeWidth={2.5}
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="h-5 w-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                />
+              </svg>
+            </button>
+          </div>
+          {nicknameCheckMessage ? (
+            <p
+              className={`mt-2 text-xs ${
+                nicknameCheckMessage.tone === 'success' ? 'text-green-600' : 'text-red-500'
+              }`}
+            >
+              {nicknameCheckMessage.text}
+            </p>
+          ) : null}
+        </Input.Root>
+      </div>
+
+      <div
+        className={`onboarding-form-stagger__item flex flex-col gap-3 ${
+          isExpert ? 'mt-2 mb-5' : 'mb-5'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setActiveSheet('job')}
+          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+        >
+          <div className="flex items-center gap-3">
+            <Image src={iconJob} alt="직무" width={40} height={40} />
+            <div className="text-left">
+              <span className="text-base font-semibold text-text-body">직무</span>
+              <p className="mt-2 text-xs leading-relaxed text-text-caption">
+                {selectedJob?.name || '직무를 선택해 주세요'}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+            {selectedJob ? (
+              <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                {selectedJob.name}
+              </span>
+            ) : null}
+            <span className="text-xl text-gray-300">›</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSheet('career')}
+          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+        >
+          <div className="flex items-center gap-3">
+            <Image src={iconCareer} alt="경력" width={40} height={40} />
+            <div className="text-left">
+              <span className="text-base font-semibold text-text-body">경력</span>
+              <p className="mt-2 text-xs leading-relaxed text-text-caption">
+                {selectedCareer?.level || '경력을 선택해 주세요'}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+            {selectedCareer ? (
+              <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                {selectedCareer.level}
+              </span>
+            ) : null}
+            <span className="text-xl text-gray-300">›</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSheet('tech')}
+          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+        >
+          <div className="flex items-center gap-3">
+            <Image src={iconTech} alt="기술스택" width={40} height={40} />
+            <div className="text-left">
+              <span className="text-base font-semibold text-text-body">기술스택</span>
+              <p className="mt-2 text-xs leading-relaxed text-text-caption">기술을 선택해 주세요</p>
+            </div>
+          </div>
+          <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+            {selectedTech.map((tech) => (
+              <span
+                key={tech.id}
+                className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]"
+              >
+                {tech.name}
+              </span>
+            ))}
+            <span className="text-xl text-gray-300">›</span>
+          </div>
+        </button>
+      </div>
+
+      <div className="onboarding-form-stagger__item">
+        <p className="text-base font-semibold text-text-title">자기 소개</p>
+        <div className="mt-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+          <textarea
+            className="h-28 w-full resize-none text-base text-text-body placeholder:text-gray-400 focus:outline-none"
+            placeholder="Tell us everything..."
+            value={introduction}
+            onChange={(event) => setIntroduction(event.target.value)}
+            maxLength={introductionLimit}
+          />
+          <p className="mt-2 text-right text-xs text-text-caption">
+            {introduction.length}/{introductionLimit}
+          </p>
+        </div>
+        <div className="mt-4 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+          <button
+            type="button"
+            onClick={() => {
+              const next = !allRequiredAgreed;
+              setTermsAgreed(next);
+              setPrivacyAgreed(next);
+              if (isExpert) setPledgeAgreed(next);
+            }}
+            className="flex w-full items-center gap-3 text-left"
+          >
+            <span
+              className={`flex h-5 w-5 items-center justify-center rounded-full border ${
+                allRequiredAgreed ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
+              }`}
+              aria-hidden="true"
+            >
+              {allRequiredAgreed ? <span className="h-2 w-2 rounded-full bg-white" /> : null}
+            </span>
+            <span className="text-sm font-semibold text-text-body">전체동의</span>
+          </button>
+
+          <div className="mt-3 space-y-2 border-t border-gray-100 pt-3 text-xs">
+            <button
+              type="button"
+              onClick={() => setTermsOpen(true)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <span className="text-text-caption">
+                <span className="font-semibold text-primary-main">(필수)</span> 이용약관
+              </span>
+              <span className="text-base text-gray-300">›</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPrivacyOpen(true)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <span className="text-text-caption">
+                <span className="font-semibold text-primary-main">(필수)</span> 개인정보 수집 및
+                이용 동의서
+              </span>
+              <span className="text-base text-gray-300">›</span>
+            </button>
+            {isExpert ? (
+              <button
+                type="button"
+                onClick={() => setPledgeOpen(true)}
+                className="flex w-full items-center justify-between text-left"
+              >
+                <span className="text-text-caption">
+                  <span className="font-semibold text-primary-main">(필수)</span> 멘토 보안 서약서
+                </span>
+                <span className="text-base text-gray-300">›</span>
+              </button>
+            ) : null}
+            {isExpert ? (
+              <button
+                type="button"
+                onClick={() => setPrivacyPledgeOpen(true)}
+                className="flex w-full items-center justify-between text-left"
+              >
+                <span className="text-text-caption">
+                  <span className="font-semibold text-primary-main">(필수)</span> 개인정보 서약서
+                </span>
+                <span className="text-base text-gray-300">›</span>
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <div className="onboarding-form-stagger__item pt-6">
+        {submitError ? <p className="mb-3 text-sm text-red-500">{submitError}</p> : null}
+        <Button
+          icon={<Image src={iconMark} alt="" width={20} height={20} />}
+          onClick={handleSubmit}
+          disabled={isSubmitDisabled}
+        >
+          가입 완료
+        </Button>
+      </div>
+    </>
+  );
 
   return (
     <main className="flex min-h-screen flex-col bg-[#F7F7F7] px-2.5 pb-10 pt-4 text-text-body">
@@ -806,7 +1029,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                 <button
                   key={tech.id}
                   type="button"
-                  onClick={() => toggleTech(tech)}
+                  onClick={() => handleTechToggle(tech)}
                   className="rounded-full border border-[#bcd1f5] bg-[#edf4ff] px-3 py-1 text-xs text-[#2b4b7e]"
                 >
                   {tech.name} ×
@@ -824,7 +1047,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => toggleTech(item)}
+                        onClick={() => handleTechToggle(item)}
                         className="flex items-center justify-between border-b border-gray-100 pb-5 pt-2 text-left"
                       >
                         <span className="text-sm font-medium leading-relaxed text-text-body">

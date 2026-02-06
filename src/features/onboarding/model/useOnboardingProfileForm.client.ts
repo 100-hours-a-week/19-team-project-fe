@@ -51,7 +51,6 @@ const emailVerificationMessages: Record<string, string> = {
   VERIFICATION_CODE_EXPIRED: '인증 시간이 만료되었습니다. 다시 전송해 주세요.',
 };
 
-type RoleId = 'seeker' | 'expert';
 export type SheetId = 'job' | 'career' | 'tech' | null;
 
 export function useOnboardingProfileForm(isExpert: boolean) {
@@ -178,6 +177,21 @@ export function useOnboardingProfileForm(isExpert: boolean) {
     return skills.filter((item) => item.name.toLowerCase().includes(query.toLowerCase()));
   }, [skills, techQuery]);
 
+  const handleTechToggle = (skill: Skill) => {
+    const exists = selectedTech.some((item) => item.id === skill.id);
+    const next = exists
+      ? selectedTech.filter((item) => item.id !== skill.id)
+      : [...selectedTech, skill];
+
+    if (!exists && next.length > 5) {
+      setTechLimitMessage('기술 스택은 최대 5개까지 선택할 수 있어요.');
+      return;
+    }
+
+    setTechLimitMessage(null);
+    setSelectedTech(next);
+  };
+
   const handleSubmit = async () => {
     if (isSubmitting) return;
     if (!selectedJob || !selectedCareer) {
@@ -233,8 +247,7 @@ export function useOnboardingProfileForm(isExpert: boolean) {
         career_level_id: selectedCareer.id,
         job_id: selectedJob.id,
         skill_ids: selectedTech.map((skill) => skill.id),
-        email:
-          isExpert && isVerified ? (lastSentEmail ?? verificationEmail.trim()) : undefined,
+        email: isExpert && isVerified ? (lastSentEmail ?? verificationEmail.trim()) : undefined,
       });
 
       if (response.login_success) {
@@ -403,7 +416,7 @@ export function useOnboardingProfileForm(isExpert: boolean) {
   const handleVerifySubmit = async () => {
     const code = verificationCode.join('');
     if (!isVerificationVisible || isVerifying || isVerified) return;
-    if (code.length != verificationCodeLength) return;
+    if (code.length !== verificationCodeLength) return;
     if (!lastSentEmail) return;
     if (typeof remainingSeconds === 'number' && remainingSeconds === 0) {
       setVerificationError('인증 시간이 만료되었습니다. 다시 전송해 주세요.');
@@ -528,6 +541,7 @@ export function useOnboardingProfileForm(isExpert: boolean) {
     handleSendVerification,
     handleKeypadPress,
     handleVerifySubmit,
+    handleTechToggle,
     filteredTech,
     allRequiredAgreed,
     isNicknameCheckDisabled,
