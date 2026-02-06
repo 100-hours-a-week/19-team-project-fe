@@ -1,21 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import { KakaoLoginButton, getMe, logout } from '@/features/auth';
-import {
-  deleteMe,
-  getExpertStatus,
-  getUserMe,
-  type ExpertStatus,
-  type UserMe,
-} from '@/features/me';
+import { KakaoLoginButton } from '@/features/auth';
+import { useMyPage } from '@/features/me';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
-import { useCommonApiErrorHandler } from '@/shared/api';
 import defaultUserImage from '@/shared/icons/char_icon.png';
 import charLogout from '@/shared/icons/char_logout.png';
 import iconCertification from '@/shared/icons/icon_certification.png';
@@ -26,94 +18,19 @@ import { Header } from '@/widgets/header';
 
 export default function MyPage() {
   const router = useRouter();
-  const { status: authStatus, refresh: refreshAuthStatus } = useAuthGate(getMe);
-  const handleCommonApiError = useCommonApiErrorHandler();
-  const [user, setUser] = useState<UserMe | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [expertStatus, setExpertStatus] = useState<ExpertStatus | null>(null);
-  const [isLoadingExpertStatus, setIsLoadingExpertStatus] = useState(false);
+  const {
+    authStatus,
+    user,
+    isLoadingUser,
+    loadError,
+    expertStatus,
+    isLoadingExpertStatus,
+    isLoggingOut,
+    isDeletingAccount,
+    handleLogout,
+    handleDeleteAccount,
+  } = useMyPage();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-
-  useEffect(() => {
-    if (authStatus !== 'authed') {
-      setUser(null);
-      setIsLoadingUser(false);
-      setLoadError(null);
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoadingUser(true);
-
-    (async () => {
-      try {
-        const data = await getUserMe();
-        if (cancelled) return;
-        if (!data) {
-          setUser(null);
-          setLoadError(null);
-          return;
-        }
-        setUser(data);
-        setLoadError(null);
-      } catch (error) {
-        if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          setIsLoadingUser(false);
-          return;
-        }
-        setLoadError(error instanceof Error ? error.message : '내 정보를 불러오지 못했습니다.');
-      } finally {
-        if (cancelled) return;
-        setIsLoadingUser(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authStatus, handleCommonApiError]);
-
-  useEffect(() => {
-    if (authStatus !== 'authed') {
-      setExpertStatus(null);
-      setIsLoadingExpertStatus(false);
-      return;
-    }
-    if (!user) {
-      setExpertStatus(null);
-      setIsLoadingExpertStatus(false);
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoadingExpertStatus(true);
-
-    (async () => {
-      try {
-        const data = await getExpertStatus();
-        if (cancelled) return;
-        setExpertStatus(data);
-      } catch (error) {
-        if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          setIsLoadingExpertStatus(false);
-          return;
-        }
-        setExpertStatus(null);
-      } finally {
-        if (cancelled) return;
-        setIsLoadingExpertStatus(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authStatus, handleCommonApiError, user]);
 
   const handleAuthSheetClose = () => {
     router.replace('/');
@@ -121,38 +38,18 @@ export default function MyPage() {
 
   const shouldShowExpertVerifyButton = !!user && !expertStatus?.verified && !isLoadingExpertStatus;
 
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-    setIsLoggingOut(true);
-    try {
-      await logout();
-    } catch (error) {
-      if (await handleCommonApiError(error)) {
-        return;
-      }
-    } finally {
-      setSettingsOpen(false);
-      await refreshAuthStatus();
-      setIsLoggingOut(false);
-      router.replace('/');
-    }
+  const handleLogoutClick = async () => {
+    const ok = await handleLogout();
+    if (!ok) return;
+    setSettingsOpen(false);
+    router.replace('/');
   };
 
-  const handleDeleteAccount = async () => {
-    if (isDeletingAccount) return;
-    setIsDeletingAccount(true);
-    try {
-      await deleteMe();
-    } catch (error) {
-      if (await handleCommonApiError(error)) {
-        return;
-      }
-    } finally {
-      setSettingsOpen(false);
-      await refreshAuthStatus();
-      setIsDeletingAccount(false);
-      router.replace('/');
-    }
+  const handleDeleteAccountClick = async () => {
+    const ok = await handleDeleteAccount();
+    if (!ok) return;
+    setSettingsOpen(false);
+    router.replace('/');
   };
 
   return (
@@ -351,7 +248,7 @@ export default function MyPage() {
           <div className="w-full space-y-3">
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={handleLogoutClick}
               disabled={isLoggingOut}
               className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
             >
@@ -359,7 +256,7 @@ export default function MyPage() {
             </button>
             <button
               type="button"
-              onClick={handleDeleteAccount}
+              onClick={handleDeleteAccountClick}
               disabled={isDeletingAccount}
               className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700"
             >
