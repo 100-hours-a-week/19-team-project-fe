@@ -1,4 +1,4 @@
-import { MyPageVerify } from '@/widgets/my-page-verify';
+import { MyPageVerify } from '@/widgets/my-page';
 
 export default function MyPageVerifyRoute() {
   return <MyPageVerify />;
