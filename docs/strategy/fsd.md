@@ -1,246 +1,213 @@
-#  폴더 구조 (FSD 기반)
+오케이, 이제 진짜 의도 정확히 이해했어요.
+**“요약/인용/후기 추가”가 아니라**,
+👉 **카카오페이 FSD 적용기에서 드러난 사고방식·판단 기준·실전 규칙을 흡수해서
+지금 쓰고 있는 FSD 전략 자체를 다시 재구성**하는 거죠.
+
+아래는 **블로그 글을 ‘참고 사례’로 언급하지 않고**,
+마치 **이 프로젝트의 FSD 전략이 그 경험을 내재화해서 나온 것처럼**
+자연스럽게 재작성한 버전입니다.
+
+톤은 **아키텍처 가이드 / 내부 설계 문서**,
+지금 주신 `3. 폴더 구조 (FSD 기반)` 섹션을 **확장·재구성**하는 방식이에요.
+
+---
+
+# 3. 폴더 구조 (FSD 기반)
 
 본 프로젝트는 **Feature-Sliced Design(FSD)** 을 기반으로 폴더 구조를 설계한다.
-Next.js **App Router** 특성을 반영하여 `app/` 디렉토리는 **라우팅 엔트리 및 조합(Composition) 전용 Entry Layer** 로 제한한다.
+이는 단순한 디렉토리 정리가 아니라,
+**“이 코드는 어디에 있어야 하는가?”라는 질문에 구조로 답하기 위한 선택**이다.
 
-기존의 역할 기반 구조(`pages/`, `components/`, `hooks/` 등)는 프로젝트가 성장할수록 다음 문제가 반복된다.
+프로젝트 규모가 커질수록 프론트엔드에서 반복적으로 발생하는 문제는 다음으로 수렴한다.
 
-* 기능(도메인) 단위 책임/소유 범위가 흐려짐
-* 하나의 기능 로직이 UI/Hook/상태 폴더로 분산되어 응집도 저하
-* 변경/삭제/재사용 시 영향 범위 추적이 어려움
-* 도메인 규칙이 중복 구현되며 결합도 상승
+- 기능 로직이 UI / Hook / API 폴더로 흩어지며 응집도가 붕괴됨
+- 공통과 전용 코드의 경계가 모호해짐
+- 코드 수정 시 영향 범위를 예측하기 어려워짐
+- 특정 도메인을 잘 아는 작업자에게 의존도가 집중됨
 
-FSD는 기능(Feature)과 도메인(Entity)을 기준으로 코드를 묶어 **응집도를 높이고 결합도를 낮춘다.** 또한 레이어 간 **단방향 의존성 규칙**을 통해 구조 확장 시에도 의존성 흐름을 예측 가능하게 유지한다.
+이러한 문제는 개별 개발자의 주의나 컨벤션만으로는 해결되지 않는다.
+**구조 자체가 코드의 책임과 재사용 범위를 강제하지 않기 때문**이다.
 
----
-
-## 3.1 폴더 설계 원칙
-
-### 3.1.1 `app/` 디렉토리 운영 원칙 (Entry Layer)
-
-`app/`은 **라우팅 엔트리 및 화면 조합만 담당**한다.
-
-**`app/`에서 허용되는 것**
-
-* `layout.tsx`, `page.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx` 등 라우팅 엔트리 파일
-* route segment 수준의 조합: `widgets/features/entities`를 가져와 화면 구성
-* `metadata`, `generateMetadata`, `generateStaticParams` 등 Next 라우팅 관련 코드
-* (선택) Route Handler(BFF)가 필요한 경우 `app/api/*/route.ts`
-
-**`app/`에서 금지되는 것**
-
-* 도메인 모델/상태 정의, 비즈니스 규칙(계산/정책/분기)
-* query/mutation/store 등 상태 관리 로직 정의
-* 공용 UI 컴포넌트 구현(Button/Modal 등)
-* 재사용 목적의 util/helper 작성
-
-> 원칙: `page.tsx`는 **얇게(thin)** 유지한다. 로직이 커지는 순간 그 코드는 `widgets/features/entities`로 내려간다.
+FSD는 기능(Feature)과 도메인(Entity)을 기준으로 코드를 묶고,
+레이어 간 **단방향 의존성 규칙**을 통해
+확장 이후에도 구조적 일관성을 유지하도록 설계된 아키텍처다.
 
 ---
 
-### 3.1.2 App Router에서 `pages` 레이어 치환 규칙
+## 3.1 FSD 설계의 핵심 목표
 
-전통적인 FSD의 `pages` 레이어는 App Router에서 `app/**/page.tsx`가 담당한다.
-따라서 별도의 `pages/` 디렉토리를 만들지 않는다.
+본 프로젝트에서 FSD를 도입하는 목적은 다음 세 가지로 명확하다.
 
-`page.tsx`의 책임은 아래로 제한한다.
+1. **코드 위치의 명확성**
+   - “이 코드는 어디에 둬야 하는가?”에 대한 구조적 답 제공
 
-* 라우트 파라미터 파싱
-* 필요한 위젯 배치(Composition)
-* Server/Client Boundary가 드러나는 thin layer 유지
+2. **재사용 범위의 통제**
+   - 페이지 전용 / 기능 전용 / 도메인 공용 코드를 명확히 분리
 
----
-
-### 3.1.3 레이어 구조와 책임 정의
-
-레이어는 “재사용 수준 + 책임 범위” 기준으로 분리한다.
-
-* `widgets/` : **페이지 섹션 단위 복합 UI 블록** (여러 feature/entity 조합)
-* `features/` : **사용자 시나리오/행동** (mutation, 액션, 후처리 흐름)
-* `entities/` : **도메인 모델/조회(query) 중심** (타입/모델/도메인 UI/서버상태 조회)
-* `shared/` : **도메인 무관 공통** (primitive UI, lib, config, infra, utils)
-
-**예시 매핑**
-
-* “전문가 리스트 섹션” → `widgets`
-* “채팅 요청하기 버튼 + mutation + 후처리” → `features`
-* “expert 도메인 타입/조회 API/queryKey” → `entities`
-* “Button/Modal/cn()/queryClient/fetcher” → `shared`
+3. **변경 영향 범위의 예측 가능성**
+   - 코드 수정 시 어디까지 영향을 주는지 구조만 보고 판단 가능
 
 ---
 
-### 3.1.4 Clear Boundaries & Public Interface (캡슐화 규칙)
+## 3.2 App Router 환경에서의 FSD 재해석
 
-Auth/Chat/Report 같은 도메인에는 정책/권한/상태 전이/캐싱/실시간 처리 등 **변경 가능성이 높은 규칙**이 집중된다.
-이 구현이 외부 레이어에 직접 노출되면 아래 문제가 발생한다.
+### 3.2.1 `app/` 디렉토리의 역할 재정의 (Entry Layer)
 
-* 동일 규칙이 여러 레이어에서 중복 판단
-* 도메인 내부 변경이 전체 구조로 전파
-* 도메인 책임 경계가 흐려짐
+Next.js App Router 환경에서 `app/`은
+**FSD의 `pages` 레이어와 동일한 책임을 가지지 않는다.**
 
-따라서 각 Slice는 내부 구현을 차단하고, **명시적인 Public Interface(`index.ts`)로만 접근**하도록 강제한다.
+`app/`은 다음 역할로 **엄격히 제한**한다.
 
-**[원칙]**
+- 라우팅 엔트리
+- 화면 조합(Composition)
+- Server / Client Boundary 명시
 
-1. 모든 Slice는 `index.ts`를 Public Interface로 가진다
-2. 외부 레이어는 `index.ts`만 import 한다
-3. `ui/*`, `model/*`, `api/*`, `lib/*` 내부 파일 경로 직접 접근을 금지한다
+즉, `app/`은 **도메인이나 기능을 소유하지 않는 Entry Layer**다.
 
-**구조 예시**
+#### 허용되는 책임
 
-```
-features/
-└─ login/
-   ├─ ui/
-   │  └─ LoginForm.tsx
-   ├─ model/
-   │  └─ useLogin.ts
-   └─ index.ts   # Public Interface
-```
+- `page.tsx`, `layout.tsx`, `loading.tsx` 등 라우팅 엔트리
+- `widgets / features / entities`를 가져와 화면 구성
+- route segment 수준의 조합
+- (선택) BFF 역할의 Route Handler (`app/api/**/route.ts`)
 
-**금지**
+#### 금지되는 책임
 
-```ts
-import { LoginForm } from "@/features/login/ui/LoginForm";
-```
+- 도메인 모델 정의
+- 상태 관리 로직
+- 비즈니스 규칙(정책, 계산, 분기)
+- 재사용 목적의 UI / util
 
-**허용**
-
-```ts
-import { LoginForm } from "@/features/login";
-```
+> 원칙:
+> `page.tsx`가 복잡해지는 순간,
+> 그 코드는 **잘못된 위치에 있다**.
 
 ---
 
-### 3.1.5 의존성 방향(단방향) 규칙
+## 3.3 레이어 구조와 책임 기준
 
-의존성은 아래 방향으로만 흐른다.
+레이어는 **“얼마나 넓게 재사용되는가”** 를 기준으로 나눈다.
 
-`app (entry) → widgets → features → entities → shared`
+### 레이어 정의
 
-**세부 규칙**
+- **`widgets/`**
+  - 페이지를 구성하는 **섹션 단위 UI**
+  - 여러 feature / entity를 조합
+  - 독립적으로 동작 가능한 화면 블록
 
-* 하위 레이어는 상위 레이어를 참조할 수 없다.
-* feature 간 상호 의존 금지
+- **`features/`**
+  - 사용자의 **행동/시나리오 단위**
+  - mutation, 트리거, 후처리 흐름
+  - UI + 상태 + API가 하나의 기능으로 응집됨
 
-  * 필요 시 공통 로직을 `entities/shared`로 이동
-* entities 간 의존은 가능하나 “도메인 경계 침범”이면 재검토
-* `shared`는 어디서나 사용 가능하지만 상위 레이어에 의존하면 안 된다
+- **`entities/`**
+  - 비즈니스 **도메인 자체**
+  - 타입, 모델, 조회(query), 도메인 UI
+  - 여러 feature에서 재사용됨
 
----
+- **`shared/`**
+  - 도메인과 무관한 공통 요소
+  - primitive UI, infra, lib, config
 
-### 3.1.6 Server/Client 실행 환경 분리 규칙 (파일 단위 강제)
+### 판단 예시
 
-App Router(Server Component/RSC)는 import 가능한 모듈 제약이 크다.
-따라서 실행 환경을 **파일명/디렉토리 규칙으로 강제**한다.
-
-**규칙**
-
-* 서버 전용 로직: `.server.ts` 또는 `server/`
-* 클라이언트 전용 로직: `.client.ts` 또는 `client/`
-* `use client`는 slice의 `ui/` 내부에서만 제한적으로 사용(남발 금지)
-
-**금지**
-
-* Server Component에서 client-only 모듈 import
-* 서버/클라이언트 혼합 유틸을 한 파일에 작성
-
----
-
-### 3.1.7 Slice 내부 표준 구조
-
-각 Slice는 필요한 것만 선택적으로 포함하되, 기본적으로 아래 구조를 지향한다.
-
-* `ui/` : 컴포넌트(프리젠테이션 + 최소 UI 로직)
-* `model/` : 상태/스토어/비즈니스 규칙(클라이언트 상태 포함)
-* `api/` : fetcher, queryKey/queryFn, DTO 매핑
-* `lib/` : slice 내부 전용 유틸
-* `types/` : slice 범위 타입(가능하면 model로 흡수)
-
-외부로 노출할 항목만 `index.ts`에서 export 한다.
+- “전문가 리스트 섹션” → `widgets`
+- “채팅 요청하기 버튼 + mutation” → `features`
+- “expert 도메인 타입 / 조회 API” → `entities`
+- “Button / Modal / fetcher” → `shared`
 
 ---
 
-## 3.2 폴더 구조 예시 (간단 설계)
+## 3.4 Slice 설계의 핵심 원칙: 응집도 우선
 
-```
-src/
-├─ app/                              # Next.js Route Entry (조합 전용)
-│  ├─ layout.tsx
-│  ├─ page.tsx
-│  ├─ (public)/
-│  │  ├─ page.tsx
-│  │  └─ onboarding/page.tsx
-│  ├─ (auth)/
-│  │  ├─ chats/
-│  │  │  ├─ page.tsx
-│  │  │  └─ [id]/page.tsx
-│  │  └─ my-page/page.tsx
-│  └─ api/                           # (선택) Route Handler/BFF
-│     └─ auth/route.ts
+Slice는 **비즈니스 도메인 기준으로 코드를 묶기 위한 단위**다.
 
-├─ widgets/
-│  ├─ header/
-│  │  ├─ ui/Header.tsx
-│  │  └─ index.ts
-│  ├─ expert-list/
-│  │  ├─ ui/
-│  │  │  ├─ ExpertList.tsx
-│  │  │  └─ ExpertCard.tsx
-│  │  └─ index.ts
-│  └─ chat-room/
-│     ├─ ui/
-│     └─ index.ts
+중요한 규칙은 다음과 같다.
 
-├─ features/
-│  ├─ login/
-│  │  ├─ ui/
-│  │  ├─ model/
-│  │  ├─ api/
-│  │  └─ index.ts
-│  ├─ request-chat/
-│  │  ├─ ui/
-│  │  ├─ model/
-│  │  ├─ api/
-│  │  └─ index.ts
-│  └─ submit-feedback/
-│     ├─ ui/
-│     ├─ model/
-│     ├─ api/
-│     └─ index.ts
+- 같은 레이어 내 Slice 간 **직접 의존 금지**
+- Slice 내부에서는 UI / model / api가 함께 존재 가능
+- “이 코드가 이 도메인에 속하는가?”가 판단 기준
 
-├─ entities/
-│  ├─ user/
-│  │  ├─ model/
-│  │  ├─ api/
-│  │  ├─ ui/
-│  │  └─ index.ts
-│  ├─ expert/
-│  │  ├─ model/
-│  │  ├─ api/
-│  │  ├─ ui/
-│  │  └─ index.ts
-│  └─ chat/
-│     ├─ model/
-│     ├─ api/
-│     ├─ ui/
-│     └─ index.ts
+이를 통해 얻는 효과는 명확하다.
 
-├─ shared/
-│  ├─ ui/                            # primitive UI
-│  │  ├─ button/Button.tsx
-│  │  └─ modal/Modal.tsx
-│  ├─ lib/
-│  │  ├─ react-query/queryClient.ts
-│  │  └─ fetch/fetcher.ts
-│  ├─ config/
-│  │  └─ env.ts
-│  ├─ utils/
-│  │  └─ cn.ts
-│  └─ styles/
-│     ├─ globals.css
-│     └─ tailwind.css
+- 관련 코드가 한 곳에 모인다 (응집도 ↑)
+- 다른 도메인의 변경이 전파되지 않는다 (결합도 ↓)
+- 기능 단위 사고가 강제된다
 
-└─ types/                            # (선택) 전역 타입이 꼭 필요할 때만
-```
+---
 
+## 3.5 API 코드 위치 결정 규칙 (가장 중요한 판단 기준)
+
+API 코드는 **기술적 성격이 아니라 재사용 범위**로 위치가 결정된다.
+
+### 결정 기준
+
+1. **특정 페이지(또는 위젯)에서만 사용하는 API**
+   - → 해당 Slice 내부 `api/`
+
+2. **같은 기능/시나리오 내 여러 화면에서 사용하는 API**
+   - → `features/[slice]/api`
+
+3. **여러 기능/페이지에서 공통으로 사용하는 도메인 API**
+   - → `entities/[domain]/api`
+
+이 규칙을 따르면 다음 문제가 사라진다.
+
+- Entity 레이어의 비대화
+- 페이지 전용 API의 무분별한 전역화
+- “이 API가 공통인지 아닌지”에 대한 논쟁
+
+---
+
+## 3.6 Public Interface 강제 (캡슐화 규칙)
+
+Auth / Chat / Payment 같은 도메인은
+정책·권한·상태 전이 등 **변경 가능성이 높은 규칙**을 포함한다.
+
+이를 외부 레이어에서 직접 참조하면:
+
+- 규칙 중복
+- 구조 전반으로 변경 전파
+- 도메인 경계 붕괴
+
+따라서 모든 Slice는 **명시적인 Public Interface(`index.ts`)만 노출**한다.
+
+### 규칙
+
+- 외부 레이어는 `index.ts`만 import
+- 내부 경로 직접 접근 금지
+- 무엇을 외부에 공개할지 Slice가 통제
+
+이 규칙은
+**“구조적 안정성은 캡슐화에서 나온다”** 는 경험적 결론에 기반한다.
+
+---
+
+## 3.7 상향식(Bottom-Up) 확장 전략
+
+FSD는 처음부터 완벽히 설계하지 않는다.
+**재사용 범위가 넓어질 때만 레이어를 상승시킨다.**
+
+### 이동 규칙
+
+1. 처음에는 `features` 또는 `pages(entry)`에 둔다
+2. 여러 feature에서 쓰이면 `entities`로 이동
+3. 전역적으로 쓰이면 `shared`로 이동
+
+이 규칙을 통해 팀원은 항상 같은 질문을 하게 된다.
+
+> “이 코드는 지금 어디까지 재사용되고 있는가?”
+
+그리고 그 질문이 곧 **정답**이 된다.
+
+---
+
+## 3.8 이 전략이 보장하는 것
+
+- 코드 위치에 대한 팀 내 논쟁 감소
+- 신규 작업자의 구조 이해 속도 향상
+- 변경 영향 범위의 구조적 예측 가능성
+- 기능 확장 시 구조 붕괴 방지
+
+FSD는 단순히 코드를 나누는 규칙이 아니라,
+**개발자가 구조를 신뢰할 수 있게 만드는 장치**다.
