@@ -1,14 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import { KakaoLoginButton, getMe } from '@/features/auth';
-import { deleteResume, getResumes, type Resume } from '@/entities/resumes';
+import { KakaoLoginButton } from '@/features/auth';
+import { useResumeList } from '@/features/resume';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
-import { useCommonApiErrorHandler } from '@/shared/api';
 import iconResume from '@/shared/icons/icon_resume.png';
 import charResume from '@/shared/icons/char_resume.png';
 import { Footer } from '@/widgets/footer';
@@ -16,48 +14,16 @@ import { Header } from '@/widgets/header';
 
 export default function ResumePage() {
   const router = useRouter();
-  const { status: authStatus } = useAuthGate(getMe);
-  const handleCommonApiError = useCommonApiErrorHandler();
-  const [resumes, setResumes] = useState<Resume[]>([]);
-  const [isLoadingResumes, setIsLoadingResumes] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [isDeletingId, setIsDeletingId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (authStatus !== 'authed') {
-      setResumes([]);
-      setIsLoadingResumes(false);
-      setLoadError(null);
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoadingResumes(true);
-
-    (async () => {
-      try {
-        const data = await getResumes();
-        if (cancelled) return;
-        setResumes(data.resumes ?? []);
-        setLoadError(null);
-      } catch (error) {
-        if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          setIsLoadingResumes(false);
-          return;
-        }
-        setLoadError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
-      } finally {
-        if (cancelled) return;
-        setIsLoadingResumes(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authStatus, handleCommonApiError]);
+  const {
+    authStatus,
+    resumes,
+    isLoadingResumes,
+    loadError,
+    openMenuId,
+    setOpenMenuId,
+    isDeletingId,
+    handleDeleteResume,
+  } = useResumeList();
 
   const handleAuthSheetClose = () => {
     router.replace('/');
@@ -190,27 +156,7 @@ export default function ResumePage() {
                           onClick={() => {
                             setOpenMenuId(null);
                             if (isDeletingId) return;
-                            const confirmed = window.confirm('이력서를 삭제할까요?');
-                            if (!confirmed) return;
-                            setIsDeletingId(resume.resumeId);
-
-                            (async () => {
-                              try {
-                                await deleteResume(resume.resumeId);
-                                setResumes((prev) =>
-                                  prev.filter((item) => item.resumeId !== resume.resumeId),
-                                );
-                              } catch (error) {
-                                if (await handleCommonApiError(error)) return;
-                                const message =
-                                  error instanceof Error
-                                    ? error.message
-                                    : '이력서 삭제에 실패했습니다.';
-                                setLoadError(message);
-                              } finally {
-                                setIsDeletingId(null);
-                              }
-                            })();
+                            void handleDeleteResume(resume.resumeId);
                           }}
                           className="w-full px-2.5 py-2 text-left text-sm text-red-500 hover:bg-red-50"
                         >
