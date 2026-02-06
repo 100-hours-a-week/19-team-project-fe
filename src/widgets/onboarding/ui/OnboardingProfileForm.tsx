@@ -825,6 +825,13 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     sendEmailVerification({ email: trimmedEmail })
       .then((data) => {
         setLastSentEmail(trimmedEmail);
+        if (!data.expires_at) {
+          setVerificationExpiresAt(null);
+          setRemainingSeconds(0);
+          setIsVerificationVisible(true);
+          setSendVerificationError('인증 만료 시간을 확인할 수 없습니다.');
+          return;
+        }
         const expiresAt = new Date(data.expires_at);
         setVerificationExpiresAt(expiresAt);
         setRemainingSeconds(Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000)));

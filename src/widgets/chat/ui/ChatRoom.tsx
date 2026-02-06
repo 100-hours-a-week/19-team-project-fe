@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { useChatRoom } from '@/features/chat';
+import { useToast } from '@/shared/ui/toast';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
@@ -79,6 +80,7 @@ interface ChatRoomProps {
 
 export default function ChatRoom({ chatId }: ChatRoomProps) {
   const router = useRouter();
+  const { pushToast } = useToast();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
