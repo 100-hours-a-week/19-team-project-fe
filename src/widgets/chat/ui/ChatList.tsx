@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton, getMe } from '@/features/auth';
-import { getUserMe, type UserMe } from '@/features/users';
+import { getUserMe, type UserMe } from '@/features/me';
 import { Header } from '@/widgets/header';
 import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';

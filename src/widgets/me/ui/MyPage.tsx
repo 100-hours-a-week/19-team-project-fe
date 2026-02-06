@@ -11,7 +11,7 @@ import {
   getUserMe,
   type ExpertStatus,
   type UserMe,
-} from '@/features/users';
+} from '@/features/me';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { useAuthGate } from '@/shared/lib/useAuthGate';
