@@ -1,4 +1,4 @@
-import { ResumeDetailPage } from '@/widgets/resume-detail';
+import { ResumeDetailPage } from '@/widgets/resume';
 
 export default async function ResumeDetailRoute({
   params,

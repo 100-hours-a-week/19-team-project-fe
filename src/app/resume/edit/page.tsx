@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { ResumeEditPage } from '@/widgets/resume-edit';
+import { ResumeEditPage } from '@/widgets/resume';
 
 export default function ResumeEditRoute() {
   return (
