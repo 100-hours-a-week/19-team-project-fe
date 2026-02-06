@@ -1,94 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { KakaoLoginButton, getMe } from '@/features/auth';
-import { getResumeDetail, type ResumeDetail } from '@/entities/resumes';
-import { useAuthGate } from '@/shared/lib/useAuthGate';
+import { KakaoLoginButton } from '@/features/auth';
+import { useResumeDetail } from '@/features/resume';
+import { normalizeResumeContent, toStringArray } from '@/entities/resumes';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
-import { useCommonApiErrorHandler } from '@/shared/api';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
 const EMPTY_CONTENT_LABEL = '내용이 없습니다.';
 
-type ResumeContent = {
-  summary?: string;
-  careers?: string[];
-  projects?: Array<{
-    title?: string;
-    start_date?: string;
-    end_date?: string;
-    description?: string;
-  }>;
-  education?: string[];
-  awards?: string[];
-  certificates?: string[];
-  activities?: string[];
-};
-
-const normalizeContent = (value: ResumeDetail['contentJson']): ResumeContent | null => {
-  if (!value || typeof value !== 'object') return null;
-  return value as ResumeContent;
-};
-
-const toArray = (value?: string[]) => (Array.isArray(value) ? value.filter(Boolean) : []);
-
 export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
   const router = useRouter();
-  const { status: authStatus } = useAuthGate(getMe);
-  const handleCommonApiError = useCommonApiErrorHandler({ redirectTo: '/resume' });
-  const [resume, setResume] = useState<ResumeDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (authStatus !== 'authed') {
-      setResume(null);
-      setIsLoading(false);
-      setLoadError(null);
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoading(true);
-
-    (async () => {
-      try {
-        const data = await getResumeDetail(resumeId);
-        if (cancelled) return;
-        setResume(data);
-        setLoadError(null);
-      } catch (error) {
-        if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          setIsLoading(false);
-          return;
-        }
-        setLoadError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
-      } finally {
-        if (cancelled) return;
-        setIsLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authStatus, handleCommonApiError, resumeId]);
+  const { authStatus, resume, isLoading, loadError } = useResumeDetail(resumeId);
 
   const handleAuthSheetClose = () => {
     router.replace('/resume');
   };
 
-  const content = normalizeContent(resume?.contentJson ?? null);
-  const careers = toArray(content?.careers);
+  const content = useMemo(() => normalizeResumeContent(resume?.contentJson ?? null), [resume]);
+  const careers = toStringArray(content?.careers);
   const projects = Array.isArray(content?.projects) ? (content?.projects ?? []) : [];
-  const education = toArray(content?.education);
-  const awards = toArray(content?.awards);
-  const certificates = toArray(content?.certificates);
-  const activities = toArray(content?.activities);
+  const education = toStringArray(content?.education);
+  const awards = toStringArray(content?.awards);
+  const certificates = toStringArray(content?.certificates);
+  const activities = toStringArray(content?.activities);
   const summary = content?.summary?.trim();
   const hasContent =
     Boolean(summary) ||
