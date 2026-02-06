@@ -19,12 +19,7 @@ type UseChatSendParams = {
   setMessages: React.Dispatch<React.SetStateAction<ChatMessageItem[]>>;
 };
 
-export function useChatSend({
-  chatId,
-  chatStatus,
-  currentUserId,
-  setMessages,
-}: UseChatSendParams) {
+export function useChatSend({ chatId, chatStatus, currentUserId, setMessages }: UseChatSendParams) {
   const sendOptimisticMessage = useCallback(
     async (content: string) => {
       const trimmed = content.trim();

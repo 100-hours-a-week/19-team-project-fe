@@ -4,7 +4,12 @@ import type { CSSProperties } from 'react';
 import { Fragment } from 'react';
 
 import type { ChatMessageItem } from '@/entities/chat';
-import { formatChatDate, formatChatTime, getChatDateKey, renderMessageContent } from './lib/chatFormat';
+import {
+  formatChatDate,
+  formatChatTime,
+  getChatDateKey,
+  renderMessageContent,
+} from './lib/chatFormat';
 
 type ChatRoomMessagesProps = {
   listRef: React.RefObject<HTMLDivElement>;

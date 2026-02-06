@@ -161,7 +161,9 @@ export default function ChatRoomComposer({
       />
       <button
         type="submit"
-        disabled={wsStatus !== 'connected' || chatStatus === 'CLOSED' || isOverLimit || isBlankDraft}
+        disabled={
+          wsStatus !== 'connected' || chatStatus === 'CLOSED' || isOverLimit || isBlankDraft
+        }
         onMouseDown={(event) => event.preventDefault()}
         onTouchStart={(event) => event.preventDefault()}
         className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-main)] text-sm font-semibold text-white disabled:bg-neutral-300"
