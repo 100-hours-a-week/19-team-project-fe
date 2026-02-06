@@ -58,7 +58,9 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
     (detail as { resume_detail?: ResumeLike | null }).resume_detail ??
     (detail as { resumeDetail?: ResumeLike | null }).resumeDetail ??
     null;
-  const resumeDetail: ResumeDetail | null = resumeSource ? normalizeResumeDetail(resumeSource) : null;
+  const resumeDetail: ResumeDetail | null = resumeSource
+    ? normalizeResumeDetail(resumeSource)
+    : null;
 
   const handleCloseChat = async () => {
     if (isClosed || isClosing) return;
