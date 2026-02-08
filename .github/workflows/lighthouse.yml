@@ -222,6 +222,8 @@ jobs:
         with:
           script: |
             const { GoogleSpreadsheet } = require('google-spreadsheet');
+            const crypto = require('crypto');
+            const querystring = require('querystring');
             const {
               LHCI_GOOGLE_SPREAD_SHEET_ID,
               getLhciSheetIdFromPageName,
@@ -234,13 +236,47 @@ jobs:
               throw new Error('LHCI scores are missing or malformed');
             }
 
-            const creds = {
-              client_email: process.env.LHCI_GOOGLE_CLIENT_EMAIL,
-              private_key: process.env.LHCI_GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            };
+            const clientEmail = process.env.LHCI_GOOGLE_CLIENT_EMAIL;
+            const privateKey = process.env.LHCI_GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+            if (!clientEmail || !privateKey) {
+              throw new Error('Missing Google service account credentials');
+            }
 
-            const doc = new GoogleSpreadsheet(LHCI_GOOGLE_SPREAD_SHEET_ID);
-            await doc.useServiceAccountAuth(creds);
+            const now = Math.floor(Date.now() / 1000);
+            const jwtHeader = { alg: 'RS256', typ: 'JWT' };
+            const jwtClaim = {
+              iss: clientEmail,
+              scope: 'https://www.googleapis.com/auth/spreadsheets',
+              aud: 'https://oauth2.googleapis.com/token',
+              iat: now,
+              exp: now + 3600,
+            };
+            const base64url = (input) => Buffer.from(JSON.stringify(input)).toString('base64url');
+            const unsignedJwt = `${base64url(jwtHeader)}.${base64url(jwtClaim)}`;
+            const signer = crypto.createSign('RSA-SHA256');
+            signer.update(unsignedJwt);
+            signer.end();
+            const signature = signer.sign(privateKey, 'base64url');
+            const assertion = `${unsignedJwt}.${signature}`;
+
+            const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: querystring.stringify({
+                grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                assertion,
+              }),
+            });
+            if (!tokenRes.ok) {
+              const errText = await tokenRes.text();
+              throw new Error(`Failed to fetch access token: ${tokenRes.status} ${errText}`);
+            }
+            const { access_token: accessToken } = await tokenRes.json();
+            if (!accessToken) {
+              throw new Error('Missing access token');
+            }
+
+            const doc = new GoogleSpreadsheet(LHCI_GOOGLE_SPREAD_SHEET_ID, { token: accessToken });
             await doc.loadInfo();
 
             const { repo, issue } = context;
