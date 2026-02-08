@@ -12,8 +12,8 @@ import {
 } from './lib/chatFormat';
 
 type ChatRoomMessagesProps = {
-  listRef: React.RefObject<HTMLDivElement>;
-  bottomRef: React.RefObject<HTMLDivElement>;
+  listRef: React.RefObject<HTMLDivElement | null>;
+  bottomRef: React.RefObject<HTMLDivElement | null>;
   composerHeight: number;
   messages: ChatMessageItem[];
   currentUserId: number | null;

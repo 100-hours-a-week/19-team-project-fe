@@ -15,9 +15,11 @@ export default function ExpertSearchPage() {
     setKeyword,
     experts,
     submitted,
+    setSubmitted,
     isLoading,
     errorMessage,
     flowSlide,
+    setFlowSlide,
     handleSubmit,
   } = useExpertSearch();
 

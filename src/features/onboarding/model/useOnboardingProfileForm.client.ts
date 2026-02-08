@@ -11,8 +11,6 @@ import { useOnboardingSubmit } from './useOnboardingSubmit.client';
 const nicknameLimit = 10;
 const introductionLimit = 100;
 
-export type SheetId = 'job' | 'career' | 'tech' | null;
-
 export function useOnboardingProfileForm(isExpert: boolean) {
   const form = useOnboardingFormState(isExpert);
   const reference = useOnboardingReferenceData();

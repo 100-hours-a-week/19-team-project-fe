@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
 type UseChatRoomEffectsParams = {
-  listRef: React.RefObject<HTMLDivElement>;
-  bottomRef: React.RefObject<HTMLDivElement>;
+  listRef: React.RefObject<HTMLDivElement | null>;
+  bottomRef: React.RefObject<HTMLDivElement | null>;
   messagesLength: number;
-  historyError: string | null;
+  historyError: Error | null;
   historyHasMore: boolean;
   historyLoadingMore: boolean;
   wsStatus: 'connected' | 'connecting' | 'disconnected';
-  loadMore: () => Promise<unknown[]>;
+  loadMore: () => Promise<unknown[] | null>;
 };
 
 export function useChatRoomEffects({

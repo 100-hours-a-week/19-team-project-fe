@@ -72,9 +72,11 @@ export function useExpertSearch() {
     setKeyword,
     experts,
     submitted,
+    setSubmitted,
     isLoading,
     errorMessage,
     flowSlide,
+    setFlowSlide,
     handleSubmit,
   };
 }

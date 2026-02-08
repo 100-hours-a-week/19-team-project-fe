@@ -10,8 +10,8 @@ type ChatRoomComposerProps = {
   onSend: (message: string) => void;
   onOverLimit: () => void;
   onHeightChange: (height: number) => void;
-  inputRef: React.RefObject<HTMLTextAreaElement>;
-  composerRef: React.RefObject<HTMLFormElement>;
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
+  composerRef: React.RefObject<HTMLFormElement | null>;
 };
 
 const maxInputHeight = 160;
