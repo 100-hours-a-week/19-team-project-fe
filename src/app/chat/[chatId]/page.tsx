@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { ChatRoom } from '@/widgets/chat-room';
+import { ChatRoom } from '@/widgets/chat';
 
 type ChatRoomPageProps = {
   params: Promise<{

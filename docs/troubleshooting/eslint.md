@@ -1278,3 +1278,75 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-06 Raw Log
+
+- Logged at: 2026-02-06 11:56:51Z
+
+```
+> re-fit@1.0.18 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/chat/model/useChatDetail.client.ts
+  6:1  error  '@/entities/resumes/lib/normalizeResumeDetail' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/chat/model/useChatList.client.ts
+  10:1  error  '@/entities/chat/lib/chatList' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/shared/metrics/GaPageView.tsx
+  6:7  warning  'GA_MEASUREMENT_ID' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 3 problems (2 errors, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-06 Raw Log
+
+- Logged at: 2026-02-06 12:35:42Z
+
+```
+> re-fit@1.0.18 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/onboarding/model/useOnboardingProfileForm.client.ts
+   54:6   warning  'RoleId' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+   70:28  warning  'setTechLimitMessage' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  405:21  error    Expected '!==' and instead saw '!='                                                             eqeqeq
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/onboarding/ui/OnboardingProfileForm.tsx
+   10:8  warning  'iconCareer' is defined but never used. Allowed unused vars must match /^_/u                        @typescript-eslint/no-unused-vars
+   11:8  warning  'iconJob' is defined but never used. Allowed unused vars must match /^_/u                           @typescript-eslint/no-unused-vars
+   12:8  warning  'iconTech' is defined but never used. Allowed unused vars must match /^_/u                          @typescript-eslint/no-unused-vars
+  441:9  warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                   @typescript-eslint/no-unused-vars
+  459:5  warning  'setSelectedTech' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+  484:5  warning  'nickname' is assigned a value but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+  485:5  warning  'setNickname' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  486:5  warning  'introduction' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  487:5  warning  'setIntroduction' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+  488:5  warning  'isSubmitting' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  489:5  warning  'submitError' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  498:5  warning  'termsAgreed' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  499:5  warning  'setTermsAgreed' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  500:5  warning  'privacyAgreed' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  501:5  warning  'setPrivacyAgreed' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  502:5  warning  'pledgeAgreed' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  503:5  warning  'setPledgeAgreed' is assigned a value but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+  504:5  warning  'nicknameCheckMessage' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  505:5  warning  'isNicknameChecking' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  506:5  warning  'handleSubmit' is assigned a value but never used. Allowed unused vars must match /^_/u             @typescript-eslint/no-unused-vars
+  507:5  warning  'handleNicknameCheck' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  512:5  warning  'allRequiredAgreed' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  513:5  warning  'isNicknameCheckDisabled' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  514:5  warning  'isSubmitDisabled' is assigned a value but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+  516:5  warning  'nicknameLimit' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  517:5  warning  'introductionLimit' is assigned a value but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+
+✖ 29 problems (1 error, 28 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

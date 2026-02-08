@@ -1,4 +1,4 @@
-import { ExpertSearchPage } from '@/widgets/expert-search';
+import { ExpertSearchPage } from '@/widgets/expert';
 import { PageTransition } from '@/shared/ui/page-transition';
 
 export default function ExpertsPage() {

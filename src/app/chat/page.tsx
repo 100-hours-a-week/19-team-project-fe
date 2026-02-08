@@ -1,4 +1,4 @@
-import { ChatList } from '@/widgets/chat-list';
+import { ChatList } from '@/widgets/chat';
 import { Footer } from '@/widgets/footer';
 
 export default function ChatPage() {

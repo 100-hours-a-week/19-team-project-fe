@@ -1,4 +1,4 @@
-import { ChatDetailLoader } from '@/widgets/chat-detail';
+import { ChatDetailLoader } from '@/widgets/chat';
 
 type ChatDetailPageProps = {
   params: Promise<{

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 
 import { Footer } from '@/widgets/footer';
-import { SearchBar } from '@/widgets/search-bar';
+import { SearchBar } from '@/widgets/home';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
 import {
