@@ -297,7 +297,25 @@ jobs:
                 throw new Error(`Sheet not found for id ${sheetId}`);
               }
 
-              await sheet.loadHeaderRow();
+              const headerKeys = [
+                'PR url',
+                'Monitoring Time',
+                ...Object.keys(desktopScore).flatMap((key) => [`${key} [D]`, `${key} [M]`]),
+              ];
+
+              try {
+                await sheet.loadHeaderRow();
+              } catch (error) {
+                const message =
+                  error && typeof error === 'object' && 'message' in error
+                    ? String(error.message)
+                    : String(error);
+                if (message.includes('No values in the header row')) {
+                  await sheet.setHeaderRow(headerKeys);
+                } else {
+                  throw error;
+                }
+              }
               const rows = await sheet.getRows();
               const previousRow = rows.find((row) => row['PR url'] === `#${issue.number}`);
 
