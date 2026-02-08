@@ -1,0 +1,286 @@
+name: Lighthouse CI (PR)
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10
+
+jobs:
+  lhci:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Build Environment
+        if: ${{ secrets.TEST_ENV_FILE != '' }}
+        run: echo "${{ secrets.TEST_ENV_FILE }}" > .env.production
+
+      - name: Build
+        run: pnpm run build
+        env:
+          NODE_ENV: production
+
+      - name: Run Lighthouse CI for Desktop
+        run: |
+          pnpm dlx @lhci/cli collect --config=lighthouserc-desktop.js || echo 'Fail to Run Lighthouse CI (desktop)'
+          pnpm dlx @lhci/cli upload --config=lighthouserc-desktop.js || echo 'Fail to Run Lighthouse CI (desktop)'
+
+      - name: Run Lighthouse CI for Mobile
+        run: |
+          pnpm dlx @lhci/cli collect --config=lighthouserc-mobile.js || echo 'Fail to Run Lighthouse CI (mobile)'
+          pnpm dlx @lhci/cli upload --config=lighthouserc-mobile.js || echo 'Fail to Run Lighthouse CI (mobile)'
+
+      - name: Format lighthouse score
+        id: format_lighthouse_score
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const core = require('@actions/core');
+            const {
+              getLhciPageNameFromUrl,
+              LHCI_GREEN_MIN_SCORE,
+              LHCI_ORANGE_MIN_SCORE,
+              LHCI_RED_MIN_SCORE,
+            } = require('./src/shared/config/lighthouse/Lighthouse.js');
+
+            const desktopManifestPath = './lhci_reports/desktop/manifest.json';
+            const mobileManifestPath = './lhci_reports/mobile/manifest.json';
+
+            const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
+
+            if (!fs.existsSync(desktopManifestPath)) {
+              throw new Error(`Missing desktop manifest at ${desktopManifestPath}`);
+            }
+            if (!fs.existsSync(mobileManifestPath)) {
+              throw new Error(`Missing mobile manifest at ${mobileManifestPath}`);
+            }
+
+            const desktopResults = readJson(desktopManifestPath);
+            const mobileResults = readJson(mobileManifestPath);
+
+            const getColor = (score) => {
+              if (score >= LHCI_GREEN_MIN_SCORE) return '🟢';
+              if (score >= LHCI_ORANGE_MIN_SCORE) return '🟠';
+              return '🔴';
+            };
+
+            const getAuditColorAndScore = (score) => `${getColor(score)}${score}`;
+            const getPerformanceMetricColorAndScore = (metric) => {
+              const score = Math.round((metric?.score ?? 0) * 100);
+              const displayValue = metric?.displayValue ?? 'N/A';
+              return `${getColor(score)}${displayValue}`;
+            };
+
+            const formatResult = (res) => Math.round(res * 100);
+            const monitoringTime = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+            const scoreDescription = `> 🟢: ${LHCI_GREEN_MIN_SCORE} - 100 / 🟠: ${LHCI_ORANGE_MIN_SCORE} - ${LHCI_GREEN_MIN_SCORE - 1} / 🔴: ${LHCI_RED_MIN_SCORE} - ${LHCI_ORANGE_MIN_SCORE - 1}`;
+
+            let comments = '';
+            comments += '### Lighthouse report ✨\n';
+            comments += `${scoreDescription}\n\n`;
+
+            const scores = { desktop: {}, mobile: {} };
+
+            const extractLhciResults = (results, device) => {
+              comments += `#### ${device}\n\n`;
+
+              results.forEach((result) => {
+                const { url, summary, jsonPath } = result;
+                const reportPath = path.isAbsolute(jsonPath) ? jsonPath : path.resolve(jsonPath);
+                const { audits } = readJson(reportPath);
+
+                const pageUrl = url.replace('http://localhost:3000', '');
+                const pageName = getLhciPageNameFromUrl(pageUrl) || pageUrl;
+
+                Object.keys(summary).forEach((key) => (summary[key] = formatResult(summary[key])));
+
+                const {
+                  performance,
+                  accessibility,
+                  'best-practices': bestPractices,
+                  seo,
+                  pwa,
+                } = summary;
+
+                const {
+                  'first-contentful-paint': firstContentfulPaint,
+                  'largest-contentful-paint': largestContentfulPaint,
+                  'speed-index': speedIndex,
+                  'total-blocking-time': totalBlockingTime,
+                  'cumulative-layout-shift': cumulativeLayoutShift,
+                } = audits;
+
+                const formattedScoreTable = [
+                  '| Category | Score |',
+                  '| --- | --- |',
+                  `| ${getColor(performance)} Performance | ${performance} |`,
+                  `| ${getColor(accessibility)} Accessibility | ${accessibility} |`,
+                  `| ${getColor(bestPractices)} Best practices | ${bestPractices} |`,
+                  `| ${getColor(seo)} SEO | ${seo} |`,
+                  `| ${getColor(pwa)} PWA | ${pwa} |`,
+                  `| ${getColor((firstContentfulPaint?.score ?? 0) * 100)} First Contentful Paint | ${firstContentfulPaint?.displayValue ?? 'N/A'} |`,
+                  `| ${getColor((largestContentfulPaint?.score ?? 0) * 100)} Largest Contentful Paint | ${largestContentfulPaint?.displayValue ?? 'N/A'} |`,
+                  `| ${getColor((speedIndex?.score ?? 0) * 100)} Speed Index | ${speedIndex?.displayValue ?? 'N/A'} |`,
+                  `| ${getColor((totalBlockingTime?.score ?? 0) * 100)} Total Blocking Time | ${totalBlockingTime?.displayValue ?? 'N/A'} |`,
+                  `| ${getColor((cumulativeLayoutShift?.score ?? 0) * 100)} Cumulative Layout Shift | ${cumulativeLayoutShift?.displayValue ?? 'N/A'} |`,
+                  '',
+                ].join('\n');
+
+                const score = {
+                  Performance: getAuditColorAndScore(performance),
+                  Accessibility: getAuditColorAndScore(accessibility),
+                  'Best Practices': getAuditColorAndScore(bestPractices),
+                  SEO: getAuditColorAndScore(seo),
+                  PWA: getAuditColorAndScore(pwa),
+                  FCP: getPerformanceMetricColorAndScore(firstContentfulPaint),
+                  LCP: getPerformanceMetricColorAndScore(largestContentfulPaint),
+                  'Speed Index': getPerformanceMetricColorAndScore(speedIndex),
+                  TBT: getPerformanceMetricColorAndScore(totalBlockingTime),
+                  CLS: getPerformanceMetricColorAndScore(cumulativeLayoutShift),
+                };
+
+                scores[device][pageName] = score;
+
+                comments += `<details>\n<summary>${pageName}</summary>\n\n> ${pageUrl}\n\n${formattedScoreTable}\n</details>\n\n`;
+              });
+            };
+
+            extractLhciResults(desktopResults, 'desktop');
+            extractLhciResults(mobileResults, 'mobile');
+
+            core.setOutput('comments', comments);
+            core.setOutput('monitoringTime', monitoringTime);
+            core.setOutput('scores', JSON.stringify(scores));
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        env:
+          LHCI_COMMENT: ${{ steps.format_lighthouse_score.outputs.comments }}
+        with:
+          script: |
+            const { repo, issue } = context;
+            const { data: previousComments } = await github.rest.issues.listComments({
+              owner: repo.owner,
+              repo: repo.repo,
+              issue_number: issue.number,
+            });
+
+            const marker = '### Lighthouse report ✨\n';
+            const previousLhciComment = previousComments.find((comment) => comment.body.startsWith(marker));
+            const newComment = process.env.LHCI_COMMENT || '';
+
+            if (!newComment) {
+              throw new Error('LHCI_COMMENT is empty');
+            }
+
+            if (previousLhciComment) {
+              await github.rest.issues.updateComment({
+                owner: repo.owner,
+                repo: repo.repo,
+                comment_id: previousLhciComment.id,
+                body: newComment,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: issue.number,
+                body: newComment,
+              });
+            }
+
+      - name: Update Google Spreadsheet
+        if: ${{ secrets.LHCI_GOOGLE_CLIENT_EMAIL != '' && secrets.LHCI_GOOGLE_PRIVATE_KEY != '' }}
+        uses: actions/github-script@v7
+        env:
+          LHCI_SCORES: ${{ steps.format_lighthouse_score.outputs.scores }}
+          LHCI_MONITORING_TIME: ${{ steps.format_lighthouse_score.outputs.monitoringTime }}
+          LHCI_GOOGLE_CLIENT_EMAIL: ${{ secrets.LHCI_GOOGLE_CLIENT_EMAIL }}
+          LHCI_GOOGLE_PRIVATE_KEY: ${{ secrets.LHCI_GOOGLE_PRIVATE_KEY }}
+        with:
+          script: |
+            const { GoogleSpreadsheet } = require('google-spreadsheet');
+            const {
+              LHCI_GOOGLE_SPREAD_SHEET_ID,
+              getLhciSheetIdFromPageName,
+            } = require('./src/shared/config/lighthouse/Lighthouse.js');
+
+            const scores = JSON.parse(process.env.LHCI_SCORES || '{}');
+            const monitoringTime = process.env.LHCI_MONITORING_TIME || '';
+
+            if (!scores.desktop || !scores.mobile) {
+              throw new Error('LHCI scores are missing or malformed');
+            }
+
+            const creds = {
+              client_email: process.env.LHCI_GOOGLE_CLIENT_EMAIL,
+              private_key: process.env.LHCI_GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            };
+
+            const doc = new GoogleSpreadsheet(LHCI_GOOGLE_SPREAD_SHEET_ID);
+            await doc.useServiceAccountAuth(creds);
+            await doc.loadInfo();
+
+            const { repo, issue } = context;
+            const prUrl = `https://github.com/${repo.owner}/${repo.repo}/pull/${issue.number}`;
+            const prHyperlink = `=HYPERLINK("${prUrl}", "#${issue.number}")`;
+
+            for (const pageName of Object.keys(scores.desktop)) {
+              const sheetId = getLhciSheetIdFromPageName(pageName);
+              if (sheetId === undefined) {
+                throw new Error(`Missing sheet id mapping for ${pageName}`);
+              }
+
+              const desktopScore = scores.desktop[pageName];
+              const mobileScore = scores.mobile[pageName];
+
+              const sheet = doc.sheetsById[sheetId];
+              if (!sheet) {
+                throw new Error(`Sheet not found for id ${sheetId}`);
+              }
+
+              await sheet.loadHeaderRow();
+              const rows = await sheet.getRows();
+              const previousRow = rows.find((row) => row['PR url'] === `#${issue.number}`);
+
+              if (previousRow) {
+                previousRow['Monitoring Time'] = monitoringTime;
+                previousRow['PR url'] = prHyperlink;
+
+                Object.keys(desktopScore).forEach((key) => {
+                  previousRow[`${key} [D]`] = desktopScore[key];
+                  previousRow[`${key} [M]`] = mobileScore[key];
+                });
+
+                await previousRow.save();
+                continue;
+              }
+
+              const newRow = { 'PR url': prHyperlink, 'Monitoring Time': monitoringTime };
+              Object.keys(desktopScore).forEach((key) => {
+                newRow[`${key} [D]`] = desktopScore[key];
+                newRow[`${key} [M]`] = mobileScore[key];
+              });
+
+              await sheet.addRow(newRow);
+            }
