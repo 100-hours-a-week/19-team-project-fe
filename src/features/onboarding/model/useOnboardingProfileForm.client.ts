@@ -47,7 +47,8 @@ export function useOnboardingProfileForm(isExpert: boolean) {
     return list.filter((item: Skill) => item.name.toLowerCase().includes(query.toLowerCase()));
   }, [form.techQuery, reference.skills]);
 
-  const allRequiredAgreed = form.termsAgreed && form.privacyAgreed && (!isExpert || form.pledgeAgreed);
+  const allRequiredAgreed =
+    form.termsAgreed && form.privacyAgreed && (!isExpert || form.pledgeAgreed);
 
   const isNicknameCheckDisabled =
     nicknameCheck.isNicknameChecking ||

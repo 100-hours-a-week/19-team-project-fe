@@ -1,18 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { KakaoLoginButton, getMe } from '@/features/auth';
-import { getResumes, type Resume } from '@/entities/resumes';
-import { createChat, getChatList } from '@/features/chat';
-import { getExpertDetail, type ExpertDetail } from '@/entities/experts';
-import { BusinessError, HttpError, useCommonApiErrorHandler } from '@/shared/api';
-import { useAuthGate } from '@/features/auth';
+import { KakaoLoginButton, useAuthGate, getMe } from '@/features/auth';
+import { useExpertDetail, useExpertResumes, useChatRequest } from '@/features/expert';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
-import { useToast } from '@/shared/ui/toast';
 import defaultUserImage from '@/shared/icons/char_icon.png';
 import iconMark from '@/shared/icons/icon-mark.png';
 import ExpertDetailHeader from './ExpertDetailHeader';
@@ -23,151 +17,19 @@ type ExpertDetailPageProps = {
 
 export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const router = useRouter();
-  const [expert, setExpert] = useState<ExpertDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [authSheetOpen, setAuthSheetOpen] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
-  const [resumes, setResumes] = useState<Resume[]>([]);
-  const [resumeError, setResumeError] = useState('');
-  const [isLoadingResumes, setIsLoadingResumes] = useState(false);
-  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
-  const [jobPostUrl, setJobPostUrl] = useState('');
-  const handleCommonApiError = useCommonApiErrorHandler();
   const { status: authStatus } = useAuthGate(getMe);
-  const { pushToast } = useToast();
-  const isJobPostOverLimit = jobPostUrl.trim().length > 500;
-  const wasJobPostOverLimit = useRef(false);
-
-  useEffect(() => {
-    if (isJobPostOverLimit && !wasJobPostOverLimit.current) {
-      pushToast('공고 링크는 최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
-    }
-    wasJobPostOverLimit.current = isJobPostOverLimit;
-  }, [isJobPostOverLimit, pushToast]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const load = async () => {
-      setIsLoading(true);
-      setErrorMessage('');
-      try {
-        const data = await getExpertDetail(userId);
-        if (isMounted) setExpert(data);
-      } catch (error) {
-        if (isMounted) {
-          if (
-            error instanceof BusinessError &&
-            (error.code === 'EXPERT_USER_ID_INVALID' || error.code === 'EXPERT_NOT_FOUND')
-          ) {
-            await handleCommonApiError(error);
-            setExpert(null);
-            return;
-          }
-          if (await handleCommonApiError(error)) {
-            return;
-          }
-          const message = error instanceof Error ? error.message : '알 수 없는 오류';
-          setErrorMessage(message);
-          setExpert(null);
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-    load();
-    return () => {
-      isMounted = false;
-    };
-  }, [handleCommonApiError, userId]);
-
-  useEffect(() => {
-    if (authStatus !== 'authed') {
-      setResumes([]);
-      setSelectedResumeId(null);
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoadingResumes(true);
-    setResumeError('');
-
-    (async () => {
-      try {
-        const data = await getResumes();
-        if (cancelled) return;
-        setResumes(data.resumes);
-      } catch (error) {
-        if (cancelled) return;
-        if (error instanceof HttpError && error.status === 401) {
-          setResumeError('로그인 이후에 사용 가능합니다.');
-        } else {
-          setResumeError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
-        }
-        setResumes([]);
-      } finally {
-        if (cancelled) return;
-        setIsLoadingResumes(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authStatus]);
-
-  const handleChatRequestClick = async () => {
-    if (isCheckingAuth) return;
-    if (isJobPostOverLimit) {
-      pushToast('공고 링크는 최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
-      return;
-    }
-    setIsCheckingAuth(true);
-    try {
-      const auth = await getMe();
-      if (!auth.authenticated) {
-        setAuthSheetOpen(true);
-        return;
-      }
-      const data = await createChat({
-        receiver_id: userId,
-        resume_id: selectedResumeId ?? null,
-        job_post_url: jobPostUrl.trim() || null,
-        request_type: 'COFFEE_CHAT',
-      });
-      router.push(`/chat/${data.chat_id}`);
-    } catch (error) {
-      if (
-        error instanceof BusinessError &&
-        (error.code === 'CHAT_ROOM_ALREADY_EXISTS' || error.code === 'CONFLICT')
-      ) {
-        try {
-          const list = await getChatList({ status: 'ACTIVE' });
-          const matched = list.chats.find(
-            (chat) => chat.receiver.user_id === userId || chat.requester.user_id === userId,
-          );
-          if (matched) {
-            router.push(`/chat/${matched.chat_id}`);
-            return;
-          }
-        } catch (listError) {
-          if (await handleCommonApiError(listError)) {
-            return;
-          }
-          console.error('[Chat List Error]', listError);
-        }
-        alert('이미 채팅방이 존재하지만 이동할 수 없습니다.');
-        return;
-      }
-      if (await handleCommonApiError(error)) {
-        return;
-      }
-      console.error('[Chat Request Error]', error);
-      alert('채팅 요청에 실패했습니다.');
-    } finally {
-      setIsCheckingAuth(false);
-    }
-  };
+  const { expert, isLoading, errorMessage } = useExpertDetail(userId);
+  const { resumes, resumeError, isLoadingResumes, selectedResumeId, setSelectedResumeId } =
+    useExpertResumes(authStatus);
+  const {
+    authSheetOpen,
+    setAuthSheetOpen,
+    isCheckingAuth,
+    jobPostUrl,
+    setJobPostUrl,
+    isJobPostOverLimit,
+    handleChatRequestClick,
+  } = useChatRequest(userId);
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
@@ -314,7 +176,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
       <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-4 pb-6 pt-3">
         <Button
           type="button"
-          onClick={handleChatRequestClick}
+          onClick={() => handleChatRequestClick(selectedResumeId)}
           disabled={isCheckingAuth || !expert || isJobPostOverLimit}
           icon={<Image src={iconMark} alt="" width={18} height={18} />}
         >

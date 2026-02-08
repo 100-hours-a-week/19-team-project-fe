@@ -1,79 +1,25 @@
 'use client';
 
-import type { FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { getExperts, type Expert } from '@/entities/experts';
-import { useCommonApiErrorHandler } from '@/shared/api';
+import { useExpertSearch } from '@/features/expert';
 import defaultUserImage from '@/shared/icons/char_icon.png';
 import ExpertSearchHeader from './ExpertSearchHeader';
 
 export default function ExpertSearchPage() {
-  const [keyword, setKeyword] = useState('');
-  const [experts, setExperts] = useState<Expert[]>([]);
-  const [submitted, setSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [flowSlide, setFlowSlide] = useState(0);
-  const handleCommonApiError = useCommonApiErrorHandler();
   const router = useRouter();
-
-  const loadExperts = useCallback(
-    async (nextKeyword?: string, size = 5) => {
-      setIsLoading(true);
-      setErrorMessage('');
-      try {
-        const data = await getExperts({ keyword: nextKeyword, size });
-        setExperts(data.experts);
-        return data;
-      } catch (error) {
-        if (await handleCommonApiError(error)) {
-          return undefined;
-        }
-        setExperts([]);
-        setErrorMessage('네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
-        return undefined;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [handleCommonApiError],
-  );
-
-  useEffect(() => {
-    if (submitted) return;
-    if (!keyword.trim()) {
-      setExperts([]);
-      return;
-    }
-    const timeoutId = window.setTimeout(() => {
-      loadExperts(keyword.trim() || undefined, 5);
-    }, 350);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [keyword, loadExperts, submitted]);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setFlowSlide((prev) => (prev + 1) % 3);
-    }, 5000);
-    return () => window.clearInterval(intervalId);
-  }, []);
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!keyword.trim()) {
-      setSubmitted(false);
-      setExperts([]);
-      setErrorMessage('');
-      return;
-    }
-    setSubmitted(true);
-    await loadExperts(keyword.trim() || undefined, 9);
-  };
+  const {
+    keyword,
+    setKeyword,
+    experts,
+    submitted,
+    isLoading,
+    errorMessage,
+    flowSlide,
+    handleSubmit,
+  } = useExpertSearch();
 
   return (
     <div className="min-h-screen bg-white">
@@ -100,7 +46,13 @@ export default function ExpertSearchPage() {
             </svg>
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="mt-5">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSubmit();
+          }}
+          className="mt-5"
+        >
           <div className="flex w-full items-center justify-between gap-3 rounded-full border border-[#262627] bg-[#f7f7f7] px-4 py-3 text-left text-text-hint-main">
             <input
               type="search"
