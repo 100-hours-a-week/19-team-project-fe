@@ -14,6 +14,9 @@ permissions:
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 10
+  TEST_ENV_FILE: ${{ secrets.TEST_ENV_FILE }}
+  LHCI_GOOGLE_CLIENT_EMAIL: ${{ secrets.LHCI_GOOGLE_CLIENT_EMAIL }}
+  LHCI_GOOGLE_PRIVATE_KEY: ${{ secrets.LHCI_GOOGLE_PRIVATE_KEY }}
 
 jobs:
   lhci:
@@ -30,8 +33,8 @@ jobs:
           pnpm-version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Build Environment
-        if: ${{ secrets.TEST_ENV_FILE != '' }}
-        run: echo "${{ secrets.TEST_ENV_FILE }}" > .env.production
+        if: ${{ env.TEST_ENV_FILE != '' }}
+        run: echo "${{ env.TEST_ENV_FILE }}" > .env.production
 
       - name: Build
         run: pnpm run build
@@ -210,13 +213,13 @@ jobs:
             }
 
       - name: Update Google Spreadsheet
-        if: ${{ secrets.LHCI_GOOGLE_CLIENT_EMAIL != '' && secrets.LHCI_GOOGLE_PRIVATE_KEY != '' }}
+        if: ${{ env.LHCI_GOOGLE_CLIENT_EMAIL != '' && env.LHCI_GOOGLE_PRIVATE_KEY != '' }}
         uses: actions/github-script@v7
         env:
           LHCI_SCORES: ${{ steps.format_lighthouse_score.outputs.scores }}
           LHCI_MONITORING_TIME: ${{ steps.format_lighthouse_score.outputs.monitoringTime }}
-          LHCI_GOOGLE_CLIENT_EMAIL: ${{ secrets.LHCI_GOOGLE_CLIENT_EMAIL }}
-          LHCI_GOOGLE_PRIVATE_KEY: ${{ secrets.LHCI_GOOGLE_PRIVATE_KEY }}
+          LHCI_GOOGLE_CLIENT_EMAIL: ${{ env.LHCI_GOOGLE_CLIENT_EMAIL }}
+          LHCI_GOOGLE_PRIVATE_KEY: ${{ env.LHCI_GOOGLE_PRIVATE_KEY }}
         with:
           script: |
             const { GoogleSpreadsheet } = require('google-spreadsheet');
