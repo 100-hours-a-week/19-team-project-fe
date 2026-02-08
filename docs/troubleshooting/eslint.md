@@ -1371,3 +1371,24 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-08 Raw Log
+
+- Logged at: 2026-02-08 10:36:08Z
+
+```
+> re-fit@1.0.18 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/lighthouserc-desktop.js
+  4:5  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/lighthouserc-mobile.js
+  4:5  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 2 problems (2 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

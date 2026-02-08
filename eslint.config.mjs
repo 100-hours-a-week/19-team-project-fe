@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Tooling configs (CommonJS)
+    "lighthouserc*.js",
+    "lighthouserc*.cjs",
   ]),
   {
     plugins: { boundaries },
