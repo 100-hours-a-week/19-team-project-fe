@@ -58,7 +58,6 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const core = require('@actions/core');
             const {
               getLhciPageNameFromUrl,
               LHCI_GREEN_MIN_SCORE,
