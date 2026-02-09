@@ -92,7 +92,7 @@ jobs:
         (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
         (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release-dev' || github.event.inputs.job_to_run == 'all'))
       )
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     outputs:
       image_tag: ${{ steps.meta.outputs.image_tag }}
     steps:
@@ -167,7 +167,7 @@ jobs:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && (github.event.inputs.job_to_run == 'release-prod' || github.event.inputs.job_to_run == 'all'))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     outputs:
       version_tag: ${{ steps.version.outputs.version_tag }}
       artifact_prefix: ${{ steps.version.outputs.artifact_prefix }}
