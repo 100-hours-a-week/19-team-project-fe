@@ -457,15 +457,11 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
     selectedTech,
     techQuery,
     setTechQuery,
-    skillsLoading,
-    skillsError,
+    metadataLoading,
+    metadataError,
     techLimitMessage,
     jobs,
-    jobsLoading,
-    jobsError,
     careerLevels,
-    careerLoading,
-    careerError,
     verificationEmail,
     setVerificationEmail,
     isVerificationVisible,
@@ -1037,10 +1033,10 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
               ))}
             </div>
             <div className="mt-6 flex flex-col gap-3 pr-1">
-              {skillsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
-              {skillsError ? <p className="text-sm text-red-500">{skillsError}</p> : null}
+              {metadataLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+              {metadataError ? <p className="text-sm text-red-500">{metadataError}</p> : null}
               {techLimitMessage ? <p className="text-xs text-red-500">{techLimitMessage}</p> : null}
-              {!skillsLoading && !skillsError
+              {!metadataLoading && !metadataError
                 ? filteredTech.map((item) => {
                     const isSelected = selectedTech.some((tech) => tech.id === item.id);
                     return (
@@ -1068,9 +1064,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
         {activeSheet === 'job' ? (
           <div className="flex h-full flex-col">
-            {jobsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
-            {jobsError ? <p className="text-sm text-red-500">{jobsError}</p> : null}
-            {!jobsLoading && !jobsError ? (
+            {metadataLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+            {metadataError ? <p className="text-sm text-red-500">{metadataError}</p> : null}
+            {!metadataLoading && !metadataError ? (
               <div className="flex flex-col gap-6 pr-1">
                 {jobs.map((item) => (
                   <button
@@ -1098,9 +1094,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
         {activeSheet === 'career' ? (
           <div className="flex h-full flex-col">
-            {careerLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
-            {careerError ? <p className="text-sm text-red-500">{careerError}</p> : null}
-            {!careerLoading && !careerError ? (
+            {metadataLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+            {metadataError ? <p className="text-sm text-red-500">{metadataError}</p> : null}
+            {!metadataLoading && !metadataError ? (
               <div className="flex flex-col gap-6 pr-1">
                 {careerLevels.map((item) => (
                   <button
