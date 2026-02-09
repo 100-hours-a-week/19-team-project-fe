@@ -15,9 +15,8 @@ on:
         description: 'Branch name'
         required: true
         type: choice
-        default: 'develop'
+        default: 'main'
         options:
-          - develop
           - main
       version_tag:
         description: 'Version tag (e.g., v1.0.0, develop-abc1234)'
@@ -41,7 +40,7 @@ jobs:
   deploy:
     # Release job 성공 후 트리거된 경우에만 실행
     runs-on: ubuntu-latest
-    environment: ${{ inputs.branch == 'main' && 'production' || 'development' }}
+    environment: production
     steps:
       - name: Find Latest Artifact (if needed)
         if: inputs.use_latest_artifact == true && (inputs.run_id == '' || inputs.sha == '' || inputs.artifact_prefix == '')
