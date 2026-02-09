@@ -1033,9 +1033,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
               ))}
             </div>
             <div className="mt-6 flex flex-col gap-3 pr-1">
-              {metadataLoading ? (
-                <p className="text-sm text-text-caption">불러오는 중...</p>
-              ) : null}
+              {metadataLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
               {metadataError ? <p className="text-sm text-red-500">{metadataError}</p> : null}
               {techLimitMessage ? <p className="text-xs text-red-500">{techLimitMessage}</p> : null}
               {!metadataLoading && !metadataError
