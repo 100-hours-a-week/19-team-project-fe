@@ -17,3 +17,8 @@ export type {
   ResumeParseSyncRequest,
   ResumeParseSyncResult,
 } from './api/parseResumeSync';
+export {
+  normalizeResumeContent,
+  normalizeResumeDetail,
+  toStringArray,
+} from './lib/normalizeResumeDetail';

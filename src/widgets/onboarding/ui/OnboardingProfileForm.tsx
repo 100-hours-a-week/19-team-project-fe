@@ -1,26 +1,10 @@
 ﻿'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
-import type { CareerLevel, Job, Skill, UserType } from '@/entities/onboarding';
-import {
-  checkNickname,
-  getCareerLevels,
-  getJobs,
-  getSkills,
-  sendEmailVerification,
-  signup,
-  verifyEmailVerification,
-} from '@/features/onboarding';
-import {
-  BusinessError,
-  readAccessToken,
-  setAuthCookies,
-  useCommonApiErrorHandler,
-} from '@/shared/api';
+import { useOnboardingProfileForm } from '@/features/onboarding';
 import iconMark from '@/shared/icons/icon-mark.png';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 import iconCareer from '@/shared/icons/icon_career.png';
@@ -29,50 +13,16 @@ import iconTech from '@/shared/icons/Icon_tech.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
-import { stompManager } from '@/shared/ws';
 
 type RoleId = 'seeker' | 'expert';
-type SheetId = 'job' | 'career' | 'tech' | null;
 
 type OnboardingProfileFormProps = {
   role?: RoleId;
 };
 
-const nicknameLimit = 10;
-const introductionLimit = 100;
-const verificationCodeLength = 6;
-
 const roleTitle: Record<RoleId, string> = {
   seeker: '구직자',
   expert: '현직자',
-};
-
-const signupErrorMessages: Record<string, string> = {
-  SIGNUP_OAUTH_PROVIDER_INVALID: '소셜 로그인 제공자가 올바르지 않습니다.',
-  SIGNUP_OAUTH_ID_EMPTY: '소셜 로그인 정보가 필요합니다.',
-  NICKNAME_EMPTY: '닉네임을 입력해 주세요.',
-  SIGNUP_USER_TYPE_INVALID: '유저 타입이 올바르지 않습니다.',
-  CAREER_LEVEL_NOT_FOUND: '선택한 경력이 올바르지 않습니다.',
-};
-
-const defaultSignupErrorMessage = '회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-
-const nicknameValidationMessages: Record<string, string> = {
-  NICKNAME_EMPTY: '닉네임을 입력해 주세요.',
-  NICKNAME_TOO_SHORT: '닉네임이 너무 짧아요.',
-  NICKNAME_TOO_LONG: '닉네임이 너무 길어요.',
-  NICKNAME_INVALID_CHARACTERS: '특수 문자/이모지는 사용할 수 없어요.',
-  NICKNAME_CONTAINS_WHITESPACE: '닉네임에 공백을 포함할 수 없어요.',
-};
-
-const emailVerificationMessages: Record<string, string> = {
-  EMAIL_FORMAT_INVALID: '이메일 형식이 올바르지 않습니다.',
-  EMAIL_ALREADY_VERIFIED: '이미 인증이 완료된 이메일입니다.',
-  EMAIL_VERIFICATION_RATE_LIMIT: '인증 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.',
-  VERIFICATION_CODE_INVALID: '인증번호 형식이 올바르지 않습니다.',
-  VERIFICATION_CODE_MISMATCH: '인증번호가 일치하지 않습니다.',
-  AUTH_UNAUTHORIZED: '인증 정보가 만료되었습니다. 다시 전송해 주세요.',
-  VERIFICATION_CODE_EXPIRED: '인증 시간이 만료되었습니다. 다시 전송해 주세요.',
 };
 
 const TERMS_TEXT = `# RE:FIT 이용약관
@@ -488,459 +438,75 @@ function renderLegalText(text: string) {
 }
 
 export default function OnboardingProfileForm({ role }: OnboardingProfileFormProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const roleParam = searchParams.get('role')?.toLowerCase();
   const resolvedRole: RoleId =
     roleParam === 'expert' || roleParam === 'seeker' ? roleParam : (role ?? 'seeker');
   const isExpert = resolvedRole === 'expert';
   const displayRole = roleTitle[resolvedRole] ?? roleTitle.seeker;
-  const [currentStep, setCurrentStep] = useState<0 | 1>(() => (isExpert ? 0 : 1));
-  const [activeSheet, setActiveSheet] = useState<SheetId>(null);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [selectedCareer, setSelectedCareer] = useState<CareerLevel | null>(null);
-  const [selectedTech, setSelectedTech] = useState<Skill[]>([]);
-  const [techQuery, setTechQuery] = useState('');
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [skillsLoading, setSkillsLoading] = useState(true);
-  const [skillsError, setSkillsError] = useState<string | null>(null);
-  const [techLimitMessage, setTechLimitMessage] = useState<string | null>(null);
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [jobsLoading, setJobsLoading] = useState(true);
-  const [jobsError, setJobsError] = useState<string | null>(null);
-  const [careerLevels, setCareerLevels] = useState<CareerLevel[]>([]);
-  const [careerLoading, setCareerLoading] = useState(true);
-  const [careerError, setCareerError] = useState<string | null>(null);
-  const [verificationEmail, setVerificationEmail] = useState('');
-  const [isVerificationVisible, setIsVerificationVisible] = useState(false);
-  const [verificationCode, setVerificationCode] = useState<string[]>([]);
-  const [lastSentEmail, setLastSentEmail] = useState<string | null>(null);
-  const [isSendingVerification, setIsSendingVerification] = useState(false);
-  const [sendVerificationMessage, setSendVerificationMessage] = useState<string | null>(null);
-  const [sendVerificationError, setSendVerificationError] = useState<string | null>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationError, setVerificationError] = useState<string | null>(null);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isVerificationFailSheetOpen, setIsVerificationFailSheetOpen] = useState(false);
-  const [verificationExpiresAt, setVerificationExpiresAt] = useState<Date | null>(null);
-  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-  const [nickname, setNickname] = useState('');
-  const [introduction, setIntroduction] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [termsOpen, setTermsOpen] = useState(false);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
-  const [pledgeOpen, setPledgeOpen] = useState(false);
-  const [privacyPledgeOpen, setPrivacyPledgeOpen] = useState(false);
-  const [termsAgreed, setTermsAgreed] = useState(false);
-  const [privacyAgreed, setPrivacyAgreed] = useState(false);
-  const [pledgeAgreed, setPledgeAgreed] = useState(false);
-  const allRequiredAgreed = termsAgreed && privacyAgreed && (!isExpert || pledgeAgreed);
-  const [nicknameCheckMessage, setNicknameCheckMessage] = useState<{
-    tone: 'success' | 'error';
-    text: string;
-  } | null>(null);
-  const [isNicknameChecking, setIsNicknameChecking] = useState(false);
-  const [checkedNickname, setCheckedNickname] = useState<string | null>(null);
-  const handleCommonApiError = useCommonApiErrorHandler();
 
-  useEffect(() => {
-    const trimmed = nickname.trim();
-    if (checkedNickname && trimmed !== checkedNickname) {
-      setCheckedNickname(null);
-      setNicknameCheckMessage(null);
-    }
-  }, [checkedNickname, nickname]);
-
-  useEffect(() => {
-    let isMounted = true;
-    getSkills()
-      .then((data) => {
-        if (!isMounted) return;
-        setSkills(data.skills);
-      })
-      .catch(async (error: unknown) => {
-        if (!isMounted) return;
-        if (await handleCommonApiError(error)) return;
-        setSkillsError(error instanceof Error ? error.message : '스킬 목록을 불러오지 못했습니다.');
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setSkillsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [handleCommonApiError]);
-
-  useEffect(() => {
-    let isMounted = true;
-    getJobs()
-      .then((data) => {
-        if (!isMounted) return;
-        setJobs(data.jobs);
-      })
-      .catch(async (error: unknown) => {
-        if (!isMounted) return;
-        if (await handleCommonApiError(error)) return;
-        setJobsError(error instanceof Error ? error.message : '직무 목록을 불러오지 못했습니다.');
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setJobsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [handleCommonApiError]);
-
-  useEffect(() => {
-    let isMounted = true;
-    getCareerLevels()
-      .then((data) => {
-        if (!isMounted) return;
-        setCareerLevels(data.career_levels);
-      })
-      .catch(async (error: unknown) => {
-        if (!isMounted) return;
-        if (await handleCommonApiError(error)) return;
-        setCareerError(error instanceof Error ? error.message : '경력 목록을 불러오지 못했습니다.');
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setCareerLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [handleCommonApiError]);
-
-  const filteredTech = useMemo(() => {
-    const query = techQuery.trim().toLowerCase();
-    if (!query) return skills;
-    return skills.filter((item) => item.name.toLowerCase().includes(query));
-  }, [skills, techQuery]);
-
-  const toggleTech = (value: Skill) => {
-    setSelectedTech((prev) => {
-      if (prev.some((item) => item.id === value.id)) {
-        setTechLimitMessage(null);
-        return prev.filter((item) => item.id !== value.id);
-      }
-      if (prev.length >= 5) {
-        setTechLimitMessage('기술스택은 최대 5개까지 선택할 수 있어요.');
-        return prev;
-      }
-      setTechLimitMessage(null);
-      return [...prev, value];
-    });
-  };
-
-  const handleSubmit = async () => {
-    if (isSubmitting) return;
-
-    if (!selectedJob || !selectedCareer || selectedTech.length === 0) {
-      setSubmitError('직무, 경력, 기술스택을 모두 선택해 주세요.');
-      return;
-    }
-
-    setSubmitError(null);
-    setIsSubmitting(true);
-    try {
-      const raw = sessionStorage.getItem('kakaoLoginResult');
-      if (!raw) {
-        setSubmitError('소셜 로그인 정보가 없습니다. 다시 로그인해 주세요.');
-        return;
-      }
-
-      let oauthId = '';
-      let fallbackNickname = '';
-      let email = '';
-
-      try {
-        const parsed = JSON.parse(raw) as {
-          signup_required?: {
-            oauth_provider?: string;
-            oauth_id?: string;
-            email?: string | null;
-            nickname?: string | null;
-          };
-        };
-        const signupRequired = parsed.signup_required;
-        if (signupRequired) {
-          oauthId = signupRequired.oauth_id ?? '';
-          fallbackNickname = signupRequired.nickname ?? '';
-          email = signupRequired.email ?? '';
-        }
-      } catch {
-        setSubmitError('로그인 정보 파싱에 실패했습니다. 다시 로그인해 주세요.');
-        return;
-      }
-
-      const resolvedNickname = nickname.trim() || fallbackNickname;
-      if (!oauthId) {
-        setSubmitError('소셜 로그인 정보가 부족합니다. 다시 로그인해 주세요.');
-        return;
-      }
-      if (!resolvedNickname) {
-        setSubmitError('닉네임을 입력해 주세요.');
-        return;
-      }
-      if (!email) {
-        setSubmitError('이메일 정보가 없습니다. 다시 로그인해 주세요.');
-        return;
-      }
-      const userType: UserType = isExpert ? 'EXPERT' : 'JOB_SEEKER';
-
-      const signupPayload = {
-        oauth_provider: 'KAKAO' as const,
-        oauth_id: oauthId,
-        email,
-        company_email:
-          isExpert && isVerified ? (lastSentEmail ?? verificationEmail.trim()) : undefined,
-        nickname: resolvedNickname,
-        user_type: userType,
-        career_level_id: selectedCareer.id,
-        job_ids: [selectedJob.id],
-        skills: selectedTech.map((skill, index) => ({
-          skill_id: skill.id,
-          display_order: index + 1,
-        })),
-        introduction: introduction.trim(),
-        terms_agreed: allRequiredAgreed,
-      };
-
-      const signupResult = await signup({
-        ...signupPayload,
-      });
-      setAuthCookies({
-        accessToken: signupResult.accessToken,
-        refreshToken: signupResult.refreshToken,
-        userId: signupResult.userId,
-      });
-      sessionStorage.setItem('signupSuccess', 'true');
-      try {
-        const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
-        if (!wsUrl) {
-          console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
-        } else {
-          const accessToken = readAccessToken();
-          const connectHeaders = accessToken
-            ? { Authorization: `Bearer ${accessToken}` }
-            : undefined;
-          await stompManager.connect(wsUrl, { connectHeaders });
-        }
-      } catch (wsError) {
-        console.warn('[WS] connect after signup failed', wsError);
-      }
-      router.replace('/');
-    } catch (error: unknown) {
-      if (await handleCommonApiError(error)) {
-        return;
-      }
-      if (error instanceof BusinessError) {
-        setSubmitError(
-          signupErrorMessages[error.code] ?? error.message ?? defaultSignupErrorMessage,
-        );
-      } else if (error instanceof Error) {
-        setSubmitError(error.message);
-      } else {
-        setSubmitError(defaultSignupErrorMessage);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleNicknameCheck = async () => {
-    if (isNicknameChecking) return;
-    const trimmed = nickname.trim();
-
-    setIsNicknameChecking(true);
-    setNicknameCheckMessage(null);
-
-    try {
-      const data = await checkNickname(trimmed);
-      setCheckedNickname(trimmed);
-      if (data.available) {
-        setNicknameCheckMessage({ tone: 'success', text: '사용 가능한 닉네임입니다.' });
-      } else {
-        setNicknameCheckMessage({ tone: 'error', text: '이미 사용 중인 닉네임입니다.' });
-      }
-    } catch (error: unknown) {
-      if (await handleCommonApiError(error)) {
-        return;
-      }
-      if (error instanceof BusinessError) {
-        setNicknameCheckMessage({
-          tone: 'error',
-          text:
-            nicknameValidationMessages[error.code] ??
-            error.message ??
-            '닉네임 확인에 실패했습니다.',
-        });
-      } else if (error instanceof Error) {
-        setNicknameCheckMessage({ tone: 'error', text: error.message });
-      } else {
-        setNicknameCheckMessage({ tone: 'error', text: '닉네임 확인에 실패했습니다.' });
-      }
-    } finally {
-      setIsNicknameChecking(false);
-    }
-  };
-
-  const isNicknameCheckDisabled =
-    isNicknameChecking || nickname.trim().length === 0 || nickname.trim().length >= nicknameLimit;
-
-  const isSubmitDisabled =
-    isSubmitting ||
-    !selectedJob ||
-    !selectedCareer ||
-    selectedTech.length === 0 ||
-    !nickname.trim() ||
-    !allRequiredAgreed;
-  const isVerificationSubmitDisabled =
-    !isVerificationVisible ||
-    isVerifying ||
-    isVerified ||
-    verificationCode.join('').length !== verificationCodeLength ||
-    !lastSentEmail ||
-    remainingSeconds === 0;
-
-  const handleSendVerification = () => {
-    const trimmedEmail = verificationEmail.trim();
-    if (!trimmedEmail) {
-      setSendVerificationError('이메일을 입력해 주세요.');
-      return;
-    }
-    if (isSendingVerification) return;
-    setIsSendingVerification(true);
-    setSendVerificationError(null);
-    setSendVerificationMessage(null);
-    setVerificationError(null);
-    setIsVerified(false);
-    sendEmailVerification({ email: trimmedEmail })
-      .then((data) => {
-        setLastSentEmail(trimmedEmail);
-        const expiresAt = new Date(data.expires_at);
-        setVerificationExpiresAt(expiresAt);
-        setRemainingSeconds(Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000)));
-        setIsVerificationVisible(true);
-        setSendVerificationMessage('인증번호를 전송했습니다.');
-      })
-      .catch(async (error: unknown) => {
-        setIsVerificationFailSheetOpen(true);
-        if (await handleCommonApiError(error)) {
-          return;
-        }
-        if (error instanceof BusinessError) {
-          setSendVerificationError(
-            emailVerificationMessages[error.code] ??
-              error.message ??
-              '인증번호 전송에 실패했습니다.',
-          );
-        } else if (error instanceof Error) {
-          setSendVerificationError(error.message);
-        } else {
-          setSendVerificationError('인증번호 전송에 실패했습니다.');
-        }
-      })
-      .finally(() => {
-        setIsSendingVerification(false);
-      });
-  };
-
-  const handleKeypadPress = (value: string) => {
-    setVerificationCode((prev) => {
-      if (value === 'backspace') {
-        return prev.slice(0, -1);
-      }
-      if (prev.length >= verificationCodeLength) return prev;
-      return [...prev, value];
-    });
-  };
-
-  useEffect(() => {
-    if (!lastSentEmail) return;
-    if (verificationEmail.trim() === lastSentEmail) return;
-    setVerificationCode([]);
-    setIsVerified(false);
-    setVerificationError(null);
-    setIsVerificationVisible(false);
-    setVerificationExpiresAt(null);
-    setRemainingSeconds(null);
-  }, [lastSentEmail, verificationEmail]);
-
-  useEffect(() => {
-    if (!verificationExpiresAt || !isVerificationVisible) {
-      return;
-    }
-
-    const tick = () => {
-      const secondsLeft = Math.max(
-        0,
-        Math.floor((verificationExpiresAt.getTime() - Date.now()) / 1000),
-      );
-      setRemainingSeconds(secondsLeft);
-      if (secondsLeft === 0) {
-        setVerificationError('인증 시간이 만료되었습니다. 다시 전송해 주세요.');
-      }
-    };
-
-    tick();
-    const intervalId = window.setInterval(tick, 1000);
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [verificationExpiresAt, isVerificationVisible]);
-
-  const handleVerifySubmit = async () => {
-    const code = verificationCode.join('');
-    if (!isVerificationVisible || isVerifying || isVerified) return;
-    if (code.length !== verificationCodeLength) return;
-    if (!lastSentEmail) return;
-    if (remainingSeconds === 0) {
-      setVerificationError('인증 시간이 만료되었습니다. 다시 전송해 주세요.');
-      return;
-    }
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      setVerificationError('네트워크 오류가 발생했어요. 다시 시도해 주세요.');
-      return;
-    }
-
-    setIsVerifying(true);
-    setVerificationError(null);
-    try {
-      await verifyEmailVerification({ email: lastSentEmail, code });
-      setIsVerified(true);
-    } catch (error: unknown) {
-      setIsVerificationFailSheetOpen(true);
-      if (await handleCommonApiError(error)) {
-        return;
-      }
-      if (error instanceof BusinessError) {
-        setVerificationError(
-          emailVerificationMessages[error.code] ?? error.message ?? '인증번호 확인에 실패했습니다.',
-        );
-      } else if (error instanceof Error) {
-        setVerificationError(error.message);
-      } else {
-        setVerificationError('인증번호 확인에 실패했습니다.');
-      }
-      setVerificationCode([]);
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!isExpert) return;
-    if (!isVerified) return;
-    setCurrentStep(1);
-  }, [isExpert, isVerified]);
+  const {
+    currentStep,
+    setCurrentStep,
+    activeSheet,
+    setActiveSheet,
+    selectedJob,
+    setSelectedJob,
+    selectedCareer,
+    setSelectedCareer,
+    selectedTech,
+    techQuery,
+    setTechQuery,
+    metadataLoading,
+    metadataError,
+    techLimitMessage,
+    jobs,
+    careerLevels,
+    verificationEmail,
+    setVerificationEmail,
+    isVerificationVisible,
+    verificationCode,
+    isSendingVerification,
+    sendVerificationMessage,
+    sendVerificationError,
+    isVerifying,
+    verificationError,
+    isVerified,
+    isVerificationFailSheetOpen,
+    setIsVerificationFailSheetOpen,
+    remainingSeconds,
+    nickname,
+    setNickname,
+    introduction,
+    setIntroduction,
+    submitError,
+    termsOpen,
+    setTermsOpen,
+    privacyOpen,
+    setPrivacyOpen,
+    pledgeOpen,
+    setPledgeOpen,
+    privacyPledgeOpen,
+    setPrivacyPledgeOpen,
+    setTermsAgreed,
+    setPrivacyAgreed,
+    setPledgeAgreed,
+    nicknameCheckMessage,
+    handleSubmit,
+    handleNicknameCheck,
+    handleSendVerification,
+    handleKeypadPress,
+    handleVerifySubmit,
+    handleTechToggle,
+    filteredTech,
+    allRequiredAgreed,
+    isNicknameCheckDisabled,
+    isSubmitDisabled,
+    isVerificationSubmitDisabled,
+    nicknameLimit,
+    introductionLimit,
+    verificationCodeLength,
+  } = useOnboardingProfileForm(isExpert);
 
   const profileFormContent = (
     <>
@@ -1459,7 +1025,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                 <button
                   key={tech.id}
                   type="button"
-                  onClick={() => toggleTech(tech)}
+                  onClick={() => handleTechToggle(tech)}
                   className="rounded-full border border-[#bcd1f5] bg-[#edf4ff] px-3 py-1 text-xs text-[#2b4b7e]"
                 >
                   {tech.name} ×
@@ -1467,17 +1033,17 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
               ))}
             </div>
             <div className="mt-6 flex flex-col gap-3 pr-1">
-              {skillsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
-              {skillsError ? <p className="text-sm text-red-500">{skillsError}</p> : null}
+              {metadataLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+              {metadataError ? <p className="text-sm text-red-500">{metadataError}</p> : null}
               {techLimitMessage ? <p className="text-xs text-red-500">{techLimitMessage}</p> : null}
-              {!skillsLoading && !skillsError
+              {!metadataLoading && !metadataError
                 ? filteredTech.map((item) => {
                     const isSelected = selectedTech.some((tech) => tech.id === item.id);
                     return (
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => toggleTech(item)}
+                        onClick={() => handleTechToggle(item)}
                         className="flex items-center justify-between border-b border-gray-100 pb-5 pt-2 text-left"
                       >
                         <span className="text-sm font-medium leading-relaxed text-text-body">
@@ -1498,9 +1064,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
         {activeSheet === 'job' ? (
           <div className="flex h-full flex-col">
-            {jobsLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
-            {jobsError ? <p className="text-sm text-red-500">{jobsError}</p> : null}
-            {!jobsLoading && !jobsError ? (
+            {metadataLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+            {metadataError ? <p className="text-sm text-red-500">{metadataError}</p> : null}
+            {!metadataLoading && !metadataError ? (
               <div className="flex flex-col gap-6 pr-1">
                 {jobs.map((item) => (
                   <button
@@ -1528,9 +1094,9 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
         {activeSheet === 'career' ? (
           <div className="flex h-full flex-col">
-            {careerLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
-            {careerError ? <p className="text-sm text-red-500">{careerError}</p> : null}
-            {!careerLoading && !careerError ? (
+            {metadataLoading ? <p className="text-sm text-text-caption">불러오는 중...</p> : null}
+            {metadataError ? <p className="text-sm text-red-500">{metadataError}</p> : null}
+            {!metadataLoading && !metadataError ? (
               <div className="flex flex-col gap-6 pr-1">
                 {careerLevels.map((item) => (
                   <button

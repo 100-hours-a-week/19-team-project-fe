@@ -1,4 +1,4 @@
-import { MyPage } from '@/widgets/my-page';
+import { MyPage } from '@/widgets/me';
 
 export default function MyPageRoute() {
   return <MyPage />;

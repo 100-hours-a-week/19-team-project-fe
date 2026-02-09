@@ -1,4 +1,4 @@
-import { ExpertDetailPage } from '@/widgets/expert-detail';
+import { ExpertDetailPage } from '@/widgets/expert';
 import { PageTransition } from '@/shared/ui/page-transition';
 
 type ExpertDetailRouteProps = {
