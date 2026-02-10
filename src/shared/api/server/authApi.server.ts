@@ -39,6 +39,7 @@ type SignupRequestPayload = {
     display_order: number;
   }>;
   introduction: string;
+  terms_agreed: boolean;
 };
 
 type SignupResponsePayload = {
