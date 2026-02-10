@@ -119,6 +119,7 @@ export function useOnboardingSubmit({
           skill_id: skill.id,
           display_order: index + 1,
         })),
+        terms_agreed: termsAgreed,
       });
 
       setAuthCookies({
