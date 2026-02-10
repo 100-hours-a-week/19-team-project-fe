@@ -18,6 +18,7 @@ export type SignupRequest = {
   job_ids: number[];
   skills: SignupSkill[];
   introduction: string;
+  terms_agreed: boolean;
 };
 
 export type SignupResponse = {
