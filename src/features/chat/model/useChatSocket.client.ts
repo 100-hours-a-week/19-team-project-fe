@@ -33,27 +33,16 @@ export function useChatSocket(
     let unsubscribe: (() => void) | null = null;
     let cancelled = false;
 
-    const ensureAccessToken = async () => {
-      let token = readAccessToken();
-      if (token) return token;
-
-      const refreshed = await refreshAuthTokens().catch(() => false);
-      if (!refreshed) {
-        throw new Error('REFRESH_FAILED');
-      }
-
-      token = readAccessToken();
-      if (!token) {
-        throw new Error('NO_AT_AFTER_REFRESH');
-      }
-
-      return token;
-    };
-
     const connect = async () => {
       try {
         setStatus('connecting');
-        const token = await ensureAccessToken();
+        let token = readAccessToken();
+        if (!token) {
+          const refreshed = await refreshAuthTokens().catch(() => false);
+          if (refreshed) {
+            token = readAccessToken();
+          }
+        }
         await stompManager.connect(process.env.NEXT_PUBLIC_WS_URL!, {
           connectHeaders: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
