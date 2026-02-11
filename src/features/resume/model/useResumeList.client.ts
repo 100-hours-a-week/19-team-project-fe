@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import { getMe } from '@/features/auth';
 import { deleteResume, getResumes, type Resume } from '@/entities/resumes';
-import { useAuthGate } from '@/features/auth';
+import { useAuthStatus } from '@/entities/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 export function useResumeList() {
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus } = useAuthStatus();
   const handleCommonApiError = useCommonApiErrorHandler();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);

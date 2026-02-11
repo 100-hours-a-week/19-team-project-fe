@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { getUserMe } from '@/features/me';
+import { useUserMeQuery } from '@/entities/user';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 
@@ -37,44 +37,28 @@ export function useMyPageEditLoader({
   const [initialJobId, setInitialJobId] = useState<number | null>(null);
   const [initialCareerId, setInitialCareerId] = useState<number | null>(null);
   const [initialSkillIds, setInitialSkillIds] = useState<number[]>([]);
+  const { data: userData, error: userError } = useUserMeQuery({
+    enabled: authStatus === 'authed',
+  });
 
   useEffect(() => {
     if (authStatus !== 'authed') return;
-    let mounted = true;
-    getUserMe()
-      .then((data) => {
-        if (!mounted) return;
-        if (!data) {
-          router.replace('/me');
-          return;
-        }
-        setNickname(data.nickname ?? '');
-        setInitialNickname(data.nickname ?? '');
-        setIntroduction(data.introduction ?? '');
-        setInitialIntroduction(data.introduction ?? '');
-        setSelectedJob(data.jobs[0] ?? null);
-        setInitialJobId(data.jobs[0]?.id ?? null);
-        setSelectedCareer(data.career_level ?? null);
-        setInitialCareerId(data.career_level?.id ?? null);
-        setSelectedTech(data.skills ?? []);
-        setInitialSkillIds(data.skills.map((skill) => skill.id));
-        setProfileImageUrl(data.profile_image_url ?? null);
-        setProfileImageReset(false);
-      })
-      .catch(async (error) => {
-        if (!mounted) return;
-        if (await handleCommonApiError(error)) return;
-        onError(error instanceof Error ? error.message : '내 정보를 불러오지 못했습니다.');
-      });
-
-    return () => {
-      mounted = false;
-    };
+    if (!userData) return;
+    setNickname(userData.nickname ?? '');
+    setInitialNickname(userData.nickname ?? '');
+    setIntroduction(userData.introduction ?? '');
+    setInitialIntroduction(userData.introduction ?? '');
+    setSelectedJob(userData.jobs[0] ?? null);
+    setInitialJobId(userData.jobs[0]?.id ?? null);
+    setSelectedCareer(userData.career_level ?? null);
+    setInitialCareerId(userData.career_level?.id ?? null);
+    setSelectedTech(userData.skills ?? []);
+    setInitialSkillIds(userData.skills.map((skill) => skill.id));
+    setProfileImageUrl(userData.profile_image_url ?? null);
+    setProfileImageReset(false);
   }, [
     authStatus,
-    handleCommonApiError,
-    onError,
-    router,
+    userData,
     setIntroduction,
     setNickname,
     setProfileImageReset,
@@ -83,6 +67,21 @@ export function useMyPageEditLoader({
     setSelectedJob,
     setSelectedTech,
   ]);
+
+  useEffect(() => {
+    if (authStatus !== 'authed') return;
+    if (userData === null) {
+      router.replace('/me');
+    }
+  }, [authStatus, router, userData]);
+
+  useEffect(() => {
+    if (!userError) return;
+    (async () => {
+      if (await handleCommonApiError(userError)) return;
+      onError(userError instanceof Error ? userError.message : '내 정보를 불러오지 못했습니다.');
+    })();
+  }, [handleCommonApiError, onError, userError]);
 
   return {
     initialNickname,

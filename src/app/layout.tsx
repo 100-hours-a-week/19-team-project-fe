@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { pretendard } from '../shared/config/font';
+import { QueryProvider } from '@/shared/lib/react-query';
 import { ToastProvider } from '@/shared/ui/toast';
 import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
 import { GaPageView } from '@/shared/metrics/GaPageView';
@@ -69,9 +70,11 @@ gtag('config', 'G-8YM02T7012', { send_page_view: false });`}
       <body className={`${pretendard.variable} app-shell antialiased`}>
         <MetricsInitializer />
         <GaPageView />
-        <ToastProvider>
-          <div className="app-frame">{children}</div>
-        </ToastProvider>
+        <QueryProvider>
+          <ToastProvider>
+            <div className="app-frame">{children}</div>
+          </ToastProvider>
+        </QueryProvider>
       </body>
     </html>
   );

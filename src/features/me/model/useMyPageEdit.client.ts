@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { getMe } from '@/features/auth';
 import type { Skill } from '@/entities/onboarding';
-import { useAuthGate } from '@/features/auth';
+import { useAuthStatus } from '@/entities/auth';
 import { useMyPageEditForm } from './useMyPageEditForm.client';
 import { useMyPageEditReferenceData } from './useMyPageEditReferenceData.client';
 import { useMyPageEditProfileImage } from './useMyPageEditProfileImage.client';
@@ -17,7 +16,7 @@ const profileImageMaxBytes = 10 * 1024 * 1024;
 
 export function useMyPageEdit() {
   const router = useRouter();
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus } = useAuthStatus();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useMyPageEditForm();

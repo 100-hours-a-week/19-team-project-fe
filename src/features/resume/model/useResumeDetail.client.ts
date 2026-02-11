@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import { getMe } from '@/features/auth';
 import { getResumeDetail, type ResumeDetail } from '@/entities/resumes';
-import { useAuthGate } from '@/features/auth';
+import { useAuthStatus } from '@/entities/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 export function useResumeDetail(resumeId: number) {
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus } = useAuthStatus();
   const handleCommonApiError = useCommonApiErrorHandler({ redirectTo: '/resume' });
   const [resume, setResume] = useState<ResumeDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);

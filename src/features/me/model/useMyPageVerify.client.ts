@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { getMe } from '@/features/auth';
 import { sendEmailVerification, verifyEmailVerification } from '@/features/onboarding';
-import { useAuthGate } from '@/features/auth';
+import { useAuthStatus } from '@/entities/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 
@@ -24,7 +23,7 @@ const getErrorCode = (error: Error) =>
 
 export function useMyPageVerify() {
   const router = useRouter();
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus } = useAuthStatus();
   const handleCommonApiError = useCommonApiErrorHandler();
   const { pushToast } = useToast();
 

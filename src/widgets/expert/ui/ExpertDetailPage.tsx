@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import { KakaoLoginButton, useAuthGate, getMe } from '@/features/auth';
+import { KakaoLoginButton } from '@/features/auth';
+import { useAuthStatus } from '@/entities/auth';
 import { useExpertDetail, useExpertResumes, useChatRequest } from '@/features/expert';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
@@ -17,7 +18,7 @@ type ExpertDetailPageProps = {
 
 export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const router = useRouter();
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus } = useAuthStatus();
   const { expert, isLoading, errorMessage } = useExpertDetail(userId);
   const { resumes, resumeError, isLoadingResumes, selectedResumeId, setSelectedResumeId } =
     useExpertResumes(authStatus);

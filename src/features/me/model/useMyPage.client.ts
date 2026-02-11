@@ -1,66 +1,45 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { getMe, useLogout } from '@/features/auth';
-import {
-  deleteMe,
-  getExpertStatus,
-  getUserMe,
-  type ExpertStatus,
-  type UserMe,
-} from '@/features/me';
-import { useAuthGate } from '@/features/auth';
+import { useLogout } from '@/features/auth';
+import { deleteMe, getExpertStatus, type ExpertStatus } from '@/features/me';
+import { useAuthStatus } from '@/entities/auth';
+import { useUserMeQuery, type UserMe } from '@/entities/user';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 export function useMyPage() {
-  const { status: authStatus, refresh: refreshAuthStatus } = useAuthGate(getMe);
+  const { status: authStatus, refresh: refreshAuthStatus } = useAuthStatus();
   const handleCommonApiError = useCommonApiErrorHandler();
-  const [user, setUser] = useState<UserMe | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [expertStatus, setExpertStatus] = useState<ExpertStatus | null>(null);
   const [isLoadingExpertStatus, setIsLoadingExpertStatus] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const { isLoggingOut, logout } = useLogout();
 
+  const {
+    data: userData,
+    isLoading: isLoadingUser,
+    error: userError,
+  } = useUserMeQuery({ enabled: authStatus === 'authed' });
+
+  const user = useMemo<UserMe | null>(
+    () => (authStatus === 'authed' ? (userData ?? null) : null),
+    [authStatus, userData],
+  );
+
   useEffect(() => {
-    if (authStatus !== 'authed') {
-      setUser(null);
-      setIsLoadingUser(false);
+    if (!userError) {
       setLoadError(null);
       return;
     }
-
-    let cancelled = false;
-    setIsLoadingUser(true);
-
     (async () => {
-      try {
-        const data = await getUserMe();
-        if (cancelled) return;
-        if (!data) {
-          setUser(null);
-          setLoadError(null);
-          return;
-        }
-        setUser(data);
-        setLoadError(null);
-      } catch (error) {
-        if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          setIsLoadingUser(false);
-          return;
-        }
-        setLoadError(error instanceof Error ? error.message : '내 정보를 불러오지 못했습니다.');
-      } finally {
-        if (cancelled) return;
-        setIsLoadingUser(false);
+      const handled = await handleCommonApiError(userError);
+      if (!handled) {
+        setLoadError(
+          userError instanceof Error ? userError.message : '내 정보를 불러오지 못했습니다.',
+        );
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authStatus, handleCommonApiError]);
+  }, [handleCommonApiError, userError]);
 
   useEffect(() => {
     if (authStatus !== 'authed') {
