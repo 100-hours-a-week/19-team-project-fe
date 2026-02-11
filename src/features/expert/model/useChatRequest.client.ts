@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { createChat, getChatList } from '@/features/chat';
-import { getMe } from '@/features/auth';
+import { getAuthStatus } from '@/entities/auth';
 import { BusinessError, useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 
@@ -31,7 +31,7 @@ export function useChatRequest(userId: number) {
     }
     setIsCheckingAuth(true);
     try {
-      const auth = await getMe();
+      const auth = await getAuthStatus();
       if (!auth.authenticated) {
         setAuthSheetOpen(true);
         return;

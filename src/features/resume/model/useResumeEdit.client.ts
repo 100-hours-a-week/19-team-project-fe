@@ -1,11 +1,11 @@
-import { getMe, useAuthGate } from '@/features/auth';
+import { useAuthStatus } from '@/entities/auth';
 import { useResumeEditForm } from './useResumeEditForm.client';
 import { useResumeEditLoader } from './useResumeEditLoader.client';
 import { useResumeAutoFill } from './useResumeAutoFill.client';
 import { useResumeSubmit } from './useResumeSubmit.client';
 
 export function useResumeEdit(resumeIdParam: string | null) {
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus } = useAuthStatus();
   const resumeId = resumeIdParam ? Number(resumeIdParam) : null;
   const isEditMode = Boolean(resumeId && Number.isFinite(resumeId));
 

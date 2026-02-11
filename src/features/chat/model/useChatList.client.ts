@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { getMe } from '@/features/auth';
-import { getUserMe, type UserMe } from '@/features/me';
+import { useAuthStatus } from '@/entities/auth';
+import { useUserMeQuery } from '@/entities/user';
 import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
-import { useAuthGate } from '@/features/auth';
 
 import { normalizeChatList } from '@/entities/chat';
 
@@ -13,10 +12,11 @@ export function useChatList() {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<UserMe | null>(null);
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus } = useAuthStatus();
   const handleCommonApiError = useCommonApiErrorHandler();
   const isActiveRef = useRef(true);
+  const { data: currentUserData } = useUserMeQuery({ enabled: authStatus === 'authed' });
+  const currentUser = authStatus === 'authed' ? (currentUserData ?? null) : null;
 
   useEffect(() => {
     return () => {
@@ -28,17 +28,8 @@ export function useChatList() {
     async (allowRetry: boolean, setLoadingState: boolean) => {
       if (setLoadingState) setIsLoading(true);
       try {
-        const [userResult, chatResult] = await Promise.allSettled([getUserMe(), getChatList()]);
+        const data = await getChatList();
         if (!isActiveRef.current) return;
-        if (userResult.status === 'fulfilled' && userResult.value) {
-          setCurrentUser(userResult.value);
-        } else {
-          setCurrentUser(null);
-        }
-        if (chatResult.status !== 'fulfilled') {
-          throw chatResult.reason;
-        }
-        const data = chatResult.value;
         const normalized = normalizeChatList(data);
         setChats(normalized);
         setLoadError(null);
