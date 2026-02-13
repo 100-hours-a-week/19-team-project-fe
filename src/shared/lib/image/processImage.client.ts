@@ -48,11 +48,12 @@ async function processImageOnMainThread(file: File, options: ImageProcessingOpti
   }
 
   const ctx = canvas.getContext('2d');
-  if (!ctx) {
+  if (!ctx || !('drawImage' in ctx)) {
     throw new Error('CANVAS_CONTEXT_UNAVAILABLE');
   }
 
-  ctx.drawImage(bitmap, 0, 0, width, height);
+  const drawContext = ctx as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+  drawContext.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
   let blob: Blob | null = null;
