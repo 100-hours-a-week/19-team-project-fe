@@ -74,7 +74,14 @@ export function useSocialLoginFlow() {
       return;
     }
 
-    sessionStorage.setItem('kakaoLoginResult', JSON.stringify({ signup_required: signupRequired }));
+    const sanitizedSignupRequired: SignupRequiredPayload = {
+      ...signupRequired,
+      nickname: null,
+    };
+    sessionStorage.setItem(
+      'kakaoLoginResult',
+      JSON.stringify({ signup_required: sanitizedSignupRequired }),
+    );
     sessionStorage.removeItem('kakaoRestoreRequired');
     setRestoreOpen(false);
     router.replace('/onboarding');

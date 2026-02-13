@@ -3,6 +3,8 @@ export * from './api/getExpertStatus';
 export * from './api/updateUserMe';
 export * from './api/deleteProfileImage';
 export * from './api/deleteMe.client';
+export * from './api/sendEmailVerification';
+export * from './api/verifyEmailVerification';
 export * from './model/useMyPage.client';
 export * from './model/useMyPageEdit.client';
 export * from './model/useMyPageVerify.client';

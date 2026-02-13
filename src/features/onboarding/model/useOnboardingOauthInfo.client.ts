@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function useOnboardingOauthInfo({
   nickname,
@@ -11,6 +11,7 @@ export function useOnboardingOauthInfo({
 }) {
   const [oauthId, setOauthId] = useState<string | null>(null);
   const [oauthEmail, setOauthEmail] = useState<string | null>(null);
+  const didPrefill = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -29,9 +30,10 @@ export function useOnboardingOauthInfo({
       if (!signupRequired?.oauth_id) return;
       setOauthId(signupRequired.oauth_id);
       if (signupRequired.email) setOauthEmail(signupRequired.email);
-      if (signupRequired.nickname && nickname.trim().length === 0) {
+      if (!didPrefill.current && signupRequired.nickname && nickname.trim().length === 0) {
         setNickname(signupRequired.nickname);
       }
+      didPrefill.current = true;
     } catch {
       // ignore invalid session storage
     }

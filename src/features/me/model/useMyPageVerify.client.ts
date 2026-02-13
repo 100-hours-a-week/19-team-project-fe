@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { getMe } from '@/features/auth';
-import { sendEmailVerification, verifyEmailVerification } from '@/features/onboarding';
-import { useAuthGate } from '@/features/auth';
+import { sendMyPageEmailVerification, verifyMyPageEmailVerification } from '../api';
+import { useAuthStatus } from '@/entities/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 
@@ -24,7 +23,7 @@ const getErrorCode = (error: Error) =>
 
 export function useMyPageVerify() {
   const router = useRouter();
-  const { status: authStatus } = useAuthGate(getMe);
+  const { status: authStatus } = useAuthStatus();
   const handleCommonApiError = useCommonApiErrorHandler();
   const { pushToast } = useToast();
 
@@ -64,7 +63,7 @@ export function useMyPageVerify() {
     setSendVerificationMessage(null);
     setVerificationError(null);
     setIsVerified(false);
-    sendEmailVerification({ email: trimmedEmail })
+    sendMyPageEmailVerification({ email: trimmedEmail })
       .then((data) => {
         setLastSentEmail(trimmedEmail);
         if (data.expires_at) {
@@ -159,7 +158,7 @@ export function useMyPageVerify() {
     setIsVerifying(true);
     setVerificationError(null);
     try {
-      await verifyEmailVerification({ email: lastSentEmail, code });
+      await verifyMyPageEmailVerification({ email: lastSentEmail, code });
       setIsVerified(true);
       pushToast('인증 성공', { variant: 'success' });
       router.replace('/me');
