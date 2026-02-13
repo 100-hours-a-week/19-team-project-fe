@@ -84,11 +84,6 @@ export function useOnboardingSubmit({
       return;
     }
 
-    if (isExpert && !isVerified) {
-      setSubmitError('이메일 인증을 완료해 주세요.');
-      return;
-    }
-
     if (!termsAgreed || !privacyAgreed || (isExpert && !pledgeAgreed)) {
       setSubmitError('필수 약관에 동의해 주세요.');
       return;
@@ -104,7 +99,8 @@ export function useOnboardingSubmit({
       }
 
       const userType: UserType = isExpert ? 'EXPERT' : 'JOB_SEEKER';
-      const companyEmail = isExpert ? (lastSentEmail ?? verificationEmail.trim()) : undefined;
+      const companyEmail =
+        isExpert && isVerified ? (lastSentEmail ?? verificationEmail.trim()) : undefined;
       const response = await signup({
         oauth_provider: 'KAKAO',
         oauth_id: oauthId,
