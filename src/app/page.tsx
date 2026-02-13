@@ -1,5 +1,8 @@
 import Image from 'next/image';
 
+import { cookies } from 'next/headers';
+
+import { getExpertRecommendationsServer } from '@/entities/experts/server';
 import { Footer } from '@/widgets/footer';
 import { SearchBar } from '@/widgets/home';
 import { SplashGate } from '@/widgets/splash-screen';
@@ -15,7 +18,16 @@ import {
 } from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('access_token')?.value;
+  const recommendations = await getExpertRecommendationsServer({
+    topK: 12,
+    accessToken,
+  })
+    .then((data) => data.recommendations)
+    .catch(() => []);
+
   return (
     <>
       <PageTransition>
@@ -36,7 +48,7 @@ export default function Home() {
               </div>
 
               <div className="mt-2 px-2.5">
-                <ExpertRecommendations />
+                <ExpertRecommendations recommendations={recommendations} />
               </div>
 
               <div className="flex flex-col pb-[calc var(--app-footer-height)]">
