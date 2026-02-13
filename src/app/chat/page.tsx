@@ -1,10 +1,14 @@
+import { Suspense } from 'react';
+
 import { ChatList } from '@/widgets/chat';
 import { Footer } from '@/widgets/footer';
 
 export default function ChatPage() {
   return (
     <>
-      <ChatList />
+      <Suspense fallback={null}>
+        <ChatList />
+      </Suspense>
       <Footer />
     </>
   );

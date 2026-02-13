@@ -3,8 +3,9 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { createChat, getChatList } from '@/features/chat';
+import { createChatRequest } from '@/features/chat';
 import { getAuthStatus } from '@/entities/auth';
+import type { ChatRequestType } from '@/entities/chat';
 import { BusinessError, useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 
@@ -23,7 +24,10 @@ export function useChatRequest(userId: number) {
   }
   wasJobPostOverLimit.current = isJobPostOverLimit;
 
-  const handleChatRequestClick = async (selectedResumeId: number | null) => {
+  const handleChatRequestClick = async (
+    selectedResumeId: number | null,
+    requestType: ChatRequestType,
+  ) => {
     if (isCheckingAuth) return;
     if (isJobPostOverLimit) {
       pushToast('공고 링크는 최대 500자까지 입력할 수 있어요.', { variant: 'warning' });
@@ -36,34 +40,27 @@ export function useChatRequest(userId: number) {
         setAuthSheetOpen(true);
         return;
       }
-      const data = await createChat({
+      await createChatRequest({
         receiver_id: userId,
         resume_id: selectedResumeId ?? null,
         job_post_url: jobPostUrl.trim() || null,
-        request_type: 'COFFEE_CHAT',
+        request_type: requestType,
       });
-      router.push(`/chat/${data.chat_id}`);
+      pushToast('채팅 요청이 전송되었습니다.', { variant: 'success' });
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('chatRequestSuccess', 'true');
+      }
+      router.push('/chat?tab=sent');
     } catch (error) {
       if (
         error instanceof BusinessError &&
-        (error.code === 'CHAT_ROOM_ALREADY_EXISTS' || error.code === 'CONFLICT')
+        (error.code === 'CHAT_REQUEST_ALREADY_EXISTS' || error.code === 'CONFLICT')
       ) {
-        try {
-          const list = await getChatList({ status: 'ACTIVE' });
-          const matched = list.chats.find(
-            (chat) => chat.receiver.user_id === userId || chat.requester.user_id === userId,
-          );
-          if (matched) {
-            router.push(`/chat/${matched.chat_id}`);
-            return;
-          }
-        } catch (listError) {
-          if (await handleCommonApiError(listError)) {
-            return;
-          }
-          console.error('[Chat List Error]', listError);
-        }
-        alert('이미 채팅방이 존재하지만 이동할 수 없습니다.');
+        pushToast('이미 처리 대기 중인 채팅 요청이 있어요.', { variant: 'warning' });
+        return;
+      }
+      if (error instanceof BusinessError && error.code === 'INVALID_REQUEST') {
+        pushToast('본인에게는 요청할 수 없습니다.', { variant: 'warning' });
         return;
       }
       if (await handleCommonApiError(error)) {

@@ -1,13 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton } from '@/features/auth';
 import { useAuthStatus } from '@/entities/auth';
+import type { ChatRequestType } from '@/entities/chat';
 import { useExpertDetail, useExpertResumes, useChatRequest } from '@/features/expert';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
+import { Modal } from '@/shared/ui/modal';
 import defaultUserImage from '@/shared/icons/char_icon.png';
 import iconMark from '@/shared/icons/icon-mark.png';
 import ExpertDetailHeader from './ExpertDetailHeader';
@@ -22,6 +25,9 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const { expert, isLoading, errorMessage } = useExpertDetail(userId);
   const { resumes, resumeError, isLoadingResumes, selectedResumeId, setSelectedResumeId } =
     useExpertResumes(authStatus);
+  const [chatInfoSheetOpen, setChatInfoSheetOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingRequestType, setPendingRequestType] = useState<ChatRequestType | null>(null);
   const {
     authSheetOpen,
     setAuthSheetOpen,
@@ -32,10 +38,21 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
     handleChatRequestClick,
   } = useChatRequest(userId);
 
+  const openConfirm = (requestType: ChatRequestType) => {
+    setPendingRequestType(requestType);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!pendingRequestType) return;
+    setConfirmOpen(false);
+    await handleChatRequestClick(selectedResumeId, pendingRequestType);
+  };
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <ExpertDetailHeader />
-      <section className="px-4 pt-6 pb-[calc(96px+24px)]">
+      <section className="px-4 pt-6 pb-8">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -166,6 +183,62 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
                 )}
               </div>
             </div>
+
+            <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">
+              <div className="relative pr-10">
+                <p className="text-base font-semibold text-text-title">채팅 요청하기</p>
+                <button
+                  type="button"
+                  onClick={() => setChatInfoSheetOpen(true)}
+                  aria-label="채팅 요청 안내"
+                  className="absolute right-0 top-0 text-primary-main"
+                >
+                  <svg
+                    data-slot="icon"
+                    fill="none"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                    className="h-6 w-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  onClick={() => openConfirm('COFFEE_CHAT')}
+                  disabled={isCheckingAuth || !expert || isJobPostOverLimit}
+                  icon={<Image src={iconMark} alt="" width={18} height={18} />}
+                  className="py-2 font-semibold"
+                >
+                  <span className="leading-none">커피챗</span>
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => openConfirm('FEEDBACK')}
+                  disabled={
+                    isCheckingAuth ||
+                    !expert ||
+                    isJobPostOverLimit ||
+                    !selectedResumeId ||
+                    !jobPostUrl.trim()
+                  }
+                  icon={<Image src={iconMark} alt="" width={18} height={18} />}
+                  className="py-2 font-semibold"
+                >
+                  <span className="leading-none">피드백</span>
+                </Button>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
@@ -174,16 +247,44 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         )}
       </section>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-4 pb-6 pt-3">
-        <Button
-          type="button"
-          onClick={() => handleChatRequestClick(selectedResumeId)}
-          disabled={isCheckingAuth || !expert || isJobPostOverLimit}
-          icon={<Image src={iconMark} alt="" width={18} height={18} />}
-        >
-          채팅 요청하기
-        </Button>
-      </div>
+      <BottomSheet
+        open={chatInfoSheetOpen}
+        title="채팅 요청 안내"
+        onClose={() => setChatInfoSheetOpen(false)}
+        actionLabel="완료"
+        onAction={() => setChatInfoSheetOpen(false)}
+      >
+        <div className="flex h-full flex-col gap-4">
+          <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
+            <p className="text-sm font-semibold text-text-title">커피챗</p>
+            <p className="mt-2 text-sm text-text-body">
+              가볍게 채팅으로 이야기할 수 있어요. 레포트 생성 없이 진행됩니다.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
+            <p className="text-sm font-semibold text-text-title">피드백</p>
+            <p className="mt-2 text-sm text-text-body">
+              채팅이 끝난 뒤 현직자의 레포트가 생성됩니다.
+            </p>
+          </div>
+        </div>
+      </BottomSheet>
+
+      <Modal
+        open={confirmOpen}
+        title="채팅 요청"
+        description={
+          pendingRequestType === 'COFFEE_CHAT'
+            ? '커피챗을 요청할까요?'
+            : pendingRequestType === 'FEEDBACK'
+              ? '피드백을 요청할까요?'
+              : null
+        }
+        confirmLabel="확인"
+        cancelLabel="취소"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleConfirm}
+      />
 
       <BottomSheet
         open={authSheetOpen}

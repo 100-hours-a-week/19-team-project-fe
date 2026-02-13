@@ -11,12 +11,30 @@ import { normalizeChatList } from '@/entities/chat';
 export function useChatList() {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const { status: authStatus } = useAuthStatus();
   const handleCommonApiError = useCommonApiErrorHandler();
   const isActiveRef = useRef(true);
   const { data: currentUserData } = useUserMeQuery({ enabled: authStatus === 'authed' });
   const currentUser = authStatus === 'authed' ? (currentUserData ?? null) : null;
+  const listSizeRef = useRef(20);
+
+  const parseCursor = (value: unknown) => {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = typeof value === 'string' ? Number(value) : value;
+    return typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const mergeChats = useCallback((base: ChatSummary[], incoming: ChatSummary[]) => {
+    const map = new Map<number, ChatSummary>();
+    [...base, ...incoming].forEach((chat) => {
+      map.set(chat.chat_id, chat);
+    });
+    return normalizeChatList({ chats: Array.from(map.values()), nextCursor: null, hasMore: false });
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -28,10 +46,12 @@ export function useChatList() {
     async (allowRetry: boolean, setLoadingState: boolean) => {
       if (setLoadingState) setIsLoading(true);
       try {
-        const data = await getChatList();
+        const data = await getChatList({ size: listSizeRef.current });
         if (!isActiveRef.current) return;
         const normalized = normalizeChatList(data);
-        setChats(normalized);
+        setChats((prev) => (setLoadingState ? normalized : mergeChats(prev, normalized)));
+        setNextCursor(parseCursor(data.nextCursor));
+        setHasMore(Boolean(data.hasMore));
         setLoadError(null);
       } catch (error) {
         if (!isActiveRef.current) return;
@@ -50,7 +70,7 @@ export function useChatList() {
         if (setLoadingState) setIsLoading(false);
       }
     },
-    [handleCommonApiError],
+    [handleCommonApiError, mergeChats],
   );
 
   useEffect(() => {
@@ -89,11 +109,36 @@ export function useChatList() {
     };
   }, [authStatus, fetchChats]);
 
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || nextCursor === null) return null;
+    setLoadingMore(true);
+    try {
+      const data = await getChatList({ cursor: nextCursor, size: listSizeRef.current });
+      if (!isActiveRef.current) return null;
+      const normalized = normalizeChatList(data);
+      setChats((prev) => mergeChats(prev, normalized));
+      setNextCursor(parseCursor(data.nextCursor));
+      setHasMore(Boolean(data.hasMore));
+      return normalized;
+    } catch (error) {
+      const handled = await handleCommonApiError(error);
+      if (!handled) {
+        setLoadError(error instanceof Error ? error.message : '채팅 목록을 불러오지 못했습니다.');
+      }
+      return null;
+    } finally {
+      if (isActiveRef.current) setLoadingMore(false);
+    }
+  }, [handleCommonApiError, hasMore, loadingMore, mergeChats, nextCursor]);
+
   return {
     authStatus,
     chats,
     currentUser,
     isLoading,
+    loadingMore,
+    hasMore,
+    loadMore,
     loadError,
   };
 }

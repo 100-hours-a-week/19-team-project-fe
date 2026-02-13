@@ -27,3 +27,29 @@ export const normalizeChatList = (data: ChatListData): ChatSummary[] =>
     .map((chat) => normalizeChatId(chat))
     .filter((chat): chat is ChatSummary => !!chat)
     .sort((a, b) => getChatSortKey(b) - getChatSortKey(a));
+
+export const normalizeChatListData = (data: Partial<ChatListData>): ChatListData => {
+  const nextCursorRaw =
+    (data as { nextCursor?: unknown }).nextCursor ??
+    (data as { next_cursor?: unknown }).next_cursor ??
+    null;
+  const hasMoreRaw =
+    (data as { hasMore?: unknown }).hasMore ?? (data as { has_more?: unknown }).has_more ?? false;
+
+  const parsedNextCursor =
+    typeof nextCursorRaw === 'number'
+      ? nextCursorRaw
+      : typeof nextCursorRaw === 'string'
+        ? Number(nextCursorRaw)
+        : null;
+  const nextCursor =
+    typeof parsedNextCursor === 'number' && Number.isFinite(parsedNextCursor)
+      ? parsedNextCursor
+      : null;
+
+  return {
+    chats: (data.chats ?? []) as ChatSummary[],
+    nextCursor,
+    hasMore: Boolean(hasMoreRaw),
+  };
+};
