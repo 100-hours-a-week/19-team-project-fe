@@ -1,6 +1,6 @@
 import { apiFetch } from '@/shared/api';
 
-const EMAIL_VERIFICATION_PATH = '/bff/email-verifications';
+const EMAIL_VERIFICATION_PATH = '/bff/email-verifications/public';
 
 type VerifyEmailVerificationRequest = {
   email: string;
