@@ -1,5 +1,5 @@
 import { apiFetch, readAccessToken } from '@/shared/api';
-import type { ChatListData } from '@/entities/chat';
+import { normalizeChatListData, type ChatListData } from '@/entities/chat';
 
 const CHAT_LIST_PATH = '/bff/chat';
 
@@ -20,8 +20,9 @@ export async function getChatList(params: ChatListParams = {}): Promise<ChatList
 
   const fullUrl = `${url}?${query.toString()}`;
   const accessToken = readAccessToken();
-  return apiFetch<ChatListData>(fullUrl, {
+  const data = await apiFetch<ChatListData>(fullUrl, {
     method: 'GET',
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
+  return normalizeChatListData(data as ChatListData);
 }

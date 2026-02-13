@@ -1,2 +1,2 @@
 export * from './types';
-export { normalizeChatList } from './lib/chatList';
+export { normalizeChatList, normalizeChatListData } from './lib/chatList';
