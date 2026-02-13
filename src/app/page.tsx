@@ -5,6 +5,7 @@ import { SearchBar } from '@/widgets/home';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
 import {
+  ExpertRecommendations,
   HomeGuardToast,
   GuideButtons,
   RecruitmentLinksTicker,
@@ -13,7 +14,6 @@ import {
   TechBlogTicker,
 } from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
-import charBtn from '@/shared/icons/char_btn.png';
 
 export default function Home() {
   return (
@@ -35,15 +35,12 @@ export default function Home() {
                 <SearchBar />
               </div>
 
+              <div className="mt-2 px-2.5">
+                <ExpertRecommendations />
+              </div>
+
               <div className="flex flex-col pb-[calc var(--app-footer-height)]">
-                <div className="relative mt-30 w-full rounded-t-3xl bg-white px-2.5 py-8 shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
-                  <Image
-                    src={charBtn}
-                    alt=""
-                    width={380}
-                    height={380}
-                    className="pointer-events-none absolute -top-52 left-1/2 -translate-x-1/2"
-                  />
+                <div className="relative mt-1 w-full rounded-t-3xl bg-white px-2.5 py-8 shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
                   <div className="flex flex-col gap-0">
                     <div className="-mt-3">
                       <TechBlogBanner />
