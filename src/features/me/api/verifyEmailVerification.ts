@@ -1,6 +1,6 @@
 import { apiFetch } from '@/shared/api';
 
-const EMAIL_VERIFICATION_PATH = '/bff/email-verifications/public';
+const EMAIL_VERIFICATION_PATH = '/bff/email-verifications';
 
 type VerifyEmailVerificationRequest = {
   email: string;
@@ -12,7 +12,7 @@ type VerifyEmailVerificationResponse = {
   code: string;
 };
 
-export async function verifyEmailVerification(payload: VerifyEmailVerificationRequest) {
+export async function verifyMyPageEmailVerification(payload: VerifyEmailVerificationRequest) {
   return apiFetch<VerifyEmailVerificationResponse>(EMAIL_VERIFICATION_PATH, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
