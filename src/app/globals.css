@@ -95,6 +95,23 @@
   }
 }
 
+@keyframes story-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@layer utilities {
+  .story-progress-bar {
+    transform-origin: left;
+    animation-name: story-progress;
+    animation-timing-function: linear;
+  }
+}
+
 @keyframes sheet-down {
   from {
     transform: translateY(0%);
