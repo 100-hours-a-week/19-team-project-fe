@@ -1,15 +1,14 @@
 import Image from 'next/image';
 
-import { cookies, headers } from 'next/headers';
-
-import type { ExpertRecommendationsResponse } from '@/entities/experts';
+import { Suspense } from 'react';
 import { Footer } from '@/widgets/footer';
 import { SearchBar } from '@/widgets/home';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
 import { apiFetch } from '@/shared/api';
 import {
-  ExpertRecommendations,
+  ExpertRecommendationsServer,
+  ExpertRecommendationsSkeleton,
   HomeGuardToast,
   GuideButtons,
   RecruitmentLinksTicker,
@@ -19,31 +18,7 @@ import {
 } from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 
-async function buildBffUrl(path: string): Promise<string> {
-  const explicitBase = process.env.NEXT_PUBLIC_APP_URL;
-  if (explicitBase) return `${explicitBase}${path}`;
-
-  const headerStore = await headers();
-  const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host');
-  if (!host) return `http://localhost:3000${path}`;
-
-  const proto = headerStore.get('x-forwarded-proto') ?? 'http';
-  return `${proto}://${host}${path}`;
-}
-
 export default async function Home() {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('access_token')?.value;
-  const query = new URLSearchParams({ top_k: '12' });
-  const url = await buildBffUrl(`/bff/experts/recommendations?${query.toString()}`);
-  const recommendations = await apiFetch<ExpertRecommendationsResponse>(url, {
-    method: 'GET',
-    cache: 'no-store',
-    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
-  })
-    .then((data) => data.recommendations)
-    .catch(() => []);
-
   return (
     <>
       <PageTransition>
@@ -64,7 +39,9 @@ export default async function Home() {
               </div>
 
               <div className="mt-2 px-2.5">
-                <ExpertRecommendations recommendations={recommendations} />
+                <Suspense fallback={<ExpertRecommendationsSkeleton />}>
+                  <ExpertRecommendationsServer />
+                </Suspense>
               </div>
 
               <div className="flex flex-col pb-[calc var(--app-footer-height)]">
