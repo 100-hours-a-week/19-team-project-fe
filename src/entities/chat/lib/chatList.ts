@@ -38,14 +38,20 @@ export const normalizeChatListData = (
   const hasMoreRaw =
     (data as { hasMore?: unknown }).hasMore ?? (data as { has_more?: unknown }).has_more ?? false;
 
+  const parsedNextCursor =
+    typeof nextCursorRaw === 'number'
+      ? nextCursorRaw
+      : typeof nextCursorRaw === 'string'
+        ? Number(nextCursorRaw)
+        : null;
+  const nextCursor =
+    typeof parsedNextCursor === 'number' && Number.isFinite(parsedNextCursor)
+      ? parsedNextCursor
+      : null;
+
   return {
     chats: (data.chats ?? []) as ChatSummary[],
-    nextCursor:
-      typeof nextCursorRaw === 'number' || nextCursorRaw === null
-        ? nextCursorRaw
-        : typeof nextCursorRaw === 'string'
-          ? nextCursorRaw
-          : null,
+    nextCursor,
     hasMore: Boolean(hasMoreRaw),
   };
 };
