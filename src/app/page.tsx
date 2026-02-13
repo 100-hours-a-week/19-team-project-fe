@@ -5,6 +5,7 @@ import { Footer } from '@/widgets/footer';
 import { SearchBar } from '@/widgets/home';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
+import { apiFetch } from '@/shared/api';
 import {
   ExpertRecommendationsServer,
   ExpertRecommendationsSkeleton,
