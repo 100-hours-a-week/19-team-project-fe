@@ -1,10 +1,15 @@
 import Image from 'next/image';
 
+import { cookies, headers } from 'next/headers';
+
+import type { ExpertRecommendationsResponse } from '@/entities/experts';
 import { Footer } from '@/widgets/footer';
 import { SearchBar } from '@/widgets/home';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
+import { apiFetch } from '@/shared/api';
 import {
+  ExpertRecommendations,
   HomeGuardToast,
   GuideButtons,
   RecruitmentLinksTicker,
@@ -13,9 +18,32 @@ import {
   TechBlogTicker,
 } from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
-import charBtn from '@/shared/icons/char_btn.png';
 
-export default function Home() {
+async function buildBffUrl(path: string): Promise<string> {
+  const explicitBase = process.env.NEXT_PUBLIC_APP_URL;
+  if (explicitBase) return `${explicitBase}${path}`;
+
+  const headerStore = await headers();
+  const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host');
+  if (!host) return `http://localhost:3000${path}`;
+
+  const proto = headerStore.get('x-forwarded-proto') ?? 'http';
+  return `${proto}://${host}${path}`;
+}
+
+export default async function Home() {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('access_token')?.value;
+  const query = new URLSearchParams({ top_k: '12' });
+  const url = await buildBffUrl(`/bff/experts/recommendations?${query.toString()}`);
+  const recommendations = await apiFetch<ExpertRecommendationsResponse>(url, {
+    method: 'GET',
+    cache: 'no-store',
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+  })
+    .then((data) => data.recommendations)
+    .catch(() => []);
+
   return (
     <>
       <PageTransition>
@@ -35,15 +63,12 @@ export default function Home() {
                 <SearchBar />
               </div>
 
+              <div className="mt-2 px-2.5">
+                <ExpertRecommendations recommendations={recommendations} />
+              </div>
+
               <div className="flex flex-col pb-[calc var(--app-footer-height)]">
-                <div className="relative mt-30 w-full rounded-t-3xl bg-white px-2.5 py-8 shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
-                  <Image
-                    src={charBtn}
-                    alt=""
-                    width={380}
-                    height={380}
-                    className="pointer-events-none absolute -top-52 left-1/2 -translate-x-1/2"
-                  />
+                <div className="relative mt-1 w-full rounded-t-3xl bg-white px-2.5 py-8 shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
                   <div className="flex flex-col gap-0">
                     <div className="-mt-3">
                       <TechBlogBanner />

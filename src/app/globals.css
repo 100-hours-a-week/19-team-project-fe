@@ -69,6 +69,15 @@
   }
 }
 
+@layer utilities {
+  .scrollbar-hide {
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   input,
   textarea,
@@ -83,6 +92,23 @@
   }
   to {
     transform: translateY(0%);
+  }
+}
+
+@keyframes story-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@layer utilities {
+  .story-progress-bar {
+    transform-origin: left;
+    animation-name: story-progress;
+    animation-timing-function: linear;
   }
 }
 
