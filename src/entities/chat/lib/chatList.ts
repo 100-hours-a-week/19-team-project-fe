@@ -28,9 +28,7 @@ export const normalizeChatList = (data: ChatListData): ChatSummary[] =>
     .filter((chat): chat is ChatSummary => !!chat)
     .sort((a, b) => getChatSortKey(b) - getChatSortKey(a));
 
-export const normalizeChatListData = (
-  data: Partial<ChatListData> & Record<string, unknown>,
-): ChatListData => {
+export const normalizeChatListData = (data: Partial<ChatListData>): ChatListData => {
   const nextCursorRaw =
     (data as { nextCursor?: unknown }).nextCursor ??
     (data as { next_cursor?: unknown }).next_cursor ??
