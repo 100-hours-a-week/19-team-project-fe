@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { sendEmailVerification, verifyEmailVerification } from '@/features/onboarding';
+import { sendMyPageEmailVerification, verifyMyPageEmailVerification } from '../api';
 import { useAuthStatus } from '@/entities/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
@@ -63,7 +63,7 @@ export function useMyPageVerify() {
     setSendVerificationMessage(null);
     setVerificationError(null);
     setIsVerified(false);
-    sendEmailVerification({ email: trimmedEmail })
+    sendMyPageEmailVerification({ email: trimmedEmail })
       .then((data) => {
         setLastSentEmail(trimmedEmail);
         if (data.expires_at) {
@@ -158,7 +158,7 @@ export function useMyPageVerify() {
     setIsVerifying(true);
     setVerificationError(null);
     try {
-      await verifyEmailVerification({ email: lastSentEmail, code });
+      await verifyMyPageEmailVerification({ email: lastSentEmail, code });
       setIsVerified(true);
       pushToast('인증 성공', { variant: 'success' });
       router.replace('/me');
