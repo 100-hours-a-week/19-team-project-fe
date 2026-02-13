@@ -1,12 +1,13 @@
 import Image from 'next/image';
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
-import { getExpertRecommendationsServer } from '@/entities/experts/server';
+import type { ExpertRecommendationsResponse } from '@/entities/experts';
 import { Footer } from '@/widgets/footer';
 import { SearchBar } from '@/widgets/home';
 import { SplashGate } from '@/widgets/splash-screen';
 import { PageTransition } from '@/shared/ui/page-transition';
+import { apiFetch } from '@/shared/api';
 import {
   ExpertRecommendations,
   HomeGuardToast,
@@ -18,12 +19,27 @@ import {
 } from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 
+async function buildBffUrl(path: string): Promise<string> {
+  const explicitBase = process.env.NEXT_PUBLIC_APP_URL;
+  if (explicitBase) return `${explicitBase}${path}`;
+
+  const headerStore = await headers();
+  const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host');
+  if (!host) return `http://localhost:3000${path}`;
+
+  const proto = headerStore.get('x-forwarded-proto') ?? 'http';
+  return `${proto}://${host}${path}`;
+}
+
 export default async function Home() {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('access_token')?.value;
-  const recommendations = await getExpertRecommendationsServer({
-    topK: 12,
-    accessToken,
+  const query = new URLSearchParams({ top_k: '12' });
+  const url = await buildBffUrl(`/bff/experts/recommendations?${query.toString()}`);
+  const recommendations = await apiFetch<ExpertRecommendationsResponse>(url, {
+    method: 'GET',
+    cache: 'no-store',
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   })
     .then((data) => data.recommendations)
     .catch(() => []);
