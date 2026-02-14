@@ -23,7 +23,9 @@ export default async function Home() {
       <PageTransition>
         <SplashGate>
           <SignupConfetti />
-          <HomeGuardToast />
+          <Suspense fallback={null}>
+            <HomeGuardToast />
+          </Suspense>
           <div className="flex min-h-full flex-col bg-[#D2DEEA]">
             <div className="flex flex-col">
               <div className="px-2.5 pt-6 text-text-body">
