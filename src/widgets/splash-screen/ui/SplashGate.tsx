@@ -10,12 +10,10 @@ interface SplashGateProps {
 }
 
 export default function SplashGate({ children, durationMs = 5000 }: SplashGateProps) {
-  const [mounted, setMounted] = useState(false);
-  const [showSplash, setShowSplash] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
   const [SplashScreen, setSplashScreen] = useState<SplashScreenComponent | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     const hasSignupSuccess = sessionStorage.getItem('signupSuccess');
     const hasSeenSplash = sessionStorage.getItem('splashSeen');
     const shouldShow = !(hasSignupSuccess || hasSeenSplash);
@@ -35,9 +33,14 @@ export default function SplashGate({ children, durationMs = 5000 }: SplashGatePr
     };
   }, [durationMs]);
 
-  if (!mounted) return null;
-  if (showSplash && SplashScreen) return <SplashScreen />;
-  if (showSplash) return null;
-
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {showSplash && SplashScreen ? (
+        <div className="absolute inset-0 z-50 bg-white">
+          <SplashScreen />
+        </div>
+      ) : null}
+    </>
+  );
 }
