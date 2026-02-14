@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Lottie from 'lottie-react';
+
+type LottieComponent = typeof import('lottie-react').default;
 
 const chatRequestSuccessKey = 'chatRequestSuccess';
 const chatRequestSuccessPath = '/Telegram.json';
@@ -10,12 +11,17 @@ type LottieData = Record<string, unknown>;
 
 export default function ChatRequestSuccessAnimation() {
   const [animationData, setAnimationData] = useState<LottieData | null>(null);
+  const [Lottie, setLottie] = useState<LottieComponent | null>(null);
 
   useEffect(() => {
     const flag = sessionStorage.getItem(chatRequestSuccessKey);
     if (!flag) return;
 
     let cancelled = false;
+
+    import('lottie-react').then((mod) => {
+      if (!cancelled) setLottie(() => mod.default);
+    });
 
     fetch(chatRequestSuccessPath)
       .then(async (response) => {
@@ -40,7 +46,7 @@ export default function ChatRequestSuccessAnimation() {
     };
   }, []);
 
-  if (!animationData) return null;
+  if (!animationData || !Lottie) return null;
 
   const handleComplete = () => {
     sessionStorage.removeItem(chatRequestSuccessKey);
