@@ -186,11 +186,7 @@ export default function ChatDetail({ chatId, detail, requestType }: ChatDetailPr
           disabled={isClosed || isClosing}
           className="w-full rounded-2xl bg-neutral-200 py-3 text-sm font-semibold text-neutral-700 disabled:opacity-60"
         >
-          {isClosed
-            ? '채팅방 종료됨'
-            : isClosing
-              ? '종료 처리 중...'
-              : '설문 작성하고 종료하기'}
+          {isClosed ? '채팅방 종료됨' : isClosing ? '종료 처리 중...' : '설문 작성하고 종료하기'}
         </button>
         {closeError ? <p className="mt-2 text-center text-xs text-red-500">{closeError}</p> : null}
       </div>

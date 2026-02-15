@@ -240,10 +240,7 @@ export function useChatFeedbackForm(chatId: number) {
   const [step2Evaluations, setStep2Evaluations] = useState<Step2Evaluations>({});
   const [customMultiInputs, setCustomMultiInputs] = useState<Record<number, string>>({});
 
-  const selectedCoreRequirements = useMemo(
-    () => parseCommaValues(answers[1]),
-    [answers],
-  );
+  const selectedCoreRequirements = useMemo(() => parseCommaValues(answers[1]), [answers]);
 
   const isComplete = useMemo(() => {
     const staticComplete = CHAT_FEEDBACK_QUESTIONS.every((question) => {
@@ -327,7 +324,8 @@ export function useChatFeedbackForm(chatId: number) {
         : parseCommaValues(prev[questionId]);
       const withoutOther = current.filter((item) => !item.startsWith('기타:'));
       const nextValue = `기타: ${trimmed}`;
-      const canInsert = withoutOther.length < maxSelect || current.some((item) => item.startsWith('기타:'));
+      const canInsert =
+        withoutOther.length < maxSelect || current.some((item) => item.startsWith('기타:'));
       if (!canInsert) return prev;
       confirmed = true;
       return { ...prev, [questionId]: [...withoutOther, nextValue] };
@@ -433,7 +431,10 @@ function parseCommaValues(value: string | string[] | undefined): string[] {
     .filter(Boolean);
 }
 
-function hasValidValue(question: FeedbackQuestion, rawValue: string | string[] | undefined): boolean {
+function hasValidValue(
+  question: FeedbackQuestion,
+  rawValue: string | string[] | undefined,
+): boolean {
   if (question.type === 'multi') {
     const values = parseCommaValues(rawValue);
     return values.length === question.maxSelect;
@@ -541,7 +542,7 @@ function normalizeChoiceValue(
 
   if (questionId === 10) {
     const map: Record<string, string> = {
-      '경력부족연속성': '경력 공백/연속성',
+      경력부족연속성: '경력 공백/연속성',
       '경력 부족/연속성': '경력 공백/연속성',
       '프로젝트 규모/복잡도 부족': '프로젝트 규모/깊도 부족',
       '포트폴리오 보완 필요': '포트폴리오 완성도 낮음',
@@ -560,7 +561,9 @@ type BuildPayloadParams = {
   preferVerboseMultiLabels: boolean;
 };
 
-function _buildPayload(params: BuildPayloadParams): { answers: Array<{ question_id: number; answer_value: string }> } {
+function _buildPayload(params: BuildPayloadParams): {
+  answers: Array<{ question_id: number; answer_value: string }>;
+} {
   return {
     answers: params.questions.map((question) => ({
       question_id: question.id,
@@ -575,9 +578,17 @@ function _buildPayload(params: BuildPayloadParams): { answers: Array<{ question_
               : question.id === 5
                 ? getStep2ReasonByOrder(params.selectedCoreRequirements, params.step2Evaluations, 1)
                 : question.id === 6
-                  ? getStep2StatusByOrder(params.selectedCoreRequirements, params.step2Evaluations, 2)
+                  ? getStep2StatusByOrder(
+                      params.selectedCoreRequirements,
+                      params.step2Evaluations,
+                      2,
+                    )
                   : question.id === 7
-                    ? getStep2ReasonByOrder(params.selectedCoreRequirements, params.step2Evaluations, 2)
+                    ? getStep2ReasonByOrder(
+                        params.selectedCoreRequirements,
+                        params.step2Evaluations,
+                        2,
+                      )
                     : question.id === 13 || question.id === 14
                       ? normalizeHighMidLowValue(params.answers[question.id])
                       : normalizeAnswerValue(
