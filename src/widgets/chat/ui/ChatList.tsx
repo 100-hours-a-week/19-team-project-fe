@@ -371,7 +371,11 @@ export default function ChatList() {
                 return (
                   <li key={chat.chat_id} className="border-b border-neutral-200/70">
                     <Link
-                      href={`/chat/${chat.chat_id}`}
+                      href={
+                        chat.request_type
+                          ? `/chat/${chat.chat_id}?requestType=${chat.request_type}`
+                          : `/chat/${chat.chat_id}`
+                      }
                       className="flex w-full items-center gap-4 rounded-2xl px-2.5 py-4 text-left transition hover:bg-neutral-100"
                     >
                       <Image

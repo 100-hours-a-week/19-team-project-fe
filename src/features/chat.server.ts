@@ -9,4 +9,5 @@ export {
   createChatRequest,
   markChatRead,
   updateChatLastRead,
+  createChatFeedback,
 } from './chat/server';

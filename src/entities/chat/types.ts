@@ -2,6 +2,20 @@ export type ChatMessageType = 'TEXT';
 export type ChatRequestType = 'FEEDBACK' | 'COFFEE_CHAT';
 export type ChatRequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
 
+export interface ChatFeedbackAnswer {
+  question_id: number;
+  answer_value: string;
+}
+
+export interface ChatFeedbackRequest {
+  answers: ChatFeedbackAnswer[];
+}
+
+export interface ChatFeedbackCreatedData {
+  chat_feedback_id: number;
+  chat_id: number;
+}
+
 export interface SendChatMessageRequest {
   chat_id: number;
   content: string;
@@ -130,6 +144,7 @@ export interface ChatDetailData {
     updated_at?: string;
   } | null;
   job_post_url: string;
+  request_type?: ChatRequestType;
   status: 'ACTIVE' | 'CLOSED';
   created_at: string;
   closed_at: string | null;

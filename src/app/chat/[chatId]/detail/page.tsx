@@ -1,13 +1,18 @@
 import { ChatDetailLoader } from '@/widgets/chat';
+import type { ChatRequestType } from '@/entities/chat';
 
 type ChatDetailPageProps = {
   params: Promise<{
     chatId: string;
   }>;
+  searchParams: Promise<{
+    requestType?: string;
+  }>;
 };
 
-export default async function ChatDetailPage({ params }: ChatDetailPageProps) {
+export default async function ChatDetailPage({ params, searchParams }: ChatDetailPageProps) {
   const { chatId: rawChatId } = await params;
+  const { requestType } = await searchParams;
   const chatId = Number(rawChatId);
   if (Number.isNaN(chatId)) {
     return (
@@ -17,5 +22,8 @@ export default async function ChatDetailPage({ params }: ChatDetailPageProps) {
     );
   }
 
-  return <ChatDetailLoader chatId={chatId} />;
+  const normalizedRequestType: ChatRequestType | null =
+    requestType === 'FEEDBACK' || requestType === 'COFFEE_CHAT' ? requestType : null;
+
+  return <ChatDetailLoader chatId={chatId} requestType={normalizedRequestType} />;
 }
