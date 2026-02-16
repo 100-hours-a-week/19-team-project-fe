@@ -2,9 +2,12 @@
 
 import type { CSSProperties } from 'react';
 import { useMemo } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { useChatFeedbackForm } from '@/features/chat';
+import { Button } from '@/shared/ui/button';
+import iconMark from '@/shared/icons/icon-mark.png';
 
 interface ChatFeedbackFormProps {
   chatId: number;
@@ -43,12 +46,27 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
     return Array.from(map.entries());
   }, [questions]);
 
+  const stepTitleMap: Record<string, string> = {
+    'STEP 1': '[STEP 1] 공고 핵심 요구사항 (3가지 직접 선택)',
+    'STEP 2': '[STEP 2] 핵심 요구사항 충족 평가',
+    'STEP 3': '[STEP 3] 강점 (2개 선택 필수)',
+    'STEP 4': '[STEP 4] 보완점 (2개 선택 필수)',
+    'STEP 5': '[STEP 5] 2주 내 보완 가능한 액션 (2개, 자유 텍스트)',
+    'STEP 6': '[STEP 6] 직무 적합도',
+    'STEP 7': '[STEP 7] 서류 통과 가능성',
+    'STEP 8': '[STEP 8] 기타 의견',
+  };
+  const stepLeadTextClass =
+    'text-sm leading-6 tracking-normal text-[var(--color-primary-main)]';
+  const stepDescriptionClass =
+    'text-xs leading-5 tracking-normal text-[var(--color-primary-main)]';
+
   return (
     <div
-      className="flex h-[100dvh] flex-col overflow-hidden bg-[#f4f4f4] text-black"
+      className="flex h-full min-h-0 flex-col overflow-hidden bg-[#f4f4f4] text-black"
       style={{ '--app-header-height': '64px' } as CSSProperties}
     >
-      <header className="sticky top-0 z-10 flex h-16 items-center bg-white px-4 shadow-sm">
+      <header className="fixed top-0 left-1/2 z-10 flex h-16 w-full max-w-[600px] -translate-x-1/2 items-center bg-white px-4 shadow-sm">
         <button
           type="button"
           onClick={() => {
@@ -77,7 +95,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
         <div className="h-9 w-9" aria-hidden="true" />
       </header>
 
-      <main className="mx-auto flex min-h-0 w-full max-w-[600px] flex-1 flex-col gap-4 overflow-y-auto px-2.5 py-4 pb-28">
+      <main className="mx-auto flex min-h-0 w-full max-w-[600px] flex-1 flex-col gap-4 overflow-y-auto bg-[#f4f4f4] px-2.5 pb-4 pt-[calc(var(--app-header-height)+16px)]">
         <section className="rounded-2xl bg-white p-4 shadow-sm">
           <h1 className="text-sm font-semibold text-neutral-900">채팅이 종료되었습니다.</h1>
           <p className="mt-2 text-xs text-neutral-600">
@@ -87,26 +105,18 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
 
         {groupedQuestions.map(([step, stepQuestions]) => (
           <section key={step} className="rounded-2xl bg-white p-4 shadow-sm">
-            <h2 className="text-xs font-semibold text-neutral-500">
-              {step === 'STEP 1'
-                ? '[STEP 1] 공고 핵심 요구사항 (3가지 직접 선택)'
-                : step === 'STEP 5'
-                  ? '[STEP 5] 2주 내 보완 가능한 액션 (2개, 자유 텍스트)'
-                  : step === 'STEP 6'
-                    ? '[STEP 6] 직무 적합도'
-                    : step === 'STEP 7'
-                      ? '[STEP 7] 서류 통과 가능성'
-                      : step}
+            <h2 className="text-sm font-semibold leading-6 tracking-normal text-[var(--color-primary-main)]">
+              {stepTitleMap[step] ?? step}
             </h2>
             {step === 'STEP 1' ? (
-              <p className="mt-2 text-sm text-neutral-700">
+              <p className={`mt-1 ${stepDescriptionClass}`}>
                 이 공고에서 가장 중요하다고 생각하는 역량/요건 3가지를 선택해주세요.
               </p>
             ) : null}
-            <div className="mt-3 flex flex-col gap-5">
+            <div className="mt-2 flex flex-col gap-5">
               {step === 'STEP 2' ? (
                 <div className="flex flex-col gap-4">
-                  <p className="text-sm font-semibold text-neutral-900">
+                  <p className={`mt-1 ${stepDescriptionClass}`}>
                     위에서 선택한 핵심 요구사항에 대해 지원자의 충족 여부를 평가해주세요.
                   </p>
                   {selectedCoreRequirements.length === 0 ? (
@@ -123,8 +133,8 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                         questions.find((question) => question.id === 2)?.options ?? [];
 
                       return (
-                        <div key={requirement} className="rounded-xl border border-neutral-200 p-3">
-                          <p className="text-sm font-semibold text-neutral-900">
+                        <div key={requirement} className="border border-neutral-200 p-3">
+                          <p className="text-sm leading-6 tracking-normal text-neutral-900">
                             핵심 요구사항 {index + 1}) {requirement}
                           </p>
                           <div className="mt-2 flex flex-wrap gap-2">
@@ -136,8 +146,8 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                                   key={`${requirement}-${option}`}
                                   className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm ${
                                     checked
-                                      ? 'border-neutral-900 bg-neutral-900 text-white'
-                                      : 'border-neutral-300 text-neutral-700'
+                                      ? 'border-[var(--color-primary-main)] bg-[var(--color-primary-main)] text-white'
+                                      : 'border-[var(--color-primary-main)] text-[var(--color-primary-main)]'
                                   }`}
                                 >
                                   <input
@@ -145,7 +155,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                                     name={`step2-${requirement}`}
                                     checked={checked}
                                     onChange={() => setStep2Status(requirement, option)}
-                                    className="sr-only"
+                                    className="hidden"
                                   />
                                   <span>{option}</span>
                                 </label>
@@ -156,7 +166,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                             <p className="mt-1 text-xs text-red-500">{statusError}</p>
                           ) : null}
 
-                          <p className="mt-3 text-sm font-semibold text-neutral-900">
+                          <p className="mt-3 text-sm leading-6 tracking-normal text-neutral-900">
                             판단 근거(자유서술)
                           </p>
                           <textarea
@@ -165,7 +175,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                               setStep2Reason(requirement, event.target.value, 100);
                             }}
                             rows={3}
-                            className="mt-2 min-h-[88px] w-full rounded-xl border border-neutral-300 p-3 text-sm text-neutral-900 outline-none focus:border-neutral-500"
+                            className="mt-2 min-h-[88px] w-full border border-neutral-300 p-3 text-xs text-neutral-900 outline-none focus:border-neutral-500"
                           />
                           <p className="text-right text-xs text-neutral-400">
                             {evaluation.reason.length}/100
@@ -180,7 +190,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                 </div>
               ) : step === 'STEP 5' ? (
                 <div className="flex flex-col gap-4">
-                  {[11, 12].map((questionId, index) => {
+                  {[11, 12].map((questionId) => {
                     const question = stepQuestions.find((item) => item.id === questionId);
                     if (!question || question.type !== 'text') return null;
                     const value =
@@ -189,18 +199,15 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                     const maxLength = question.maxLength ?? 100;
 
                     return (
-                      <div key={question.id} className="flex items-start gap-3">
-                        <span className="pt-4 text-2xl font-semibold text-neutral-900">
-                          {index + 1}
-                        </span>
-                        <div className="flex-1">
+                      <div key={question.id} className="flex items-start">
+                        <div className="w-full">
                           <textarea
                             value={value}
                             onChange={(event) => {
                               setTextAnswer(question.id, event.target.value.slice(0, maxLength));
                             }}
                             rows={4}
-                            className="min-h-[160px] w-full resize-y rounded-[32px] border border-neutral-300 bg-white px-5 py-4 text-sm text-neutral-900 outline-none focus:border-neutral-400"
+                            className="min-h-[88px] w-full resize-y border border-neutral-300 bg-white p-3 text-xs text-neutral-900 outline-none focus:border-neutral-500"
                           />
                           <p className="mt-1 text-right text-xs text-neutral-400">
                             {value.length}/{maxLength}
@@ -232,7 +239,15 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                   return (
                     <div key={question.id} className="flex flex-col gap-2">
                       {question.id === 1 ? null : (
-                        <p className="text-sm font-semibold text-neutral-900">{question.label}</p>
+                        <p
+                          className={
+                            question.id === 9
+                              ? 'text-sm leading-6 tracking-normal text-neutral-900'
+                              : stepLeadTextClass
+                          }
+                        >
+                          {question.label}
+                        </p>
                       )}
 
                       {question.type === 'multi' ? (
@@ -266,7 +281,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                                     onChange={() =>
                                       toggleMultiAnswer(question.id, option, maxSelect)
                                     }
-                                    className="h-4 w-4"
+                                    className="h-4 w-4 accent-[var(--color-primary-main)]"
                                   />
                                   <span>
                                     {isOtherOption && customSelected ? customSelected : option}
@@ -300,7 +315,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                       ) : null}
 
                       {question.id === 1 && selectedCoreRequirements.length > 0 ? (
-                        <div className="mt-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+                        <div className="mt-2 border border-neutral-200 bg-neutral-50 p-3">
                           <p className="text-sm font-semibold text-neutral-800">선택한 3가지</p>
                           <ol className="mt-2 list-decimal pl-5 text-sm text-neutral-800">
                             {selectedCoreRequirements.map((selected) => (
@@ -325,7 +340,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                                     name={`question-${question.id}`}
                                     checked={checked}
                                     onChange={() => setRadioAnswer(question.id, option)}
-                                    className="h-4 w-4"
+                                    className="h-4 w-4 accent-[var(--color-primary-main)]"
                                   />
                                   <span>{option}</span>
                                 </label>
@@ -342,8 +357,8 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                                   key={option}
                                   className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm ${
                                     checked
-                                      ? 'border-neutral-900 bg-neutral-900 text-white'
-                                      : 'border-neutral-300 text-neutral-700'
+                                      ? 'border-[var(--color-primary-main)] bg-[var(--color-primary-main)] text-white'
+                                      : 'border-[var(--color-primary-main)] text-[var(--color-primary-main)]'
                                   }`}
                                 >
                                   <input
@@ -351,7 +366,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                                     name={`question-${question.id}`}
                                     checked={checked}
                                     onChange={() => setRadioAnswer(question.id, option)}
-                                    className="sr-only"
+                                    className="hidden"
                                   />
                                   <span>{option}</span>
                                 </label>
@@ -372,7 +387,9 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                               setTextAnswer(question.id, nextValue);
                             }}
                             rows={4}
-                            className="min-h-[96px] w-full rounded-xl border border-neutral-300 p-3 text-sm text-neutral-900 outline-none focus:border-neutral-500"
+                            className={`min-h-[96px] w-full border border-neutral-300 p-3 text-xs text-neutral-900 outline-none focus:border-neutral-500 ${
+                              question.id === 9 || question.id === 15 ? '' : 'rounded-xl'
+                            }`}
                           />
                           <p className="text-right text-xs text-neutral-400">
                             {typeof value === 'string' ? value.length : 0}/
@@ -391,20 +408,21 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
         ))}
       </main>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-[#f4f4f4] px-2.5 pb-6 pt-2">
+      <div className="mx-auto w-full max-w-[600px] shrink-0 bg-[#f4f4f4] px-2.5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-2">
         {submitError ? (
           <p className="mb-2 text-center text-xs text-red-500">{submitError}</p>
         ) : null}
-        <button
+        <Button
           type="button"
           onClick={() => {
             void handleSubmit();
           }}
           disabled={isSubmitting}
-          className="w-full rounded-2xl bg-neutral-900 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          icon={<Image src={iconMark} alt="" width={20} height={20} />}
+          className="mt-0 rounded-2xl bg-neutral-900 py-3 text-sm font-semibold hover:bg-neutral-900 active:bg-neutral-900 disabled:opacity-50"
         >
-          {isSubmitting ? '제출 중...' : 'submit'}
-        </button>
+          {isSubmitting ? '제출 중...' : '제출하기'}
+        </Button>
       </div>
     </div>
   );

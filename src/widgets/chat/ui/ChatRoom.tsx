@@ -119,6 +119,7 @@ export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
         historyLoadingMore={historyLoadingMore}
         historyHasMore={historyHasMore}
         chatStatus={chatStatus}
+        feedbackHref={requestType === 'FEEDBACK' ? `/chat/${chatId}/feedback` : null}
         onScrollTopReached={loadMoreMessages}
       />
 

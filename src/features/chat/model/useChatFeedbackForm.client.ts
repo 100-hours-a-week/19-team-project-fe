@@ -35,7 +35,6 @@ export const CHAT_FEEDBACK_QUESTIONS: FeedbackQuestion[] = [
       '대용량 트래픽/성능 최적화 경험',
       '경력 연차',
       '성장 가능성/학습 의지',
-      '기타:[직접 입력]',
     ],
   },
   {
@@ -83,7 +82,7 @@ export const CHAT_FEEDBACK_QUESTIONS: FeedbackQuestion[] = [
   {
     id: 8,
     step: 'STEP 3',
-    label: '강점 (2개 선택 필수)',
+    label: '구직자의 이력서에서 드러나는 강점 (2개 선택 필수)',
     type: 'multi',
     maxSelect: 2,
     options: [
@@ -95,7 +94,6 @@ export const CHAT_FEEDBACK_QUESTIONS: FeedbackQuestion[] = [
       '도메인 이해도',
       '협업 능력',
       '자기 표현력(이력서 작성)',
-      '기타:[직접 입력]',
     ],
   },
   {
@@ -108,7 +106,7 @@ export const CHAT_FEEDBACK_QUESTIONS: FeedbackQuestion[] = [
   {
     id: 10,
     step: 'STEP 4',
-    label: '보완점 (2개 선택 필수)',
+    label: '구직자의 이력서에서 보완이 필요한 점 (2개 선택 필수)',
     type: 'multi',
     maxSelect: 2,
     options: [
@@ -120,7 +118,6 @@ export const CHAT_FEEDBACK_QUESTIONS: FeedbackQuestion[] = [
       '직무 연관성 부족',
       '포트폴리오 보완 필요',
       '경험 다양성 부족',
-      '기타:[직접 입력]',
     ],
   },
   {
@@ -140,14 +137,14 @@ export const CHAT_FEEDBACK_QUESTIONS: FeedbackQuestion[] = [
   {
     id: 13,
     step: 'STEP 6',
-    label: '직무 적합도',
+    label: '구직자의 직무 적합도를 선택해주세요.',
     type: 'radio',
     options: ['상 (이 직무에 잘 맞음)', '중 (기본은 갖춤, 보완 필요)', '하 (적합도 낮음)'],
   },
   {
     id: 14,
     step: 'STEP 7',
-    label: '서류 통과 가능성',
+    label: '구직자의 서류 통과 가능성을 선택해주세요.',
     type: 'radio',
     options: ['상 (통과 가능성 높음)', '중 (보완 시 가능)', '하 (현 상태로는 어려움)'],
   },
@@ -163,71 +160,6 @@ export const CHAT_FEEDBACK_QUESTIONS: FeedbackQuestion[] = [
 type ValidationErrors = Record<number, string>;
 type Step2ValidationErrors = Record<string, { status?: string; reason?: string }>;
 type Step2Evaluations = Record<string, { status: string; reason: string }>;
-
-const FIXED_FEEDBACK_PAYLOAD: ChatFeedbackRequest = {
-  answers: [
-    {
-      question_id: 1,
-      answer_value: '도메인 지식,문제 해결력/트러블슈팅 경험,경력 연차',
-    },
-    {
-      question_id: 2,
-      answer_value: '부분 충족',
-    },
-    {
-      question_id: 3,
-      answer_value: '핀테크 경험은 있으나 도메인 깊이는 보완 필요',
-    },
-    {
-      question_id: 4,
-      answer_value: '충족',
-    },
-    {
-      question_id: 5,
-      answer_value: '장애 대응 사례가 구체적으로 기술됨',
-    },
-    {
-      question_id: 6,
-      answer_value: '부분 충족',
-    },
-    {
-      question_id: 7,
-      answer_value: '연차는 기준에 근접하나 리드 경험은 부족',
-    },
-    {
-      question_id: 8,
-      answer_value: '기술 역량,문제 해결력',
-    },
-    {
-      question_id: 9,
-      answer_value: '기술 선택 배경과 문제 해결 흐름이 비교적 명확함',
-    },
-    {
-      question_id: 10,
-      answer_value: '도메인 지식 부족,성과 정량화 부족',
-    },
-    {
-      question_id: 11,
-      answer_value: '핵심 프로젝트 성과를 수치로 재작성해보세요',
-    },
-    {
-      question_id: 12,
-      answer_value: '도메인 관련 용어/지표를 이력서에 반영해보세요',
-    },
-    {
-      question_id: 13,
-      answer_value: '중',
-    },
-    {
-      question_id: 14,
-      answer_value: '중',
-    },
-    {
-      question_id: 15,
-      answer_value: '기본 역량은 갖췄고 도메인/성과 표현 보완 시 경쟁력 있습니다.',
-    },
-  ],
-};
 
 export function useChatFeedbackForm(chatId: number) {
   const router = useRouter();
@@ -380,14 +312,31 @@ export function useChatFeedbackForm(chatId: number) {
 
     try {
       await closeChat({ chatId });
+      const payload: ChatFeedbackRequest = _buildPayload({
+        questions: CHAT_FEEDBACK_QUESTIONS,
+        answers,
+        selectedCoreRequirements,
+        step2Evaluations,
+        preferVerboseMultiLabels: false,
+      });
       try {
-        await createChatFeedback({ chatId, payload: FIXED_FEEDBACK_PAYLOAD });
+        await createChatFeedback({ chatId, payload });
       } catch (error) {
         if (error instanceof BusinessError && error.code === 'FEEDBACK_ANSWER_INVALID') {
-          await createChatFeedback({ chatId, payload: FIXED_FEEDBACK_PAYLOAD });
+          const retryPayload: ChatFeedbackRequest = _buildPayload({
+            questions: CHAT_FEEDBACK_QUESTIONS,
+            answers,
+            selectedCoreRequirements,
+            step2Evaluations,
+            preferVerboseMultiLabels: true,
+          });
+          await createChatFeedback({ chatId, payload: retryPayload });
         } else {
           throw error;
         }
+      }
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('reportCreateSuccess', 'true');
       }
       router.replace('/chat');
     } catch (error) {

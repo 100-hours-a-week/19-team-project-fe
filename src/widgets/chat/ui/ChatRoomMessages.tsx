@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import { Fragment } from 'react';
+import Link from 'next/link';
 
 import type { ChatMessageItem } from '@/entities/chat';
 import {
@@ -21,6 +22,7 @@ type ChatRoomMessagesProps = {
   historyLoadingMore: boolean;
   historyHasMore: boolean;
   chatStatus: 'ACTIVE' | 'CLOSED';
+  feedbackHref: string | null;
   onScrollTopReached: () => void;
 };
 
@@ -34,6 +36,7 @@ export default function ChatRoomMessages({
   historyLoadingMore,
   historyHasMore,
   chatStatus,
+  feedbackHref,
   onScrollTopReached,
 }: ChatRoomMessagesProps) {
   return (
@@ -62,7 +65,15 @@ export default function ChatRoomMessages({
       ) : null}
       {chatStatus === 'CLOSED' ? (
         <div className="rounded-2xl bg-white px-4 py-3 text-center text-sm text-neutral-600 shadow-sm">
-          종료된 채팅방입니다.
+          <p>종료된 채팅방입니다.</p>
+          {feedbackHref ? (
+            <Link
+              href={feedbackHref}
+              className="mt-2 inline-flex rounded-full bg-[var(--color-primary-main)] px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              설문조사 하러 가기
+            </Link>
+          ) : null}
         </div>
       ) : null}
       {messages.map((message, index) => {
