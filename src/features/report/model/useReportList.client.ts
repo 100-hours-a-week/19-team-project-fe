@@ -14,6 +14,7 @@ export function useReportList() {
   const [hasLoadedReports, setHasLoadedReports] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<number | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
   useEffect(() => {
     if (authStatus !== 'authed') {
@@ -63,7 +64,7 @@ export function useReportList() {
       setReports((prev) => prev.filter((report) => report.reportId !== reportId));
     } catch (error) {
       if (!(await handleCommonApiError(error))) {
-        window.alert(error instanceof Error ? error.message : '리포트 삭제에 실패했습니다.');
+        setLoadError(error instanceof Error ? error.message : '리포트 삭제에 실패했습니다.');
       }
     } finally {
       setIsDeletingId(null);
@@ -84,6 +85,8 @@ export function useReportList() {
     isLoadingReports,
     hasLoadedReports,
     loadError,
+    openMenuId,
+    setOpenMenuId,
     isDeletingId,
     handleDeleteReport,
   };
