@@ -56,10 +56,8 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
     'STEP 7': '[STEP 7] 서류 통과 가능성',
     'STEP 8': '[STEP 8] 기타 의견',
   };
-  const stepLeadTextClass =
-    'text-sm leading-6 tracking-normal text-[var(--color-primary-main)]';
-  const stepDescriptionClass =
-    'text-xs leading-5 tracking-normal text-[var(--color-primary-main)]';
+  const stepLeadTextClass = 'text-sm leading-6 tracking-normal text-[var(--color-primary-main)]';
+  const stepDescriptionClass = 'text-xs leading-5 tracking-normal text-[var(--color-primary-main)]';
 
   return (
     <div
