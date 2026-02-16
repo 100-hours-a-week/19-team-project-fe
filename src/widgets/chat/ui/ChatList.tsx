@@ -14,6 +14,7 @@ import { Modal } from '@/shared/ui/modal';
 import { useToast } from '@/shared/ui/toast';
 import charIcon from '@/shared/icons/char_icon.png';
 import ChatRequestSuccessAnimation from './ChatRequestSuccessAnimation';
+import ReportCreateSuccessAnimation from './ReportCreateSuccessAnimation';
 
 const pad2 = (value: number) => value.toString().padStart(2, '0');
 
@@ -156,6 +157,7 @@ export default function ChatList() {
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#f7f7f7] text-black">
       <ChatRequestSuccessAnimation />
+      <ReportCreateSuccessAnimation />
       <Header />
 
       <section className="px-4 pt-6">
@@ -371,7 +373,11 @@ export default function ChatList() {
                 return (
                   <li key={chat.chat_id} className="border-b border-neutral-200/70">
                     <Link
-                      href={`/chat/${chat.chat_id}`}
+                      href={
+                        chat.request_type
+                          ? `/chat/${chat.chat_id}?requestType=${chat.request_type}`
+                          : `/chat/${chat.chat_id}`
+                      }
                       className="flex w-full items-center gap-4 rounded-2xl px-2.5 py-4 text-left transition hover:bg-neutral-100"
                     >
                       <Image

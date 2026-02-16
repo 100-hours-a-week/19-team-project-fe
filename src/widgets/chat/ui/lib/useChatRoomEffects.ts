@@ -45,14 +45,14 @@ export function useChatRoomEffects({
 
   useEffect(() => {
     if (historyError) {
-      alert('메시지를 불러오지 못했어요. 새로 고침해 주세요.');
+      console.warn('메시지를 불러오지 못했어요. 새로 고침해 주세요.');
     }
   }, [historyError]);
 
   useEffect(() => {
     const prev = prevWsStatusRef.current;
     if (prev && prev !== 'disconnected' && wsStatus === 'disconnected') {
-      alert('실시간 연결이 끊어졌어요. 재연결 중입니다.');
+      console.warn('실시간 연결이 끊어졌어요. 재연결 중입니다.');
     }
     prevWsStatusRef.current = wsStatus;
   }, [wsStatus]);

@@ -1,18 +1,20 @@
 'use client';
 
 import { useChatDetailLoader } from '@/features/chat';
+import type { ChatRequestType } from '@/entities/chat';
 
 import ChatDetail from './ChatDetail';
 
 type ChatDetailLoaderProps = {
   chatId: number;
+  requestType?: ChatRequestType | null;
 };
 
-export default function ChatDetailLoader({ chatId }: ChatDetailLoaderProps) {
+export default function ChatDetailLoader({ chatId, requestType }: ChatDetailLoaderProps) {
   const { detail, loading, error } = useChatDetailLoader(chatId);
 
   if (detail) {
-    return <ChatDetail chatId={chatId} detail={detail} />;
+    return <ChatDetail chatId={chatId} detail={detail} requestType={requestType} />;
   }
 
   return (

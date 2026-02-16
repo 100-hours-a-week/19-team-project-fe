@@ -1,20 +1,21 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import type { ChatDetailData } from '@/entities/chat';
+import type { ChatDetailData, ChatRequestType } from '@/entities/chat';
 import type { ResumeDetail } from '@/entities/resumes';
 import { normalizeResumeContent, normalizeResumeDetail, toStringArray } from '@/entities/resumes';
-import { closeChat } from '@/features/chat';
-import { useCommonApiErrorHandler } from '@/shared/api';
 
-export function useChatDetail(chatId: number, detail: ChatDetailData) {
+export function useChatDetail(
+  chatId: number,
+  detail: ChatDetailData,
+  fallbackRequestType?: ChatRequestType | null,
+) {
   const router = useRouter();
-  const handleCommonApiError = useCommonApiErrorHandler();
-  const [status, setStatus] = useState(detail.status);
-  const [isClosing, setIsClosing] = useState(false);
-  const [closeError, setCloseError] = useState<string | null>(null);
+  const [status] = useState(detail.status);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const isClosed = useMemo(() => status === 'CLOSED', [status]);
+  const requestType = resolveRequestType(detail, fallbackRequestType);
+  const isFeedbackChat = requestType === 'FEEDBACK';
 
   const resumeSource =
     detail.resume ??
@@ -25,22 +26,9 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
     ? normalizeResumeDetail(resumeSource)
     : null;
 
-  const handleCloseChat = async () => {
-    if (isClosed || isClosing) return;
-    setIsClosing(true);
-    setCloseError(null);
-    try {
-      await closeChat({ chatId });
-      setStatus('CLOSED');
-      router.replace('/chat');
-    } catch (error) {
-      if (await handleCommonApiError(error)) {
-        return;
-      }
-      setCloseError(error instanceof Error ? error.message : '채팅방 종료에 실패했습니다.');
-    } finally {
-      setIsClosing(false);
-    }
+  const handleCloseChat = () => {
+    if (isClosed) return;
+    router.push(`/chat/${chatId}/feedback`);
   };
 
   const content = normalizeResumeContent(resumeDetail?.contentJson ?? null);
@@ -63,8 +51,9 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
   return {
     status,
     isClosed,
-    isClosing,
-    closeError,
+    isClosing: false,
+    isFeedbackChat,
+    closeError: null,
     isResumeModalOpen,
     setIsResumeModalOpen,
     handleCloseChat,
@@ -79,4 +68,38 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
     summary,
     hasContent,
   };
+}
+
+function normalizeRequestType(value: unknown): ChatRequestType | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toUpperCase();
+  if (normalized === 'FEEDBACK') return 'FEEDBACK';
+  if (normalized === 'COFFEE_CHAT') return 'COFFEE_CHAT';
+  return null;
+}
+
+function resolveRequestType(
+  detail: ChatDetailData,
+  fallbackRequestType?: ChatRequestType | null,
+): ChatRequestType | null {
+  const extended = detail as ChatDetailData & {
+    requestType?: unknown;
+    type?: unknown;
+    chat_request?: { request_type?: unknown; requestType?: unknown; type?: unknown } | null;
+    chatRequest?: { request_type?: unknown; requestType?: unknown; type?: unknown } | null;
+  };
+
+  return (
+    normalizeRequestType(detail.request_type) ??
+    normalizeRequestType(extended.requestType) ??
+    normalizeRequestType(extended.type) ??
+    normalizeRequestType(extended.chat_request?.request_type) ??
+    normalizeRequestType(extended.chat_request?.requestType) ??
+    normalizeRequestType(extended.chat_request?.type) ??
+    normalizeRequestType(extended.chatRequest?.request_type) ??
+    normalizeRequestType(extended.chatRequest?.requestType) ??
+    normalizeRequestType(extended.chatRequest?.type) ??
+    normalizeRequestType(fallbackRequestType) ??
+    null
+  );
 }

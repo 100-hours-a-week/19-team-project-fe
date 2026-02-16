@@ -16,6 +16,7 @@ const normalizeChatId = (chat: ChatSummary): ChatSummary | null => {
     typeof parsedChatId === 'number' && !Number.isNaN(parsedChatId) ? parsedChatId : null;
 
   if (chatId === null) return null;
+
   return {
     ...chat,
     chat_id: chatId,

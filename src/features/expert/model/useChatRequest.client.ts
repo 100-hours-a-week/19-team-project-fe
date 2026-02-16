@@ -67,7 +67,7 @@ export function useChatRequest(userId: number) {
         return;
       }
       console.error('[Chat Request Error]', error);
-      alert('채팅 요청에 실패했습니다.');
+      pushToast('채팅 요청에 실패했습니다.', { variant: 'warning' });
     } finally {
       setIsCheckingAuth(false);
     }

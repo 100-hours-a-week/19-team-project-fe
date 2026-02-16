@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { useChatRoom } from '@/features/chat';
+import type { ChatRequestType } from '@/entities/chat';
 import { useToast } from '@/shared/ui/toast';
 import ChatRoomComposer from './ChatRoomComposer';
 import ChatRoomMessages from './ChatRoomMessages';
@@ -13,9 +14,10 @@ import { useChatRoomEffects } from './lib/useChatRoomEffects';
 
 interface ChatRoomProps {
   chatId: number;
+  requestType?: ChatRequestType | null;
 }
 
-export default function ChatRoom({ chatId }: ChatRoomProps) {
+export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
   const router = useRouter();
   const { pushToast } = useToast();
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -80,7 +82,11 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
           {headerTitle}
         </div>
         <Link
-          href={`/chat/${chatId}/detail`}
+          href={
+            requestType
+              ? `/chat/${chatId}/detail?requestType=${requestType}`
+              : `/chat/${chatId}/detail`
+          }
           aria-label="채팅 설정"
           className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm"
         >
@@ -113,6 +119,7 @@ export default function ChatRoom({ chatId }: ChatRoomProps) {
         historyLoadingMore={historyLoadingMore}
         historyHasMore={historyHasMore}
         chatStatus={chatStatus}
+        feedbackHref={requestType === 'FEEDBACK' ? `/chat/${chatId}/feedback` : null}
         onScrollTopReached={loadMoreMessages}
       />
 
