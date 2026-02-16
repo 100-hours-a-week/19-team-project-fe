@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-
 import { useChatDetailLoader } from '@/features/chat';
 import type { ChatRequestType } from '@/entities/chat';
 
@@ -14,13 +12,6 @@ type ChatDetailLoaderProps = {
 
 export default function ChatDetailLoader({ chatId, requestType }: ChatDetailLoaderProps) {
   const { detail, loading, error } = useChatDetailLoader(chatId);
-  const hasShownResponseAlertRef = useRef(false);
-
-  useEffect(() => {
-    if (!detail || hasShownResponseAlertRef.current) return;
-    hasShownResponseAlertRef.current = true;
-    window.alert(`[ChatDetail Response]\\n${JSON.stringify(detail, null, 2)}`);
-  }, [detail]);
 
   if (detail) {
     return <ChatDetail chatId={chatId} detail={detail} requestType={requestType} />;
