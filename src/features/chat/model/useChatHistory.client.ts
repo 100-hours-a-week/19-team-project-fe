@@ -26,7 +26,7 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
     setNextCursor(null);
     setError(null);
 
-    const loadHistory = async (allowRetry: boolean) => {
+    const loadHistory = async () => {
       try {
         setLoading(true);
         const data = await getChatMessages({ chatId });
@@ -54,9 +54,6 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
         if (cancelled) return;
         const handled = await handleCommonApiError(err);
         if (handled) {
-          if (allowRetry && !cancelled) {
-            await loadHistory(false);
-          }
           return;
         }
         setError(err instanceof Error ? err : new Error('CHAT_HISTORY_FAILED'));
@@ -65,7 +62,7 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
       }
     };
 
-    loadHistory(true);
+    loadHistory();
 
     return () => {
       cancelled = true;

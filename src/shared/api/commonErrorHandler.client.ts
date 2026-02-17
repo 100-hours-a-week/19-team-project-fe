@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useToast } from '@/shared/ui/toast';
 import { refreshAuthTokens } from './refreshTokens.client';
@@ -73,14 +74,20 @@ function isNetworkError(error: unknown): boolean {
 }
 
 type CommonErrorHandlerOptions = {
-  redirectTo?: string;
+  redirectTo?: string | null;
   onInvalidToken?: () => Promise<boolean> | boolean;
 };
 
 export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}) {
-  const { redirectTo = '/', onInvalidToken } = options;
+  const { redirectTo = null, onInvalidToken } = options;
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { pushToast } = useToast();
+
+  const markAsGuest = useCallback(() => {
+    queryClient.setQueryData(['auth', 'me'], { authenticated: false });
+    queryClient.removeQueries({ queryKey: ['user', 'me'] });
+  }, [queryClient]);
 
   return useCallback(
     async (error: unknown): Promise<boolean> => {
@@ -90,8 +97,11 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
       }
       if (error instanceof BusinessError && isCommonErrorCode(error.code)) {
         if (error.code === 'AUTH_UNAUTHORIZED') {
+          markAsGuest();
           pushToast(COMMON_ERROR_MESSAGES[error.code]);
-          router.replace(redirectTo);
+          if (redirectTo) {
+            router.replace(redirectTo);
+          }
           return true;
         }
         if (error.code === 'AUTH_INVALID_TOKEN' || error.code === 'AUTH_TOKEN_EXPIRED') {
@@ -99,8 +109,11 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
             ? await onInvalidToken()
             : await refreshAuthTokens().catch(() => false);
           if (!handled) {
+            markAsGuest();
             pushToast(COMMON_ERROR_MESSAGES[error.code]);
-            router.replace(redirectTo);
+            if (redirectTo) {
+              router.replace(redirectTo);
+            }
           }
           return true;
         }
@@ -109,8 +122,11 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
           error.code === 'AUTH_INVALID_CREDENTIALS' ||
           error.code === 'AUTH_FORBIDDEN'
         ) {
+          markAsGuest();
           pushToast(COMMON_ERROR_MESSAGES[error.code]);
-          router.replace(redirectTo);
+          if (redirectTo) {
+            router.replace(redirectTo);
+          }
           return true;
         }
         pushToast(COMMON_ERROR_MESSAGES[error.code]);
@@ -129,8 +145,11 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
                 : null;
 
         if (mappedCode) {
-          pushToast(COMMON_ERROR_MESSAGES[mappedCode]);
           if (mappedCode === 'AUTH_UNAUTHORIZED') {
+            markAsGuest();
+          }
+          pushToast(COMMON_ERROR_MESSAGES[mappedCode]);
+          if (mappedCode === 'AUTH_UNAUTHORIZED' && redirectTo) {
             router.replace(redirectTo);
           }
           return true;
@@ -139,6 +158,6 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
 
       return false;
     },
-    [onInvalidToken, pushToast, redirectTo, router],
+    [markAsGuest, onInvalidToken, pushToast, redirectTo, router],
   );
 }

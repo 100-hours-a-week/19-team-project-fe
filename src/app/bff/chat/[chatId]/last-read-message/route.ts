@@ -99,7 +99,11 @@ export async function PATCH(
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
 
-    const data = await updateChatLastRead({ chatId, last_read_seq: lastReadSeq }, accessToken);
+    const data = await updateChatLastRead(
+      { chatId, last_read_seq: lastReadSeq },
+      accessToken,
+      false,
+    );
     const response: ApiResponse<typeof data> = {
       code: 'OK',
       message: 'success',

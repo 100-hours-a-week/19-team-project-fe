@@ -42,6 +42,7 @@ export async function GET(req: Request) {
       cursor,
       size,
       accessToken,
+      allowRefresh: false,
     });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
