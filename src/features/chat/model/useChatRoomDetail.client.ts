@@ -34,7 +34,7 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
     let cancelled = false;
 
     (async () => {
-      const loadDetail = async (allowRetry: boolean) => {
+      const loadDetail = async () => {
         try {
           setIsLoading(true);
           const detail = await getChatDetail({ chatId });
@@ -48,9 +48,6 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
           if (cancelled) return;
           const handled = await handleCommonApiError(error);
           if (handled) {
-            if (allowRetry && !cancelled) {
-              await loadDetail(false);
-            }
             return;
           }
           if (handleInvalidAccess(error)) return;
@@ -60,7 +57,7 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
         }
       };
 
-      await loadDetail(true);
+      await loadDetail();
     })();
 
     return () => {

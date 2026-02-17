@@ -43,7 +43,7 @@ export function useChatList() {
   }, []);
 
   const fetchChats = useCallback(
-    async (allowRetry: boolean, setLoadingState: boolean) => {
+    async (setLoadingState: boolean) => {
       if (setLoadingState) setIsLoading(true);
       try {
         const data = await getChatList({ size: listSizeRef.current });
@@ -57,11 +57,7 @@ export function useChatList() {
         if (!isActiveRef.current) return;
         const handled = await handleCommonApiError(error);
         if (handled) {
-          if (allowRetry) {
-            await fetchChats(false, false);
-          } else {
-            setIsLoading(false);
-          }
+          setIsLoading(false);
           return;
         }
         setLoadError(error instanceof Error ? error.message : '채팅 목록을 불러오지 못했습니다.');
@@ -83,7 +79,7 @@ export function useChatList() {
       return;
     }
 
-    void fetchChats(true, true);
+    void fetchChats(true);
   }, [authStatus, fetchChats]);
 
   useEffect(() => {
@@ -91,19 +87,13 @@ export function useChatList() {
 
     const handleRefresh = () => {
       if (document.visibilityState !== 'visible') return;
-      void fetchChats(true, false);
+      void fetchChats(false);
     };
-
-    const intervalId = window.setInterval(() => {
-      if (document.visibilityState !== 'visible') return;
-      void fetchChats(false, false);
-    }, 1_000);
 
     window.addEventListener('focus', handleRefresh);
     document.addEventListener('visibilitychange', handleRefresh);
 
     return () => {
-      window.clearInterval(intervalId);
       window.removeEventListener('focus', handleRefresh);
       document.removeEventListener('visibilitychange', handleRefresh);
     };

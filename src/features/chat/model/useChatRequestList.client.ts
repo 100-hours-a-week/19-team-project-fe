@@ -27,7 +27,7 @@ export function useChatRequestList(options: UseChatRequestListOptions = {}) {
   }, []);
 
   const fetchRequests = useCallback(
-    async (allowRetry: boolean, setLoadingState: boolean) => {
+    async (setLoadingState: boolean) => {
       if (setLoadingState) setIsLoading(true);
       try {
         const data = await getChatRequestList({ direction, status, size });
@@ -38,11 +38,7 @@ export function useChatRequestList(options: UseChatRequestListOptions = {}) {
         if (!isActiveRef.current) return;
         const handled = await handleCommonApiError(error);
         if (handled) {
-          if (allowRetry) {
-            await fetchRequests(false, false);
-          } else {
-            setIsLoading(false);
-          }
+          setIsLoading(false);
           return;
         }
         setLoadError(error instanceof Error ? error.message : '요청 목록을 불러오지 못했습니다.');
@@ -64,7 +60,7 @@ export function useChatRequestList(options: UseChatRequestListOptions = {}) {
       return;
     }
 
-    void fetchRequests(true, true);
+    void fetchRequests(true);
   }, [authStatus, fetchRequests]);
 
   return {
@@ -73,6 +69,6 @@ export function useChatRequestList(options: UseChatRequestListOptions = {}) {
     setRequests,
     isLoading,
     loadError,
-    refetch: () => fetchRequests(true, true),
+    refetch: () => fetchRequests(true),
   };
 }
