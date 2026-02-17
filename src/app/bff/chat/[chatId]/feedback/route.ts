@@ -40,7 +40,7 @@ export async function POST(req: Request, context: { params: Params }) {
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
 
-    const data = await createChatFeedback({ chatId, payload, accessToken });
+    const data = await createChatFeedback({ chatId, payload, accessToken, allowRefresh: false });
 
     const response: ApiResponse<typeof data> = {
       code: 'CREATED',
