@@ -16,7 +16,7 @@ export function useChatDetailLoader(chatId: number) {
     if (!chatId) return;
     let cancelled = false;
 
-    const loadDetail = async (allowRetry: boolean) => {
+    const loadDetail = async () => {
       try {
         setLoading(true);
         const data = await getChatDetail({ chatId });
@@ -27,11 +27,7 @@ export function useChatDetailLoader(chatId: number) {
         if (cancelled) return;
         const handled = await handleCommonApiError(err);
         if (handled) {
-          if (allowRetry && !cancelled) {
-            await loadDetail(false);
-          } else {
-            setLoading(false);
-          }
+          setLoading(false);
           return;
         }
         setError(err instanceof Error ? err.message : '채팅 정보를 불러오지 못했습니다.');
@@ -40,7 +36,7 @@ export function useChatDetailLoader(chatId: number) {
       }
     };
 
-    loadDetail(true);
+    loadDetail();
 
     return () => {
       cancelled = true;

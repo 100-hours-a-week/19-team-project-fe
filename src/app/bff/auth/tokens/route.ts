@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { refreshAuthTokens } from '@/shared/api/server';
+import { RefreshTokenError, refreshAuthTokens } from '@/shared/api/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,25 +27,32 @@ export async function POST() {
       path: '/',
     });
     return response;
-  } catch {
+  } catch (error) {
+    const status = error instanceof RefreshTokenError ? error.status : 500;
+    const code = error instanceof RefreshTokenError ? error.code : 'TOKEN_REFRESH_FAILED';
+    const message = error instanceof RefreshTokenError ? error.message : 'token_refresh_failed';
+    const isUnauthorized = status === 401 || status === 403 || code === 'AUTH_UNAUTHORIZED';
+
     const response = NextResponse.json(
-      { code: 'AUTH_UNAUTHORIZED', message: 'token_refresh_failed', data: null },
-      { status: 401 },
+      { code, message, data: null },
+      { status: isUnauthorized ? 401 : status >= 500 ? 502 : status },
     );
-    response.cookies.set('access_token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      expires: new Date(0),
-    });
-    response.cookies.set('refresh_token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      expires: new Date(0),
-    });
+    if (isUnauthorized) {
+      response.cookies.set('access_token', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        expires: new Date(0),
+      });
+      response.cookies.set('refresh_token', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        expires: new Date(0),
+      });
+    }
     return response;
   }
 }

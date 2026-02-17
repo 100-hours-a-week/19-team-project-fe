@@ -45,6 +45,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       requestId: parsedRequestId,
       status,
       accessToken,
+      allowRefresh: false,
     });
 
     const response: ApiResponse<typeof data> = {
