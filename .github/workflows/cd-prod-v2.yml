@@ -50,13 +50,18 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: Deploy with SST
-        run: npx sst deploy --stage ${{ inputs.stage }}
+        id: deploy
+        run: |
+          DEPLOY_OUTPUT=$(npx sst deploy --stage ${{ inputs.stage }} 2>&1)
+          echo "$DEPLOY_OUTPUT"
+
+          SITE_URL=$(echo "$DEPLOY_OUTPUT" | grep -oP 'url:\s*\K(https://\S+)' || echo "")
+          echo "site_url=${SITE_URL}" >> $GITHUB_OUTPUT
 
       - name: Verify Deployment
         id: verify
         run: |
-          # SST 출력에서 CloudFront URL 추출
-          SITE_URL=$(npx sst print-url --stage ${{ inputs.stage }} 2>/dev/null || echo "")
+          SITE_URL="${{ steps.deploy.outputs.site_url }}"
 
           if [ -z "$SITE_URL" ]; then
             echo "⚠️  Could not extract URL from SST output"
@@ -74,7 +79,7 @@ jobs:
               exit 0
             fi
             echo "⏳ Health check attempt ${i}/5 (HTTP ${HTTP_STATUS})"
-            sleep 5
+            sleep 10
           done
 
           echo "⚠️  Health check did not return 200, but deployment may still be propagating"
