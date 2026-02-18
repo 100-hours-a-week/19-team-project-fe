@@ -6,6 +6,10 @@
 
 declare module "sst" {
   export interface Resource {
+    "ReFitWeb": {
+      "type": "sst.aws.Nextjs"
+      "url": string
+    }
   }
 }
 /// <reference path="sst-env.d.ts" />
