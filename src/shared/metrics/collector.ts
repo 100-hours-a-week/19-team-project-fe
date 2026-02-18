@@ -5,7 +5,7 @@ import type { MetricType, MetricData } from './types';
 // 페이지 이탈 시 남은 메트릭 전송 (visibilitychange, pagehide)
 
 let metricBuffer: Array<{ type: MetricType; data: MetricData }> = [];
-let flushTimeout: NodeJS.Timeout | null = null;
+let flushTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const FLUSH_INTERVAL = 5000; // 5초
 const MAX_BUFFER_SIZE = 20;

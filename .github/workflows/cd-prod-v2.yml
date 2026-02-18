@@ -1,0 +1,149 @@
+name: Re-Fit Frontend CD (V2 - SST)
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'SST deployment stage'
+        required: true
+        type: choice
+        default: 'prod'
+        options:
+          - prod
+      sha:
+        description: 'Commit SHA (빈칸이면 현재 브랜치 HEAD 사용)'
+        required: false
+        type: string
+      version_tag:
+        description: 'Version tag (e.g., v1.2.0)'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Environment Variables
+        run: echo "${{ secrets.PROD_ENV_FILE }}" > .env.production
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Deploy with SST
+        run: npx sst deploy --stage ${{ inputs.stage }}
+
+      - name: Verify Deployment
+        id: verify
+        run: |
+          # SST 출력에서 CloudFront URL 추출
+          SITE_URL=$(npx sst print-url --stage ${{ inputs.stage }} 2>/dev/null || echo "")
+
+          if [ -z "$SITE_URL" ]; then
+            echo "⚠️  Could not extract URL from SST output"
+            echo "site_url=unknown" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "site_url=${SITE_URL}" >> $GITHUB_OUTPUT
+
+          # 헬스체크 (최대 5회 재시도)
+          for i in {1..5}; do
+            HTTP_STATUS=$(timeout 10 curl -s -o /dev/null -w "%{http_code}" "${SITE_URL}" 2>/dev/null || echo "000")
+            if [ "${HTTP_STATUS}" = "200" ]; then
+              echo "✅ Deployment verified (HTTP ${HTTP_STATUS})"
+              exit 0
+            fi
+            echo "⏳ Health check attempt ${i}/5 (HTTP ${HTTP_STATUS})"
+            sleep 5
+          done
+
+          echo "⚠️  Health check did not return 200, but deployment may still be propagating"
+
+      - name: Set Deploy Info
+        id: info
+        run: |
+          SHA="${{ inputs.sha || github.sha }}"
+          echo "sha_short=${SHA:0:7}" >> $GITHUB_OUTPUT
+          echo "version_tag=${{ inputs.version_tag || 'latest' }}" >> $GITHUB_OUTPUT
+
+      - name: Notify Discord - Success
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          VERSION="${{ steps.info.outputs.version_tag }}"
+          SHA_SHORT="${{ steps.info.outputs.sha_short }}"
+          SITE_URL="${{ steps.verify.outputs.site_url }}"
+          STAGE="${{ inputs.stage }}"
+
+          payload=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "🚀 FE 배포 완료 (V2-SST)",
+              "description": "SST 배포가 성공적으로 완료되었습니다.",
+              "color": 3066993,
+              "fields": [
+                {"name": "서비스", "value": "Re-Fit Frontend", "inline": true},
+                {"name": "버전", "value": "\`${VERSION}\`", "inline": true},
+                {"name": "Stage", "value": "\`${STAGE}\`", "inline": true},
+                {"name": "커밋 SHA", "value": "\`${SHA_SHORT}\`", "inline": true},
+                {"name": "URL", "value": "${SITE_URL}", "inline": false},
+                {"name": "워크플로우", "value": "[상세 보기](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+              ],
+              "footer": { "text": "Re-Fit Deployment System (V2-SST)" },
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            }]
+          }
+          EOF
+          )
+          curl -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK"
+
+      - name: Notify Discord - Failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          VERSION="${{ steps.info.outputs.version_tag }}"
+          SHA_SHORT="${{ steps.info.outputs.sha_short }}"
+          STAGE="${{ inputs.stage }}"
+
+          payload=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "🚨 FE 배포 실패 (V2-SST)",
+              "description": "SST 배포가 실패했습니다. 워크플로우 로그를 확인하세요.",
+              "color": 15158332,
+              "fields": [
+                {"name": "서비스", "value": "Re-Fit Frontend", "inline": true},
+                {"name": "버전", "value": "\`${VERSION}\`", "inline": true},
+                {"name": "Stage", "value": "\`${STAGE}\`", "inline": true},
+                {"name": "커밋 SHA", "value": "\`${SHA_SHORT}\`", "inline": true},
+                {"name": "워크플로우", "value": "[상세 보기](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+              ],
+              "footer": { "text": "Re-Fit Deployment System (V2-SST)" },
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            }]
+          }
+          EOF
+          )
+          curl -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK"
