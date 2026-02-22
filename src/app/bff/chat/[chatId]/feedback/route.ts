@@ -17,6 +17,16 @@ function getAccessToken(req: Request, cookieToken?: string) {
   return rawToken?.trim() || cookieToken?.trim() || undefined;
 }
 
+function isTimeoutError(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    return error.name === 'AbortError' || error.name === 'TimeoutError';
+  }
+  if (error instanceof Error) {
+    return error.name === 'AbortError' || error.name === 'TimeoutError';
+  }
+  return false;
+}
+
 export async function POST(req: Request, context: { params: Params }) {
   try {
     const pathnameParts = new URL(req.url).pathname.split('/').filter(Boolean);
@@ -50,6 +60,28 @@ export async function POST(req: Request, context: { params: Params }) {
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
+    if (isTimeoutError(error)) {
+      const requestId = crypto.randomUUID();
+      console.error('[BFF_UPSTREAM_TIMEOUT]', {
+        event: 'bff_upstream_timeout',
+        bffPath: '/bff/chat/[chatId]/feedback',
+        upstreamPath: '/api/v2/chats/{chatId}/feedback',
+        method: 'POST',
+        timeoutMs: 30000,
+        requestId,
+      });
+
+      const response: ApiResponse<null> = {
+        code: 'UPSTREAM_TIMEOUT',
+        message: 'UPSTREAM_TIMEOUT',
+        data: null,
+      };
+      return NextResponse.json(
+        { ...response, degraded: true, requestId, timeoutMs: 30000 },
+        { status: 504 },
+      );
+    }
+
     if (error instanceof BusinessError) {
       const response: ApiResponse<unknown> = {
         code: error.code,

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +25,8 @@ export async function POST(req: Request) {
     }
 
     const payload = await req.json();
-    const res = await fetch(buildApiUrl('/api/v1/resumes/tasks'), {
+    const res = await fetchBffUpstream(buildApiUrl('/api/v1/resumes/tasks'), {
+      timeoutMs: 30000,
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
