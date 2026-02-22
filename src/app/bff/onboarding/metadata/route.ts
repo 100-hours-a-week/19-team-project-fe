@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 
 const JOBS_PATH = '/api/v1/jobs';
@@ -10,7 +11,7 @@ const SKILLS_PATH = '/api/v1/skills';
 const SUCCESS_CODES = new Set(['OK', 'SUCCESS']);
 
 async function fetchApiData<T>(path: string): Promise<T> {
-  const res = await fetch(buildApiUrl(path));
+  const res = await fetchBffUpstream(buildApiUrl(path));
   const body = (await res.json().catch(() => null)) as ApiResponse<T> | null;
 
   if (!res.ok) {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 function getAccessToken(req: Request, cookieToken?: string) {
   const authHeader = req.headers.get('authorization');
@@ -44,7 +45,7 @@ export async function GET(req: Request, context: { params: Promise<{ reportId: s
       return NextResponse.json(response, { status: 400 });
     }
 
-    const upstreamRes = await fetch(buildApiUrl(`/api/v2/reports/${reportId}`), {
+    const upstreamRes = await fetchBffUpstream(buildApiUrl(`/api/v2/reports/${reportId}`), {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -100,7 +101,7 @@ export async function DELETE(req: Request, context: { params: Promise<{ reportId
       return NextResponse.json(response, { status: 400 });
     }
 
-    const upstreamRes = await fetch(buildApiUrl(`/api/v2/reports/${reportId}`), {
+    const upstreamRes = await fetchBffUpstream(buildApiUrl(`/api/v2/reports/${reportId}`), {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${accessToken}`,

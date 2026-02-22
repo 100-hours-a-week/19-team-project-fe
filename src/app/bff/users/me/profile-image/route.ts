@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 export async function DELETE() {
   try {
@@ -18,7 +19,7 @@ export async function DELETE() {
       return NextResponse.json(response, { status: 401 });
     }
 
-    const res = await fetch(buildApiUrl('/api/v1/users/me/profile-image'), {
+    const res = await fetchBffUpstream(buildApiUrl('/api/v1/users/me/profile-image'), {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${accessToken}`,

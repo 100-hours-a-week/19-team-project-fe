@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 const USER_ME_PATH = '/api/v1/users/me';
 
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
       return NextResponse.json(response, { status: 401 });
     }
 
-    const res = await fetch(buildApiUrl(USER_ME_PATH), {
+    const res = await fetchBffUpstream(buildApiUrl(USER_ME_PATH), {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -111,7 +112,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json(response, { status: 400 });
     }
 
-    const res = await fetch(buildApiUrl(USER_ME_PATH), {
+    const res = await fetchBffUpstream(buildApiUrl(USER_ME_PATH), {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -173,7 +174,7 @@ export async function DELETE(req: Request) {
       return clearAuthCookies(NextResponse.json(response, { status: 401 }));
     }
 
-    const res = await fetch(buildApiUrl(USER_ME_PATH), {
+    const res = await fetchBffUpstream(buildApiUrl(USER_ME_PATH), {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${accessToken}`,

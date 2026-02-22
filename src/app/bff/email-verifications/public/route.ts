@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 const EMAIL_VERIFICATION_PUBLIC_PATH = '/api/v1/email-verifications/public';
 
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
-    const res = await fetch(buildApiUrl(EMAIL_VERIFICATION_PUBLIC_PATH), {
+    const res = await fetchBffUpstream(buildApiUrl(EMAIL_VERIFICATION_PUBLIC_PATH), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const payload = await req.json();
-    const res = await fetch(buildApiUrl(EMAIL_VERIFICATION_PUBLIC_PATH), {
+    const res = await fetchBffUpstream(buildApiUrl(EMAIL_VERIFICATION_PUBLIC_PATH), {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

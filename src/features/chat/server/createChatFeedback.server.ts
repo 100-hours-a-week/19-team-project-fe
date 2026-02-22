@@ -5,6 +5,7 @@ import { buildApiUrl } from '@/shared/api';
 import { apiFetchWithRefresh } from '@/shared/api/server';
 
 const CHAT_FEEDBACK_PATH = '/api/v2/chats';
+const CHAT_FEEDBACK_TIMEOUT_MS = 30000;
 
 export interface CreateChatFeedbackParams {
   chatId: number;
@@ -22,6 +23,7 @@ export async function createChatFeedback(
     url,
     {
       method: 'POST',
+      signal: AbortSignal.timeout(CHAT_FEEDBACK_TIMEOUT_MS),
       headers: {
         'Content-Type': 'application/json',
       },
