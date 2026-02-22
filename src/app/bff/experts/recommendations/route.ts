@@ -26,6 +26,7 @@ export async function GET(req: Request) {
     const query = url.search ? url.search : '';
 
     const res = await fetchBffUpstream(buildApiUrl(`${RECOMMENDATIONS_PATH}${query}`), {
+      timeoutMs: 20000,
       method: 'GET',
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     });
