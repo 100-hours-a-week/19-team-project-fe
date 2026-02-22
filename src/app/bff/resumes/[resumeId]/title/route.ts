@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ resumeId: string }> }) {
   try {
@@ -35,7 +36,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ resume
     }
 
     const payload = await req.json();
-    const res = await fetch(buildApiUrl(`/api/v1/resumes/${normalizedId}/title`), {
+    const res = await fetchBffUpstream(buildApiUrl(`/api/v1/resumes/${normalizedId}/title`), {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${accessToken}`,

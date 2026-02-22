@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 const LOGOUT_PATH = '/api/v1/auth/logout';
 
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
       return clearAuthCookies(NextResponse.json(response, { status: 401 }));
     }
 
-    const res = await fetch(buildApiUrl(LOGOUT_PATH), {
+    const res = await fetchBffUpstream(buildApiUrl(LOGOUT_PATH), {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,

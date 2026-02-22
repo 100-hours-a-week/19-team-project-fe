@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 const RECOMMENDATIONS_PATH = '/api/v1/experts/recommendations';
 
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const query = url.search ? url.search : '';
 
-    const res = await fetch(buildApiUrl(`${RECOMMENDATIONS_PATH}${query}`), {
+    const res = await fetchBffUpstream(buildApiUrl(`${RECOMMENDATIONS_PATH}${query}`), {
       method: 'GET',
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     });

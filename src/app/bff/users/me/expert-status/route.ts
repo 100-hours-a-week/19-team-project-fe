@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 export async function GET(req: Request) {
   try {
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
       return NextResponse.json(response, { status: 401 });
     }
 
-    const res = await fetch(buildApiUrl('/api/v1/users/me/expert-status'), {
+    const res = await fetchBffUpstream(buildApiUrl('/api/v1/users/me/expert-status'), {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

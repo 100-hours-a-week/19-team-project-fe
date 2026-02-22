@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 const EMAIL_VERIFICATION_PATH = '/api/v1/email-verifications';
 
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const payload = await req.json();
-    const res = await fetch(buildApiUrl(EMAIL_VERIFICATION_PATH), {
+    const res = await fetchBffUpstream(buildApiUrl(EMAIL_VERIFICATION_PATH), {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -91,7 +92,7 @@ export async function PATCH(req: Request) {
     }
 
     const payload = await req.json();
-    const res = await fetch(buildApiUrl(EMAIL_VERIFICATION_PATH), {
+    const res = await fetchBffUpstream(buildApiUrl(EMAIL_VERIFICATION_PATH), {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${accessToken}`,
