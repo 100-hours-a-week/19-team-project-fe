@@ -10,6 +10,7 @@ import defaultUserImage from '@/shared/icons/char_icon.png';
 
 type ExpertRecommendationsProps = {
   recommendations: ExpertRecommendation[];
+  degraded?: boolean;
 };
 
 type StoryViewerProps = {
@@ -179,7 +180,10 @@ const StoryViewer = memo(function StoryViewer({
   );
 });
 
-export default function ExpertRecommendations({ recommendations }: ExpertRecommendationsProps) {
+export default function ExpertRecommendations({
+  recommendations,
+  degraded = false,
+}: ExpertRecommendationsProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -234,6 +238,11 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
     return (
       <div className="px-2.5 pt-3 pb-5">
         <p className="text-sm font-semibold text-neutral-900">현직자 추천</p>
+        {degraded ? (
+          <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            추천 데이터를 불러오지 못해 기본 화면으로 표시 중입니다.
+          </div>
+        ) : null}
         <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-text-caption">
           추천 현직자가 아직 없어요.
         </div>
@@ -244,6 +253,11 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
   return (
     <div className="px-2.5 pt-3 pb-5">
       <p className="text-sm font-semibold text-neutral-900">현직자 추천</p>
+      {degraded ? (
+        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          추천 서비스 지연으로 일부 데이터가 누락될 수 있어요.
+        </div>
+      ) : null}
       <div className="mt-3 flex items-start gap-3 overflow-x-auto pb-2 pr-2 snap-x snap-mandatory scrollbar-hide">
         {safeRecommendations.map((expert, index) => (
           <button
