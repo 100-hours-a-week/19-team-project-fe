@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { pretendard } from '../shared/config/font';
+import { FcmBootstrap } from '@/features/notification-fcm';
 import { QueryProvider } from '@/shared/lib/react-query';
 import { ToastProvider } from '@/shared/ui/toast';
 import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
@@ -72,6 +73,7 @@ gtag('config', 'G-8YM02T7012', { send_page_view: false });`}
         <GaPageView />
         <QueryProvider>
           <ToastProvider>
+            <FcmBootstrap />
             <div className="app-frame">{children}</div>
           </ToastProvider>
         </QueryProvider>
