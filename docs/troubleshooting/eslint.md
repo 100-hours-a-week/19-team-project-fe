@@ -1428,3 +1428,30 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-23 Raw Log
+
+- Logged at: 2026-02-23 07:46:23Z
+
+```
+> re-fit@1.1.2 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/public/firebase-messaging-sw.js
+  1:1  warning  Unused eslint-disable directive (no problems were reported from 'no-undef')
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/header/ui/Header.tsx
+  19:9  warning  'notifications' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/notification/ui/NotificationPage.tsx
+  16:1  error  '@/shared/icons/notifications/notification_chat_request.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다     no-restricted-imports
+  17:1  error  '@/shared/icons/notifications/notification_message.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다          no-restricted-imports
+  18:1  error  '@/shared/icons/notifications/notification_resume_analysis.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 5 problems (3 errors, 2 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
