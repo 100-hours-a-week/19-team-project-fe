@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { deleteResume, getResumes, type Resume } from '@/entities/resumes';
+import { deleteResume, resumesQueryKey, useResumesQuery, type Resume } from '@/entities/resumes';
 import { useAuthStatus } from '@/entities/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
@@ -12,41 +13,38 @@ export function useResumeList() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const { data, error, isLoading } = useResumesQuery({ enabled: authStatus === 'authed' });
 
   useEffect(() => {
     if (authStatus !== 'authed') {
+      setLoadError(null);
       setResumes([]);
-      setIsLoadingResumes(false);
+      return;
+    }
+    setResumes(data?.resumes ?? []);
+  }, [authStatus, data]);
+
+  useEffect(() => {
+    if (!error) {
       setLoadError(null);
       return;
     }
-
-    let cancelled = false;
-    setIsLoadingResumes(true);
-
     (async () => {
-      try {
-        const data = await getResumes();
-        if (cancelled) return;
-        setResumes(data.resumes ?? []);
-        setLoadError(null);
-      } catch (error) {
-        if (cancelled) return;
-        if (await handleCommonApiError(error)) {
-          setIsLoadingResumes(false);
-          return;
-        }
-        setLoadError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
-      } finally {
-        if (cancelled) return;
-        setIsLoadingResumes(false);
-      }
+      if (await handleCommonApiError(error)) return;
+      setLoadError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
     })();
+  }, [error, handleCommonApiError]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [authStatus, handleCommonApiError]);
+  useEffect(() => {
+    setIsLoadingResumes(authStatus === 'authed' ? isLoading : false);
+  }, [authStatus, isLoading]);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+    if (resumes.some((item) => item.resumeId === openMenuId)) return;
+    setOpenMenuId(null);
+  }, [openMenuId, resumes]);
 
   const handleDeleteResume = async (resumeId: number) => {
     if (isDeletingId) return;
@@ -56,7 +54,10 @@ export function useResumeList() {
 
     try {
       await deleteResume(resumeId);
-      setResumes((prev) => prev.filter((item) => item.resumeId !== resumeId));
+      queryClient.setQueryData<{ resumes: Resume[] } | undefined>(resumesQueryKey, (prev) => {
+        if (!prev) return { resumes: [] };
+        return { ...prev, resumes: prev.resumes.filter((item) => item.resumeId !== resumeId) };
+      });
     } catch (error) {
       await handleCommonApiError(error);
     } finally {
