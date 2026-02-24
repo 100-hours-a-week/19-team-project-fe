@@ -6,6 +6,7 @@ import { QueryProvider } from '@/shared/lib/react-query';
 import { ToastProvider } from '@/shared/ui/toast';
 import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
 import { GaPageView } from '@/shared/metrics/GaPageView';
+import { ServiceWorkerRegistrar } from '@/shared/lib/pwa';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -69,6 +70,7 @@ gtag('config', 'G-8YM02T7012', { send_page_view: false });`}
         </Script>
       </head>
       <body className={`${pretendard.variable} app-shell antialiased`}>
+        <ServiceWorkerRegistrar />
         <MetricsInitializer />
         <GaPageView />
         <QueryProvider>
