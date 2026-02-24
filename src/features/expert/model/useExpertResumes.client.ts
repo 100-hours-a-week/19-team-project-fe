@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { getResumes, type Resume } from '@/entities/resumes';
+import { useResumesQuery, type Resume } from '@/entities/resumes';
 import { HttpError } from '@/shared/api';
 
 export function useExpertResumes(authStatus: 'checking' | 'authed' | 'guest') {
@@ -10,41 +10,38 @@ export function useExpertResumes(authStatus: 'checking' | 'authed' | 'guest') {
   const [resumeError, setResumeError] = useState('');
   const [isLoadingResumes, setIsLoadingResumes] = useState(false);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
+  const { data, error, isLoading } = useResumesQuery({ enabled: authStatus === 'authed' });
 
   useEffect(() => {
     if (authStatus !== 'authed') {
       setResumes([]);
+      setResumeError('');
+      setIsLoadingResumes(false);
       setSelectedResumeId(null);
       return;
     }
 
-    let cancelled = false;
-    setIsLoadingResumes(true);
-    setResumeError('');
+    setResumes(data?.resumes ?? []);
+    setIsLoadingResumes(isLoading);
+  }, [authStatus, data, isLoading]);
 
-    (async () => {
-      try {
-        const data = await getResumes();
-        if (cancelled) return;
-        setResumes(data.resumes);
-      } catch (error) {
-        if (cancelled) return;
-        if (error instanceof HttpError && error.status === 401) {
-          setResumeError('로그인 이후에 사용 가능합니다.');
-        } else {
-          setResumeError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
-        }
-        setResumes([]);
-      } finally {
-        if (cancelled) return;
-        setIsLoadingResumes(false);
-      }
-    })();
+  useEffect(() => {
+    if (!error) {
+      setResumeError('');
+      return;
+    }
+    if (error instanceof HttpError && error.status === 401) {
+      setResumeError('로그인 이후에 사용 가능합니다.');
+      return;
+    }
+    setResumeError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
+  }, [error]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [authStatus]);
+  useEffect(() => {
+    if (selectedResumeId === null) return;
+    if (resumes.some((resume) => resume.resumeId === selectedResumeId)) return;
+    setSelectedResumeId(null);
+  }, [resumes, selectedResumeId]);
 
   return {
     resumes,

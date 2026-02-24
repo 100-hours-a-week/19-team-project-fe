@@ -1,4 +1,5 @@
 import { withTimeout, RequestTimeoutError } from '@/shared/api/server';
+import { trackServerApiRequest } from '@/shared/metrics/serverApiMetricsTracker';
 
 type TimeoutProfile = 'optional' | 'default' | 'critical';
 
@@ -74,6 +75,12 @@ export async function fetchBffUpstream(
       timeoutMs,
       signal: requestSignal,
     });
+    trackServerApiRequest({
+      path: bffPath ?? upstreamPath,
+      method,
+      status: res.status,
+      durationMs: Date.now() - startMs,
+    });
 
     if (res.status >= 500) {
       console.error('[BFF_UPSTREAM_HTTP_ERROR]', {
@@ -92,6 +99,12 @@ export async function fetchBffUpstream(
   } catch (error) {
     if (error instanceof RequestTimeoutError) {
       const requestId = crypto.randomUUID();
+      trackServerApiRequest({
+        path: bffPath ?? upstreamPath,
+        method,
+        status: 504,
+        durationMs: Date.now() - startMs,
+      });
       console.error('[BFF_UPSTREAM_TIMEOUT]', {
         event: 'bff_upstream_timeout',
         bffPath: bffPath ?? upstreamPath,

@@ -8,6 +8,7 @@ export { sendEmailVerification } from './api/sendEmailVerification';
 export { verifyEmailVerification } from './api/verifyEmailVerification';
 export * from './model/useOnboardingProfileForm.client';
 export * from './model/useOnboardingFormState.client';
+export * from './model/useOnboardingMetadataQuery.client';
 export * from './model/useOnboardingReferenceData.client';
 export * from './model/useOnboardingOauthInfo.client';
 export * from './model/useOnboardingNicknameCheck.client';
