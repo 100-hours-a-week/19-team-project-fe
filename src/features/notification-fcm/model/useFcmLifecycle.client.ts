@@ -12,6 +12,8 @@ const FCM_STORAGE_KEY = 'refit.fcm.token';
 
 async function ensureMessagingServiceWorker() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
+  const existing = await navigator.serviceWorker.getRegistration('/');
+  if (existing) return existing;
   return navigator.serviceWorker.register('/firebase-messaging-sw.js');
 }
 
