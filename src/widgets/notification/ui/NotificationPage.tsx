@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useAuthStatus } from '@/entities/auth';
@@ -13,9 +13,11 @@ import {
 } from '@/entities/notification';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
+import { readStoredFcmToken } from '@/features/notification-fcm';
 import notificationChatRequest from '@/shared/icons/notification_chat_request.png';
 import notificationMessage from '@/shared/icons/notification_message.png';
 import notificationResumeAnalysis from '@/shared/icons/notification_resume_analysis.png';
+import { useToast } from '@/shared/ui/toast';
 
 function formatNotificationDate(value: string) {
   const date = new Date(value);
@@ -51,11 +53,13 @@ function sanitizeNotificationContent(content: string) {
 
 export default function NotificationPage() {
   const router = useRouter();
+  const { pushToast } = useToast();
   const { status: authStatus } = useAuthStatus();
   const isAuthed = authStatus === 'authed';
   const notificationsQuery = useNotificationsQuery(isAuthed);
   const readAllMutation = useReadAllNotificationsMutation();
   const readOneMutation = useReadNotificationMutation();
+  const [deviceToken, setDeviceToken] = useState<string | null>(null);
 
   const notifications = useMemo<NotificationItem[]>(() => {
     if (!notificationsQuery.data) return [];
@@ -63,6 +67,22 @@ export default function NotificationPage() {
   }, [notificationsQuery.data]);
 
   const unreadCount = notificationsQuery.data?.pages[0]?.unread_count ?? 0;
+
+  const handleShowToken = () => {
+    const token = readStoredFcmToken();
+    setDeviceToken(token);
+    if (!token) {
+      pushToast('저장된 디바이스 토큰이 없습니다.');
+      return;
+    }
+    pushToast('디바이스 토큰을 불러왔습니다.', { variant: 'success' });
+  };
+
+  const handleCopyToken = async () => {
+    if (!deviceToken) return;
+    await navigator.clipboard.writeText(deviceToken).catch(() => null);
+    pushToast('디바이스 토큰을 복사했습니다.', { variant: 'success' });
+  };
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
@@ -106,6 +126,33 @@ export default function NotificationPage() {
             </button>
           ) : null}
         </div>
+        {isAuthed ? (
+          <div className="mt-2 rounded-xl border border-[#d7e3f8] bg-[#f3f7ff] p-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleShowToken}
+                className="rounded-lg bg-[#35558b] px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                토큰 보기
+              </button>
+              {deviceToken ? (
+                <button
+                  type="button"
+                  onClick={handleCopyToken}
+                  className="rounded-lg border border-[#35558b] px-3 py-1.5 text-xs font-semibold text-[#35558b]"
+                >
+                  토큰 복사
+                </button>
+              ) : null}
+            </div>
+            {deviceToken ? (
+              <p className="mt-2 break-all rounded-md bg-white p-2 text-[11px] text-[#3b4f6f]">
+                {deviceToken}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         {!isAuthed ? (
           <p className="mt-6 rounded-2xl bg-white py-10 text-center text-sm text-text-caption shadow-sm">
