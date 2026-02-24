@@ -138,6 +138,30 @@ export default function NotificationPage() {
     }
   };
 
+  const handleIssueToken = async () => {
+    await initFcm();
+    const token = readStoredFcmToken();
+    setDeviceToken(token);
+
+    if (token) {
+      pushToast('디바이스 토큰을 발급하고 등록했습니다.', { variant: 'success' });
+      return;
+    }
+
+    const isIos = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone =
+      typeof window !== 'undefined' &&
+      (window.matchMedia?.('(display-mode: standalone)').matches ||
+        Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+
+    if (isIos && !isStandalone) {
+      pushToast('iOS는 홈 화면에 추가한 앱(PWA)에서만 알림 토큰 발급이 가능합니다.');
+      return;
+    }
+
+    pushToast('토큰 발급에 실패했습니다. 브라우저 알림 권한을 확인해주세요.');
+  };
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <Header />
