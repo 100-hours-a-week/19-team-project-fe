@@ -13,7 +13,7 @@ import {
 } from '@/entities/notification';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
-import { readStoredFcmToken } from '@/features/notification-fcm';
+import { readStoredFcmToken, useFcmLifecycle } from '@/features/notification-fcm';
 import notificationChatRequest from '@/shared/icons/notification_chat_request.png';
 import notificationMessage from '@/shared/icons/notification_message.png';
 import notificationResumeAnalysis from '@/shared/icons/notification_resume_analysis.png';
@@ -59,6 +59,7 @@ export default function NotificationPage() {
   const notificationsQuery = useNotificationsQuery(isAuthed);
   const readAllMutation = useReadAllNotificationsMutation();
   const readOneMutation = useReadNotificationMutation();
+  const { initFcm } = useFcmLifecycle();
   const [deviceToken, setDeviceToken] = useState<string | null>(null);
 
   const notifications = useMemo<NotificationItem[]>(() => {
@@ -82,6 +83,30 @@ export default function NotificationPage() {
     if (!deviceToken) return;
     await navigator.clipboard.writeText(deviceToken).catch(() => null);
     pushToast('디바이스 토큰을 복사했습니다.', { variant: 'success' });
+  };
+
+  const handleIssueToken = async () => {
+    await initFcm();
+    const token = readStoredFcmToken();
+    setDeviceToken(token);
+
+    if (token) {
+      pushToast('디바이스 토큰을 발급하고 등록했습니다.', { variant: 'success' });
+      return;
+    }
+
+    const isIos = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone =
+      typeof window !== 'undefined' &&
+      (window.matchMedia?.('(display-mode: standalone)').matches ||
+        Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+
+    if (isIos && !isStandalone) {
+      pushToast('iOS는 홈 화면에 추가한 앱(PWA)에서만 알림 토큰 발급이 가능합니다.');
+      return;
+    }
+
+    pushToast('토큰 발급에 실패했습니다. 브라우저 알림 권한을 확인해주세요.');
   };
 
   return (
@@ -129,6 +154,13 @@ export default function NotificationPage() {
         {isAuthed ? (
           <div className="mt-2 rounded-xl border border-[#d7e3f8] bg-[#f3f7ff] p-2">
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleIssueToken}
+                className="rounded-lg bg-[#2b4b7e] px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                토큰 발급/등록
+              </button>
               <button
                 type="button"
                 onClick={handleShowToken}

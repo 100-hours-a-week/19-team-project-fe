@@ -9,6 +9,11 @@ import { getFirebaseMessaging } from '@/shared/lib/firebase';
 import { useToast } from '@/shared/ui/toast';
 
 const FCM_STORAGE_KEY = 'refit.fcm.token';
+const IOS_USER_AGENT_REGEX = /iphone|ipad|ipod/i;
+
+type InitFcmOptions = {
+  requestPermission?: boolean;
+};
 
 async function ensureMessagingServiceWorker() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
@@ -29,12 +34,25 @@ export async function removeRegisteredFcmToken() {
   localStorage.removeItem(FCM_STORAGE_KEY);
 }
 
+function isIosBrowser() {
+  if (typeof navigator === 'undefined') return false;
+  return IOS_USER_AGENT_REGEX.test(navigator.userAgent);
+}
+
+function isStandalonePwa() {
+  if (typeof window === 'undefined') return false;
+  const byMatchMedia = window.matchMedia?.('(display-mode: standalone)').matches ?? false;
+  const byNavigator = Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+  return byMatchMedia || byNavigator;
+}
+
 export function useFcmLifecycle() {
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
 
-  const initFcm = useCallback(async () => {
+  const initFcm = useCallback(async ({ requestPermission = true }: InitFcmOptions = {}) => {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (isIosBrowser() && !isStandalonePwa()) return;
 
     const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY?.trim();
     if (!vapidKey) {
@@ -45,7 +63,9 @@ export function useFcmLifecycle() {
     const permission =
       Notification.permission === 'granted'
         ? 'granted'
-        : await Notification.requestPermission().catch(() => 'default');
+        : requestPermission
+          ? await Notification.requestPermission().catch(() => 'default')
+          : Notification.permission;
 
     if (permission !== 'granted') return;
 
