@@ -18,8 +18,7 @@ type EndpointMetric = {
 const DUP_WINDOW_MS = 30_000;
 const REPORT_INTERVAL_MS = 10_000;
 const MAX_SAMPLES_PER_ENDPOINT = 200;
-const UUID_REGEX =
-  /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi;
+const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi;
 
 const metricsByEndpoint = new Map<string, EndpointMetric>();
 let reportTimeoutId: ReturnType<typeof setTimeout> | null = null;
