@@ -95,8 +95,7 @@ export default function NotificationPage() {
       return;
     }
 
-    const isIos =
-      typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isIos = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
     const isStandalone =
       typeof window !== 'undefined' &&
       (window.matchMedia?.('(display-mode: standalone)').matches ||
