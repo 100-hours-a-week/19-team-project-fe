@@ -14,6 +14,9 @@ export function useUserMeQuery(options: UseUserMeQueryOptions = {}) {
     queryKey: ['user', 'me'],
     queryFn: getUserMe,
     enabled,
-    staleTime: 30_000,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
