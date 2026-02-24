@@ -294,7 +294,7 @@ export default function NotificationPage() {
           </p>
         ) : notifications.length === 0 ? (
           <p className="mt-6 rounded-2xl bg-white py-10 text-center text-sm text-text-caption shadow-sm">
-            도착한 알림이 없어요.
+            도착한 알림이 없습니다.
           </p>
         ) : (
           <div className="mt-2 flex flex-col">
