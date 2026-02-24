@@ -1,50 +1,37 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
-import { getOnboardingMetadata } from '@/features/onboarding';
 import { useCommonApiErrorHandler } from '@/shared/api';
+import { useOnboardingMetadataQuery } from './useOnboardingMetadataQuery.client';
 
 export function useOnboardingReferenceData() {
   const handleCommonApiError = useCommonApiErrorHandler();
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [careerLevels, setCareerLevels] = useState<CareerLevel[]>([]);
-  const [metadataLoading, setMetadataLoading] = useState(true);
   const [metadataError, setMetadataError] = useState<string | null>(null);
+  const { data, error, isLoading } = useOnboardingMetadataQuery();
 
   useEffect(() => {
-    let mounted = true;
-    getOnboardingMetadata()
-      .then((data) => {
-        if (!mounted) return;
-        setSkills(data.skills);
-        setJobs(data.jobs);
-        setCareerLevels(data.career_levels);
-      })
-      .catch(async (error) => {
-        if (!mounted) return;
-        if (await handleCommonApiError(error)) return;
-        setMetadataError(
-          error instanceof Error ? error.message : '온보딩 메타데이터를 불러오지 못했습니다.',
-        );
-      })
-      .finally(() => {
-        if (!mounted) return;
-        setMetadataLoading(false);
-      });
+    if (!error) {
+      setMetadataError(null);
+      return;
+    }
+    (async () => {
+      if (await handleCommonApiError(error)) return;
+      setMetadataError(
+        error instanceof Error ? error.message : '온보딩 메타데이터를 불러오지 못했습니다.',
+      );
+    })();
+  }, [error, handleCommonApiError]);
 
-    return () => {
-      mounted = false;
-    };
-  }, [handleCommonApiError]);
+  const skills = useMemo(() => data?.skills ?? [], [data]);
+  const jobs = useMemo(() => data?.jobs ?? [], [data]);
+  const careerLevels = useMemo(() => data?.career_levels ?? [], [data]);
 
   return {
     skills,
     jobs,
     careerLevels,
-    metadataLoading,
+    metadataLoading: isLoading,
     metadataError,
   };
 }
