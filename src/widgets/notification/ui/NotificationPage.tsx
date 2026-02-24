@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useAuthStatus } from '@/entities/auth';
@@ -11,9 +11,13 @@ import {
   useReadNotificationMutation,
   type NotificationItem,
 } from '@/entities/notification';
+import {
+  readStoredFcmToken,
+  removeRegisteredFcmToken,
+  useFcmLifecycle,
+} from '@/features/notification-fcm';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
-import { readStoredFcmToken, useFcmLifecycle } from '@/features/notification-fcm';
 import notificationChatRequest from '@/shared/icons/notification_chat_request.png';
 import notificationMessage from '@/shared/icons/notification_message.png';
 import notificationResumeAnalysis from '@/shared/icons/notification_resume_analysis.png';
@@ -53,14 +57,15 @@ function sanitizeNotificationContent(content: string) {
 
 export default function NotificationPage() {
   const router = useRouter();
-  const { pushToast } = useToast();
   const { status: authStatus } = useAuthStatus();
   const isAuthed = authStatus === 'authed';
+  const { pushToast } = useToast();
+  const { initFcm } = useFcmLifecycle();
   const notificationsQuery = useNotificationsQuery(isAuthed);
   const readAllMutation = useReadAllNotificationsMutation();
   const readOneMutation = useReadNotificationMutation();
-  const { initFcm } = useFcmLifecycle();
-  const [deviceToken, setDeviceToken] = useState<string | null>(null);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [isTogglingPush, setIsTogglingPush] = useState(false);
 
   const notifications = useMemo<NotificationItem[]>(() => {
     if (!notificationsQuery.data) return [];
@@ -69,44 +74,68 @@ export default function NotificationPage() {
 
   const unreadCount = notificationsQuery.data?.pages[0]?.unread_count ?? 0;
 
-  const handleShowToken = () => {
-    const token = readStoredFcmToken();
-    setDeviceToken(token);
-    if (!token) {
-      pushToast('저장된 디바이스 토큰이 없습니다.');
-      return;
-    }
-    pushToast('디바이스 토큰을 불러왔습니다.', { variant: 'success' });
-  };
+  const syncPushEnabled = useCallback(() => {
+    if (typeof window === 'undefined' || typeof Notification === 'undefined') return;
+    const hasStoredToken = Boolean(readStoredFcmToken());
+    setPushEnabled(Notification.permission === 'granted' && hasStoredToken);
+  }, []);
 
-  const handleCopyToken = async () => {
-    if (!deviceToken) return;
-    await navigator.clipboard.writeText(deviceToken).catch(() => null);
-    pushToast('디바이스 토큰을 복사했습니다.', { variant: 'success' });
-  };
-
-  const handleIssueToken = async () => {
-    await initFcm();
-    const token = readStoredFcmToken();
-    setDeviceToken(token);
-
-    if (token) {
-      pushToast('디바이스 토큰을 발급하고 등록했습니다.', { variant: 'success' });
+  useEffect(() => {
+    if (!isAuthed) {
+      setPushEnabled(false);
       return;
     }
 
-    const isIos = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isStandalone =
-      typeof window !== 'undefined' &&
-      (window.matchMedia?.('(display-mode: standalone)').matches ||
-        Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+    syncPushEnabled();
+    window.addEventListener('focus', syncPushEnabled);
+    window.addEventListener('storage', syncPushEnabled);
 
-    if (isIos && !isStandalone) {
-      pushToast('iOS는 홈 화면에 추가한 앱(PWA)에서만 알림 토큰 발급이 가능합니다.');
+    return () => {
+      window.removeEventListener('focus', syncPushEnabled);
+      window.removeEventListener('storage', syncPushEnabled);
+    };
+  }, [isAuthed, syncPushEnabled]);
+
+  const handleTogglePush = async () => {
+    if (isTogglingPush) return;
+    if (!isAuthed) {
+      pushToast('로그인 후 이용해주세요.');
       return;
     }
 
-    pushToast('토큰 발급에 실패했습니다. 브라우저 알림 권한을 확인해주세요.');
+    setIsTogglingPush(true);
+    try {
+      if (pushEnabled) {
+        await removeRegisteredFcmToken();
+        setPushEnabled(false);
+        pushToast('푸시 알림을 해제했습니다.');
+        return;
+      }
+
+      await initFcm();
+      const token = readStoredFcmToken();
+      if (token) {
+        setPushEnabled(true);
+        pushToast('푸시 알림 등록', { variant: 'success' });
+        return;
+      }
+
+      const isIos =
+        typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const isStandalone =
+        typeof window !== 'undefined' &&
+        (window.matchMedia?.('(display-mode: standalone)').matches ||
+          Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+
+      if (isIos && !isStandalone) {
+        pushToast('iOS는 홈 화면에 추가한 앱(PWA)에서만 알림 토큰 발급이 가능합니다.');
+      } else {
+        pushToast('토큰 발급에 실패했습니다. 브라우저 알림 권한을 확인해주세요.');
+      }
+      setPushEnabled(false);
+    } finally {
+      setIsTogglingPush(false);
+    }
   };
 
   return (
@@ -151,41 +180,86 @@ export default function NotificationPage() {
             </button>
           ) : null}
         </div>
-        {isAuthed ? (
-          <div className="mt-2 rounded-xl border border-[#d7e3f8] bg-[#f3f7ff] p-2">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleIssueToken}
-                className="rounded-lg bg-[#2b4b7e] px-3 py-1.5 text-xs font-semibold text-white"
-              >
-                토큰 발급/등록
-              </button>
-              <button
-                type="button"
-                onClick={handleShowToken}
-                className="rounded-lg bg-[#35558b] px-3 py-1.5 text-xs font-semibold text-white"
-              >
-                토큰 보기
-              </button>
-              {deviceToken ? (
-                <button
-                  type="button"
-                  onClick={handleCopyToken}
-                  className="rounded-lg border border-[#35558b] px-3 py-1.5 text-xs font-semibold text-[#35558b]"
-                >
-                  토큰 복사
-                </button>
-              ) : null}
-            </div>
-            {deviceToken ? (
-              <p className="mt-2 break-all rounded-md bg-white p-2 text-[11px] text-[#3b4f6f]">
-                {deviceToken}
-              </p>
-            ) : null}
+        <div className="sticky top-[calc(var(--app-header-height)+10px)] z-20 mt-3">
+          <div
+            className="mx-auto w-[92%]"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              minHeight: 64,
+              borderRadius: 24,
+              border: '1px solid #e8e8ed',
+              background: 'rgba(255,255,255,0.65)',
+              padding: '10px 16px',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+            }}
+          >
+            <span
+              style={{
+                minWidth: 0,
+                flex: 1,
+                paddingLeft: 8,
+                paddingRight: 12,
+                color: '#101114',
+                fontSize: 18,
+                fontWeight: 300,
+                lineHeight: 1,
+                letterSpacing: '-0.03em',
+              }}
+            >
+              푸시 알림 허용
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                void handleTogglePush();
+              }}
+              aria-label="알림 허용 토글"
+              aria-pressed={pushEnabled}
+              disabled={isTogglingPush}
+              style={
+                pushEnabled
+                  ? {
+                      width: 62,
+                      height: 36,
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRadius: 9999,
+                      padding: 2,
+                      background: 'var(--color-primary-main)',
+                      opacity: isTogglingPush ? 0.8 : 1,
+                      transition: 'background-color 150ms ease',
+                    }
+                  : {
+                      width: 62,
+                      height: 36,
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRadius: 9999,
+                      padding: 2,
+                      background: '#bfc8d1',
+                      opacity: isTogglingPush ? 0.8 : 1,
+                      transition: 'background-color 150ms ease',
+                    }
+              }
+            >
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 9999,
+                  background: '#fff',
+                  transform: pushEnabled ? 'translateX(26px)' : 'translateX(0px)',
+                  transition: 'transform 180ms ease',
+                }}
+              />
+            </button>
           </div>
-        ) : null}
-
+        </div>
         {!isAuthed ? (
           <p className="mt-6 rounded-2xl bg-white py-10 text-center text-sm text-text-caption shadow-sm">
             로그인 후 알림을 확인할 수 있어요.
@@ -196,7 +270,7 @@ export default function NotificationPage() {
           </p>
         ) : notifications.length === 0 ? (
           <p className="mt-6 rounded-2xl bg-white py-10 text-center text-sm text-text-caption shadow-sm">
-            도착한 알림이 없어요.
+            도착한 알림이 없습니다.
           </p>
         ) : (
           <div className="mt-2 flex flex-col">
