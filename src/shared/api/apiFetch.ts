@@ -1,6 +1,7 @@
 import { readAccessToken } from './accessToken';
 import { BusinessError, HttpError } from './errors';
 import type { ApiResponse } from './types';
+import { trackApiRequest } from '@/shared/metrics/apiMetricsTracker';
 
 const DEFAULT_SUCCESS_CODES = ['SUCCESS', 'OK', 'CREATED'];
 
@@ -18,6 +19,12 @@ function getRequestUrl(input: RequestInfo): string | null {
   if (typeof URL !== 'undefined' && input instanceof URL) return input.toString();
   if (typeof Request !== 'undefined' && input instanceof Request) return input.url;
   return null;
+}
+
+function getRequestMethod(input: RequestInfo, init?: RequestInit): string {
+  if (init?.method) return init.method;
+  if (typeof Request !== 'undefined' && input instanceof Request) return input.method;
+  return 'GET';
 }
 
 function refreshInitWithLatestToken(init?: ApiFetchOptions): ApiFetchOptions | undefined {
@@ -45,13 +52,45 @@ export async function apiFetch<T>(input: RequestInfo, init?: ApiFetchOptions): P
     retryOnUnauthorized = true,
     ...fetchInit
   } = init ?? {};
-  const res = await fetch(input, {
-    credentials: 'include',
-    ...fetchInit,
+  const requestUrl = getRequestUrl(input);
+  const requestMethod = getRequestMethod(input, fetchInit);
+  const startTime =
+    typeof window !== 'undefined' && typeof performance !== 'undefined'
+      ? performance.now()
+      : Date.now();
+
+  let res: Response;
+  try {
+    res = await fetch(input, {
+      credentials: 'include',
+      ...fetchInit,
+    });
+  } catch (error) {
+    const endTime =
+      typeof window !== 'undefined' && typeof performance !== 'undefined'
+        ? performance.now()
+        : Date.now();
+    trackApiRequest({
+      url: requestUrl,
+      method: requestMethod,
+      status: 0,
+      durationMs: endTime - startTime,
+    });
+    throw error;
+  }
+
+  const endTime =
+    typeof window !== 'undefined' && typeof performance !== 'undefined'
+      ? performance.now()
+      : Date.now();
+  trackApiRequest({
+    url: requestUrl,
+    method: requestMethod,
+    status: res.status,
+    durationMs: endTime - startTime,
   });
 
   if (res.status === 401 && retryOnUnauthorized) {
-    const requestUrl = getRequestUrl(input);
     const isTokenRefresh = requestUrl?.includes('/bff/auth/tokens') ?? false;
     if (!isTokenRefresh) {
       const refreshed = await tryRefreshAuthTokens();
