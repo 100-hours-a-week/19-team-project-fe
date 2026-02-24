@@ -18,7 +18,7 @@ export default function FcmBootstrap() {
     if (initializedRef.current) return;
 
     initializedRef.current = true;
-    void initFcm();
+    void initFcm({ requestPermission: false });
     const cleanup = listenForeground();
 
     return () => {
