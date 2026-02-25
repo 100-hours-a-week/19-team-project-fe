@@ -12,8 +12,10 @@ export interface ChatFeedbackRequest {
 }
 
 export interface ChatFeedbackCreatedData {
-  chat_feedback_id: number;
-  chat_id: number;
+  reportId?: number;
+  report_id?: number;
+  chat_feedback_id?: number;
+  chat_id?: number;
 }
 
 export interface SendChatMessageRequest {

@@ -6,7 +6,6 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { deleteFcmToken, notificationsQueryKey, registerFcmToken } from '@/entities/notification';
 import { getFirebaseMessaging } from '@/shared/lib/firebase';
-import { useToast } from '@/shared/ui/toast';
 
 const FCM_STORAGE_KEY = 'refit.fcm.token';
 const IOS_USER_AGENT_REGEX = /iphone|ipad|ipod/i;
@@ -48,7 +47,6 @@ function isStandalonePwa() {
 
 export function useFcmLifecycle() {
   const queryClient = useQueryClient();
-  const { pushToast } = useToast();
 
   const initFcm = useCallback(async ({ requestPermission = true }: InitFcmOptions = {}) => {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
@@ -99,11 +97,7 @@ export function useFcmLifecycle() {
       .then((messaging) => {
         if (!messaging || isCleanedUp) return;
         unsubscribe = onMessage(messaging, (payload) => {
-          const title = payload.notification?.title;
-          const body = payload.notification?.body;
-          if (title || body) {
-            pushToast([title, body].filter(Boolean).join(' - '), { variant: 'success' });
-          }
+          void payload;
           queryClient.invalidateQueries({ queryKey: notificationsQueryKey });
         });
       })
@@ -113,7 +107,7 @@ export function useFcmLifecycle() {
       isCleanedUp = true;
       unsubscribe?.();
     };
-  }, [pushToast, queryClient]);
+  }, [queryClient]);
 
   return { initFcm, listenForeground };
 }
