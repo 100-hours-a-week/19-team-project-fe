@@ -5,7 +5,9 @@ const STATIC_CACHE = 'refit-static-v1';
 const PAGE_CACHE = 'refit-pages-v1';
 const PUBLIC_API_CACHE = 'refit-public-api-v1';
 const OFFLINE_URL = '/offline.html';
-const SW_VERSION = '2026-02-24';
+const SW_VERSION = '2026-02-27';
+const NOTIFICATION_DEDUP_WINDOW_MS = 8000;
+const recentlyShownNotifications = new Map();
 
 const STATIC_PATH_PREFIXES = ['/_next/static/', '/icons/', '/assets/', '/lottie/'];
 const PERSONALIZED_API_PREFIXES = [
@@ -150,15 +152,69 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || '알림';
-  const options = {
-    body: payload.notification?.body || '',
-    icon: '/icons/char_icon.png',
-    data: payload.data || {},
-  };
+function sanitizeNotificationText(value) {
+  const text = String(value || '');
+  return text
+    .replace(/\s*\(task_id:[^)]+\)\s*$/i, '')
+    .replace(/\(?["']?task[_-]?id["']?\s*[:=]\s*["']?[^,"'\s)]+["']?\)?/gi, '')
+    .replace(/\(?["']?taskid["']?\s*[:=]\s*["']?[^,"'\s)]+["']?\)?/gi, '')
+    .replace(/\{\s*,/g, '{')
+    .replace(/,\s*,/g, ',')
+    .replace(/\(\s*\)/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*$/g, '')
+    .trim();
+}
 
-  self.registration.showNotification(title, options);
+function shouldSuppressDuplicate(signature) {
+  const now = Date.now();
+  const lastShownAt = recentlyShownNotifications.get(signature) || 0;
+  recentlyShownNotifications.forEach((shownAt, key) => {
+    if (now - shownAt > NOTIFICATION_DEDUP_WINDOW_MS) {
+      recentlyShownNotifications.delete(key);
+    }
+  });
+  if (now - lastShownAt < NOTIFICATION_DEDUP_WINDOW_MS) {
+    return true;
+  }
+  recentlyShownNotifications.set(signature, now);
+  return false;
+}
+
+messaging.onBackgroundMessage((payload) => {
+  void (async () => {
+    const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const hasActiveClient = windowClients.some((client) => {
+      const visibilityState = client.visibilityState;
+      return client.focused || visibilityState === 'visible' || visibilityState === 'prerender';
+    });
+    if (hasActiveClient || windowClients.length > 0) {
+      return;
+    }
+
+    const title = sanitizeNotificationText(payload.notification?.title || '알림');
+    const body = sanitizeNotificationText(payload.notification?.body || '');
+    const notificationId =
+      payload.data?.notification_id ||
+      payload.data?.notificationId ||
+      payload.data?.messageId ||
+      '';
+    const signature = [title, body, notificationId].filter(Boolean).join('|');
+    if (signature && shouldSuppressDuplicate(signature)) {
+      return;
+    }
+
+    const options = {
+      body,
+      icon: '/icons/char_icon.png',
+      data: payload.data || {},
+      tag: notificationId || signature || undefined,
+      renotify: false,
+    };
+
+    self.registration.showNotification(title, options);
+  })();
 });
 
 self.addEventListener('notificationclick', (event) => {

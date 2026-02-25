@@ -12,10 +12,7 @@ import { normalizeRequestTypeFromUnknown, type ChatSummary } from '@/entities/ch
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { Modal } from '@/shared/ui/modal';
 import { useToast } from '@/shared/ui/toast';
-import {
-  consumeReportCreateAccepted,
-  REPORT_CREATE_ACCEPTED_EVENT,
-} from '@/features/chat';
+import { consumeReportCreateAccepted, REPORT_CREATE_ACCEPTED_EVENT } from '@/features/chat';
 import charIcon from '@/shared/icons/char_icon.png';
 import ChatRequestSuccessAnimation from './ChatRequestSuccessAnimation';
 import ReportCreateSuccessAnimation from './ReportCreateSuccessAnimation';

@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import type { ChatMessageItem } from '@/entities/chat';
+import {
+  CHAT_REALTIME_REFRESH_EVENT,
+  type ChatMessageItem,
+  type ChatRealtimeRefreshPayload,
+} from '@/entities/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 import { getChatMessages } from '../api/getChatMessages';
@@ -64,8 +68,19 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
 
     loadHistory();
 
+    const handleRealtimeRefresh = (event: Event) => {
+      const customEvent = event as CustomEvent<ChatRealtimeRefreshPayload | undefined>;
+      if (customEvent.detail?.chatId !== chatId) return;
+      void loadHistory();
+    };
+    window.addEventListener(CHAT_REALTIME_REFRESH_EVENT, handleRealtimeRefresh as EventListener);
+
     return () => {
       cancelled = true;
+      window.removeEventListener(
+        CHAT_REALTIME_REFRESH_EVENT,
+        handleRealtimeRefresh as EventListener,
+      );
     };
   }, [chatId, currentUserId, handleCommonApiError]);
 

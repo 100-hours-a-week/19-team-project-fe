@@ -22,7 +22,12 @@ function resolveTimeoutProfile(
 ): TimeoutProfile {
   if (override) return override;
   if (upstreamPath.startsWith('/api/v1/experts/recommendations')) return 'optional';
-  if (upstreamPath.startsWith('/api/v1/resumes/tasks')) return 'critical';
+  if (
+    upstreamPath.startsWith('/api/v1/resumes/tasks') ||
+    upstreamPath.startsWith('/api/v2/resumes/tasks')
+  ) {
+    return 'critical';
+  }
   if (upstreamPath.startsWith('/api/v2/reports')) return method === 'GET' ? 'critical' : 'default';
   return 'default';
 }
