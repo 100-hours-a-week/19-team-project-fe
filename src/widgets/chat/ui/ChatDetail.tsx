@@ -4,7 +4,12 @@ import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import type { ChatDetailData, ChatParticipant, ChatRequestType } from '@/entities/chat';
+import {
+  normalizeRequestTypeFromUnknown,
+  type ChatDetailData,
+  type ChatParticipant,
+  type ChatRequestType,
+} from '@/entities/chat';
 import { useChatCurrentUser, useChatDetail } from '@/features/chat';
 import charIcon from '@/shared/icons/char_icon.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
@@ -69,10 +74,11 @@ const ParticipantCard = ({
 export default function ChatDetail({ chatId, detail, requestType }: ChatDetailProps) {
   const router = useRouter();
   const { currentUserId, isLoading: isCurrentUserLoading } = useChatCurrentUser();
-  const resolvedRequestType = detail.request_type ?? requestType ?? null;
+  const resolvedRequestType = normalizeRequestTypeFromUnknown(detail) ?? requestType ?? null;
   const {
     isClosed,
     isClosing,
+    isCoffeeChat,
     closeError,
     isResumeModalOpen,
     setIsResumeModalOpen,
@@ -92,7 +98,7 @@ export default function ChatDetail({ chatId, detail, requestType }: ChatDetailPr
     { title: '수신자', data: detail.receiver },
   ];
   const isReceiver = currentUserId !== null && currentUserId === detail.receiver.user_id;
-  const canCloseChat = isReceiver && !isCurrentUserLoading;
+  const canCloseChat = (isCoffeeChat || isReceiver) && !isCurrentUserLoading;
   const closeButtonDisabled = isClosed || isClosing || !canCloseChat;
 
   return (

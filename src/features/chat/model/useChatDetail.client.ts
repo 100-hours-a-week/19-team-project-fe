@@ -1,8 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import type { ChatDetailData, ChatRequestType } from '@/entities/chat';
+import {
+  normalizeRequestTypeFromUnknown,
+  type ChatDetailData,
+  type ChatRequestType,
+} from '@/entities/chat';
 import type { ResumeDetail } from '@/entities/resumes';
+import { closeChat } from '@/features/chat';
+import { useCommonApiErrorHandler } from '@/shared/api';
+import { useToast } from '@/shared/ui/toast';
 import { normalizeResumeContent, normalizeResumeDetail, toStringArray } from '@/entities/resumes';
 
 export function useChatDetail(
@@ -11,11 +18,16 @@ export function useChatDetail(
   fallbackRequestType?: ChatRequestType | null,
 ) {
   const router = useRouter();
-  const [status] = useState(detail.status);
+  const { pushToast } = useToast();
+  const handleCommonApiError = useCommonApiErrorHandler();
+  const [status, setStatus] = useState(detail.status);
+  const [isClosing, setIsClosing] = useState(false);
+  const [closeError, setCloseError] = useState<string | null>(null);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const isClosed = useMemo(() => status === 'CLOSED', [status]);
   const requestType = resolveRequestType(detail, fallbackRequestType);
   const isFeedbackChat = requestType === 'FEEDBACK';
+  const isCoffeeChat = requestType === 'COFFEE_CHAT';
 
   const resumeSource =
     detail.resume ??
@@ -26,9 +38,35 @@ export function useChatDetail(
     ? normalizeResumeDetail(resumeSource)
     : null;
 
-  const handleCloseChat = () => {
+  const handleCloseChat = async () => {
     if (isClosed) return;
-    router.push(`/chat/${chatId}/feedback`);
+    if (isClosing) return;
+    setCloseError(null);
+
+    if (isFeedbackChat) {
+      router.push(`/chat/${chatId}/feedback`);
+      return;
+    }
+
+    if (!isCoffeeChat) {
+      setCloseError('채팅 유형을 확인할 수 없어 종료할 수 없습니다.');
+      return;
+    }
+
+    setIsClosing(true);
+    try {
+      await closeChat({ chatId });
+      setStatus('CLOSED');
+      pushToast('채팅이 종료되었습니다.');
+      router.replace('/chat');
+    } catch (error) {
+      const handled = await handleCommonApiError(error);
+      if (!handled) {
+        setCloseError(error instanceof Error ? error.message : '채팅 종료에 실패했습니다.');
+      }
+    } finally {
+      setIsClosing(false);
+    }
   };
 
   const content = normalizeResumeContent(resumeDetail?.contentJson ?? null);
@@ -51,9 +89,10 @@ export function useChatDetail(
   return {
     status,
     isClosed,
-    isClosing: false,
+    isClosing,
     isFeedbackChat,
-    closeError: null,
+    isCoffeeChat,
+    closeError,
     isResumeModalOpen,
     setIsResumeModalOpen,
     handleCloseChat,
@@ -82,24 +121,7 @@ function resolveRequestType(
   detail: ChatDetailData,
   fallbackRequestType?: ChatRequestType | null,
 ): ChatRequestType | null {
-  const extended = detail as ChatDetailData & {
-    requestType?: unknown;
-    type?: unknown;
-    chat_request?: { request_type?: unknown; requestType?: unknown; type?: unknown } | null;
-    chatRequest?: { request_type?: unknown; requestType?: unknown; type?: unknown } | null;
-  };
-
   return (
-    normalizeRequestType(detail.request_type) ??
-    normalizeRequestType(extended.requestType) ??
-    normalizeRequestType(extended.type) ??
-    normalizeRequestType(extended.chat_request?.request_type) ??
-    normalizeRequestType(extended.chat_request?.requestType) ??
-    normalizeRequestType(extended.chat_request?.type) ??
-    normalizeRequestType(extended.chatRequest?.request_type) ??
-    normalizeRequestType(extended.chatRequest?.requestType) ??
-    normalizeRequestType(extended.chatRequest?.type) ??
-    normalizeRequestType(fallbackRequestType) ??
-    null
+    normalizeRequestTypeFromUnknown(detail) ?? normalizeRequestType(fallbackRequestType) ?? null
   );
 }
