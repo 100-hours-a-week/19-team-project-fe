@@ -16,6 +16,7 @@ export default function ResumePage() {
   const {
     authStatus,
     resumes,
+    pendingTasks,
     isLoadingResumes,
     loadError,
     openMenuId,
@@ -49,7 +50,7 @@ export default function ResumePage() {
             피드백 준비를 빠르게 진행하세요
           </p>
           <div className="mt-4 inline-flex rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-semibold">
-            총 {resumes.length}개
+            총 {resumes.length + pendingTasks.length}개
           </div>
         </div>
 
@@ -86,7 +87,7 @@ export default function ResumePage() {
               <span className="text-xl text-[#7f8ea4]">›</span>
             </button>
 
-            {resumes.length === 0 ? (
+            {resumes.length === 0 && pendingTasks.length === 0 ? (
               <div className="mt-6 flex flex-1 items-center justify-center">
                 <Image
                   src={charResume}
@@ -97,6 +98,33 @@ export default function ResumePage() {
               </div>
             ) : (
               <div className="mt-6 flex flex-col gap-3">
+                {pendingTasks.map((task) => (
+                  <div
+                    key={task.taskId}
+                    className="relative rounded-2xl border border-[#dde5ef] bg-white px-5 py-4 shadow-[0_14px_32px_rgba(23,33,52,0.08)]"
+                  >
+                    <div
+                      aria-hidden="true"
+                      className="absolute bottom-3 left-3 top-3 w-1.5 rounded-full bg-gradient-to-b from-[#9aa7b8] to-[#c7d0db]"
+                    />
+                    <div className="w-full pl-4 text-left">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[15px] font-semibold text-[#1f2f46]">이력서 생성 중</p>
+                          <p className="mt-2 inline-flex rounded-full bg-[#f2f4f7] px-2.5 py-1 text-[11px] font-semibold text-[#5f6f85]">
+                            PROCESSING
+                          </p>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs text-[#6b7b92]">
+                        AI가 이력서를 생성하고 있습니다.
+                      </p>
+                    </div>
+                    <p className="mt-2 pl-4 text-xs text-[#6b7b92]">
+                      {new Date(task.createdAt).toLocaleDateString('ko-KR')} 요청
+                    </p>
+                  </div>
+                ))}
                 {resumes.map((resume) => (
                   <div
                     key={resume.resumeId}
@@ -122,7 +150,9 @@ export default function ResumePage() {
                         <div>
                           <p className="text-[15px] font-semibold text-[#1f2f46]">{resume.title}</p>
                           <p className="mt-2 inline-flex rounded-full bg-[#edf4ff] px-2.5 py-1 text-[11px] font-semibold text-[#35558b]">
-                            RESUME
+                            {resume.status?.toUpperCase() === 'PROCESSING'
+                              ? 'PROCESSING'
+                              : 'RESUME'}
                           </p>
                         </div>
                         <div className="flex items-start gap-2">
