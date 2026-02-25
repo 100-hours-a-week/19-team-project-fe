@@ -24,16 +24,50 @@ export async function POST(req: Request) {
       return NextResponse.json(response, { status: 401 });
     }
 
-    const payload = await req.json();
-    const res = await fetchBffUpstream(buildApiUrl('/api/v1/resumes/tasks'), {
-      timeoutMs: 30000,
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    const payload = (await req.json()) as { file_url?: unknown; fileUrl?: unknown };
+    const rawFileUrl = payload.file_url ?? payload.fileUrl;
+    const fileUrl = typeof rawFileUrl === 'string' ? rawFileUrl.trim() : '';
+    if (!fileUrl) {
+      const response: ApiResponse<null> = {
+        code: 'INVALID_PAYLOAD',
+        message: 'file_url is required',
+        data: null,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+
+    const requestHeaders = {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    };
+    const candidates: Array<{ body: Record<string, string> }> = [
+      { body: { file_url: fileUrl, mode: 'async' } },
+      { body: { file_url: fileUrl } },
+      { body: { fileUrl, mode: 'async' } },
+      { body: { fileUrl } },
+    ];
+
+    let res: Response | null = null;
+    for (const candidate of candidates) {
+      res = await fetchBffUpstream(buildApiUrl('/api/v2/resumes/tasks'), {
+        timeoutMs: 30000,
+        method: 'POST',
+        headers: requestHeaders,
+        body: JSON.stringify(candidate.body),
+      });
+
+      if (res.ok) break;
+      if (res.status !== 400 && res.status !== 404) break;
+    }
+
+    if (!res) {
+      const response: ApiResponse<null> = {
+        code: 'RESUME_PARSE_FAILED',
+        message: 'RESUME_PARSE_FAILED',
+        data: null,
+      };
+      return NextResponse.json(response, { status: 500 });
+    }
 
     if (!res.ok) {
       const body = await res.json().catch(() => null);

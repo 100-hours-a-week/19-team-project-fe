@@ -10,4 +10,5 @@ export {
   markChatRead,
   updateChatLastRead,
   createChatFeedback,
+  requestReportCreate,
 } from './chat/server';

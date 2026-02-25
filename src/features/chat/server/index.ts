@@ -8,4 +8,4 @@ export { getChatMessages } from './getChatMessages.server';
 export { createChat } from './createChat.server';
 export { markChatRead } from './markChatRead.server';
 export { updateChatLastRead } from './updateChatLastRead.server';
-export { createChatFeedback } from './createChatFeedback.server';
+export { createChatFeedback, requestReportCreate } from './createChatFeedback.server';

@@ -4,7 +4,7 @@ export { getResumeDetail } from './api/getResumeDetail';
 export { deleteResume } from './api/deleteResume';
 export { updateResumeTitle } from './api/updateResumeTitle';
 export { updateResume } from './api/updateResume';
-export { parseResumeSync } from './api/parseResumeSync';
+export { parseResumeTask, getResumeParseTask } from './api/parseResumeSync';
 export { useResumesQuery, resumesQueryKey } from './model/useResumesQuery.client';
 export type { Resume, ResumesResponse } from './api/getResumes';
 export type { CreateResumePayload, CreateResumeResponse } from './api/createResume';
@@ -14,12 +14,17 @@ export type { UpdateResumePayload } from './api/updateResume';
 export type {
   ResumeParseContentJson,
   ResumeParseProject,
-  ResumeParseSyncData,
-  ResumeParseSyncRequest,
-  ResumeParseSyncResult,
+  ResumeParseTaskData,
+  ResumeParseTaskRequest,
+  ResumeParseTaskResult,
 } from './api/parseResumeSync';
 export {
   normalizeResumeContent,
   normalizeResumeDetail,
   toStringArray,
 } from './lib/normalizeResumeDetail';
+export {
+  RESUME_TASK_REFRESH_EVENT,
+  parseResumeTaskRealtimePayload,
+} from './lib/realtimeEvent';
+export type { ResumeTaskRefreshPayload } from './lib/realtimeEvent';

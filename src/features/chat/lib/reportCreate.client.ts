@@ -1,0 +1,18 @@
+'use client';
+
+export const REPORT_CREATE_ACCEPTED_EVENT = 'report-create-accepted';
+export const REPORT_CREATE_ACCEPTED_STORAGE_KEY = 'reportCreateAccepted';
+
+export function markReportCreateAccepted() {
+  if (typeof window === 'undefined') return;
+  sessionStorage.setItem(REPORT_CREATE_ACCEPTED_STORAGE_KEY, 'true');
+  window.dispatchEvent(new Event(REPORT_CREATE_ACCEPTED_EVENT));
+}
+
+export function consumeReportCreateAccepted(): boolean {
+  if (typeof window === 'undefined') return false;
+  const flag = sessionStorage.getItem(REPORT_CREATE_ACCEPTED_STORAGE_KEY);
+  if (!flag) return false;
+  sessionStorage.removeItem(REPORT_CREATE_ACCEPTED_STORAGE_KEY);
+  return true;
+}

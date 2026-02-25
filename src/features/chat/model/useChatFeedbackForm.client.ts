@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { closeChat, createChatFeedback } from '@/features/chat';
+import { markReportCreateAccepted } from '@/features/chat';
 import type { ChatFeedbackRequest } from '@/entities/chat';
-import { BusinessError, useCommonApiErrorHandler } from '@/shared/api';
+import { readAccessToken } from '@/shared/api';
 
 export type FeedbackAnswerKind = 'multi' | 'radio' | 'text';
 
@@ -163,7 +163,6 @@ type Step2Evaluations = Record<string, { status: string; reason: string }>;
 
 export function useChatFeedbackForm(chatId: number) {
   const router = useRouter();
-  const handleCommonApiError = useCommonApiErrorHandler();
   const [answers, setAnswers] = useState<Record<number, string | string[]>>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [step2ValidationErrors, setStep2ValidationErrors] = useState<Step2ValidationErrors>({});
@@ -310,43 +309,27 @@ export function useChatFeedbackForm(chatId: number) {
     setIsSubmitting(true);
     setSubmitError(null);
 
-    try {
-      await closeChat({ chatId });
-      const payload: ChatFeedbackRequest = _buildPayload({
-        questions: CHAT_FEEDBACK_QUESTIONS,
-        answers,
-        selectedCoreRequirements,
-        step2Evaluations,
-        preferVerboseMultiLabels: false,
-      });
-      try {
-        await createChatFeedback({ chatId, payload });
-      } catch (error) {
-        if (error instanceof BusinessError && error.code === 'FEEDBACK_ANSWER_INVALID') {
-          const retryPayload: ChatFeedbackRequest = _buildPayload({
-            questions: CHAT_FEEDBACK_QUESTIONS,
-            answers,
-            selectedCoreRequirements,
-            step2Evaluations,
-            preferVerboseMultiLabels: true,
-          });
-          await createChatFeedback({ chatId, payload: retryPayload });
-        } else {
-          throw error;
-        }
-      }
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('reportCreateSuccess', 'true');
-      }
-      router.replace('/chat');
-    } catch (error) {
-      if (await handleCommonApiError(error)) {
-        return;
-      }
-      setSubmitError(error instanceof Error ? error.message : '설문 제출에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
+    const payload: ChatFeedbackRequest = _buildPayload({
+      questions: CHAT_FEEDBACK_QUESTIONS,
+      answers,
+      selectedCoreRequirements,
+      step2Evaluations,
+      preferVerboseMultiLabels: false,
+    });
+    const retryPayload: ChatFeedbackRequest = _buildPayload({
+      questions: CHAT_FEEDBACK_QUESTIONS,
+      answers,
+      selectedCoreRequirements,
+      step2Evaluations,
+      preferVerboseMultiLabels: true,
+    });
+
+    sendFeedbackInBackground(chatId, payload, retryPayload);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('reportCreateSuccess', 'true');
     }
+    setIsSubmitting(false);
+    router.replace('/chat');
   };
 
   return {
@@ -369,6 +352,72 @@ export function useChatFeedbackForm(chatId: number) {
     confirmCustomMultiAnswer,
     handleSubmit,
   };
+}
+
+async function closeChatInBackground(chatId: number): Promise<boolean> {
+  const url = `/bff/chat/${chatId}`;
+  const accessToken = readAccessToken();
+  const headers: HeadersInit = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+
+  try {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      credentials: 'include',
+      keepalive: true,
+      headers,
+    });
+    if (!response.ok) return false;
+    const body = (await response.json().catch(() => null)) as { code?: string } | null;
+    return body?.code === 'OK' || body?.code === 'UPDATED';
+  } catch {
+    return false;
+  }
+}
+
+function sendFeedbackInBackground(
+  chatId: number,
+  payload: ChatFeedbackRequest,
+  retryPayload: ChatFeedbackRequest,
+) {
+  const url = `/bff/chat/${chatId}/feedback`;
+
+  const accessToken = readAccessToken();
+  const headers: HeadersInit = accessToken
+    ? { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json' };
+
+  const postFeedback = async (requestPayload: ChatFeedbackRequest) => {
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+      keepalive: true,
+      headers,
+      body: JSON.stringify(requestPayload),
+    }).catch(() => null);
+    if (!response) return { ok: false, code: '' };
+    const data = (await response.json().catch(() => null)) as { code?: string } | null;
+    return { ok: response.ok && data?.code === 'CREATED', code: data?.code ?? '' };
+  };
+
+  void (async () => {
+    const closed = await closeChatInBackground(chatId);
+    if (!closed) return;
+
+    const first = await postFeedback(payload);
+    if (first.ok) {
+      markReportCreateAccepted();
+      return;
+    }
+
+    if (first.code !== 'FEEDBACK_ANSWER_INVALID') {
+      return;
+    }
+
+    const second = await postFeedback(retryPayload);
+    if (second.ok) {
+      markReportCreateAccepted();
+    }
+  })();
 }
 
 function parseCommaValues(value: string | string[] | undefined): string[] {

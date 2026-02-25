@@ -23,3 +23,4 @@ export * from './model/useChatRoomDetail.client';
 export * from './model/useChatSend.client';
 export * from './model/useChatFeedbackForm.client';
 export * from './lib/message';
+export * from './lib/reportCreate.client';

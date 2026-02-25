@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuthStatus } from '@/entities/auth';
 import { useUserMeQuery } from '@/entities/user';
-import type { ChatSummary } from '@/entities/chat';
+import {
+  CHAT_LIST_REFRESH_EVENT,
+  CHAT_REALTIME_REFRESH_EVENT,
+  type ChatRealtimeRefreshPayload,
+  type ChatSummary,
+} from '@/entities/chat';
 import { getChatList } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
@@ -89,13 +94,28 @@ export function useChatList() {
       if (document.visibilityState !== 'visible') return;
       void fetchChats(false);
     };
+    const handleRealtimeRefresh = (event: Event) => {
+      const customEvent = event as CustomEvent<ChatRealtimeRefreshPayload | undefined>;
+      if (!customEvent.detail?.chatId) return;
+      void fetchChats(false);
+    };
+    const handleChatListRefresh = () => {
+      void fetchChats(false);
+    };
 
     window.addEventListener('focus', handleRefresh);
     document.addEventListener('visibilitychange', handleRefresh);
+    window.addEventListener(CHAT_REALTIME_REFRESH_EVENT, handleRealtimeRefresh as EventListener);
+    window.addEventListener(CHAT_LIST_REFRESH_EVENT, handleChatListRefresh);
 
     return () => {
       window.removeEventListener('focus', handleRefresh);
       document.removeEventListener('visibilitychange', handleRefresh);
+      window.removeEventListener(
+        CHAT_REALTIME_REFRESH_EVENT,
+        handleRealtimeRefresh as EventListener,
+      );
+      window.removeEventListener(CHAT_LIST_REFRESH_EVENT, handleChatListRefresh);
     };
   }, [authStatus, fetchChats]);
 

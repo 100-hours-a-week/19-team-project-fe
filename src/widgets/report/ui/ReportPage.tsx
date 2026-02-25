@@ -93,7 +93,7 @@ export default function ReportPage() {
                       {report.title}
                     </p>
                     <p className="mt-2 inline-flex rounded-full bg-[#edf4ff] px-2.5 py-1 text-[11px] font-semibold text-[#35558b]">
-                      REPORT
+                      {report.status?.toUpperCase() === 'PROCESSING' ? 'PROCESSING' : 'REPORT'}
                     </p>
                     <p className="mt-2 text-xs text-[#6b7b92]">
                       {new Date(report.updatedAt).toLocaleDateString('ko-KR')} 업데이트

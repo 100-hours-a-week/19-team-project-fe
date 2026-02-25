@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type {
   ResumeDetail,
   ResumeParseContentJson,
-  ResumeParseSyncResult,
+  ResumeParseTaskResult,
 } from '@/entities/resumes';
 
 export type CareerItem = {
@@ -254,8 +254,25 @@ export function useResumeEditForm() {
   );
 
   const applyParsedResult = useCallback(
-    (result: ResumeParseSyncResult | null) => {
-      if (!result) return false;
+    (
+      result: ResumeParseTaskResult | null,
+      context?: { fileUrl: string; status: string; taskId: string },
+    ) => {
+      if (context?.fileUrl) {
+        setFileUrl(context.fileUrl);
+      }
+
+      if (!result) {
+        // V2 비동기 파싱은 초기 응답에서 result가 비어있을 수 있어 필수 입력값만 기본 채움.
+        setIsFresher(false);
+        setEducation([{ id: education[0]?.id ?? createId(), value: educationOptions[0] }]);
+        setCareers([{ id: createId(), company: '', period: '', role: '', title: '' }]);
+        setProjects([{ id: createId(), title: '', period: '', description: '' }]);
+        setAwards([{ id: createId(), value: '' }]);
+        setCertificates([{ id: createId(), value: '' }]);
+        setActivities([{ id: createId(), value: '' }]);
+        return true;
+      }
 
       const contentJson = (result.content_json ?? {}) as ResumeParseContentJson;
       const careersValue = Array.isArray(contentJson.careers) ? contentJson.careers : [];
@@ -277,6 +294,8 @@ export function useResumeEditForm() {
           : null;
       if (mappedEducation) {
         setEducation([{ id: education[0]?.id ?? createId(), value: mappedEducation }]);
+      } else {
+        setEducation([{ id: education[0]?.id ?? createId(), value: educationOptions[0] }]);
       }
 
       setCareers(normalizeCareerItems(careersValue));

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAuthStatus } from '@/entities/auth';
@@ -22,7 +22,7 @@ export function useReportList() {
   const [isDeletingId, setIsDeletingId] = useState<number | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const queryClient = useQueryClient();
-  const { data, error, isLoading } = useReportsQuery({ enabled: authStatus === 'authed' });
+  const { data, error, isLoading, refetch } = useReportsQuery({ enabled: authStatus === 'authed' });
 
   useEffect(() => {
     if (authStatus !== 'authed') {
@@ -55,6 +55,29 @@ export function useReportList() {
     if (reports.some((report) => report.reportId === openMenuId)) return;
     setOpenMenuId(null);
   }, [openMenuId, reports]);
+
+  const refreshReports = useCallback(() => {
+    if (authStatus !== 'authed') return;
+    void refetch();
+  }, [authStatus, refetch]);
+
+  useEffect(() => {
+    if (authStatus !== 'authed') return;
+    refreshReports();
+
+    const handleFocusRefresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      refreshReports();
+    };
+
+    window.addEventListener('focus', handleFocusRefresh);
+    document.addEventListener('visibilitychange', handleFocusRefresh);
+
+    return () => {
+      window.removeEventListener('focus', handleFocusRefresh);
+      document.removeEventListener('visibilitychange', handleFocusRefresh);
+    };
+  }, [authStatus, refreshReports]);
 
   const handleDeleteReport = async (reportId: number) => {
     if (isDeletingId) return;
