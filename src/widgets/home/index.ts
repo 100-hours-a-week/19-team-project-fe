@@ -7,3 +7,4 @@ export { default as ExpertRecommendationsSkeleton } from './ui/ExpertRecommendat
 export { HomeGuardToast } from './ui/HomeGuardToast';
 export { default as GuideButtons } from './ui/GuideButtons';
 export { default as SearchBar } from './ui/SearchBar';
+export { default as WhyRefitSection } from './ui/WhyRefitSection';
