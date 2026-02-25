@@ -1,19 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { createPresignedUrl, uploadToPresignedUrl } from '@/features/uploads';
-import { parseResumeSync, type ResumeParseSyncResult } from '@/entities/resumes';
+import { parseResumeTask } from '@/entities/resumes';
 import { useCommonApiErrorHandler } from '@/shared/api';
+import { addPendingResumeParseTask } from '../lib/resumeParsePending.client';
 
 export const MAX_RESUME_PDF_SIZE = 5 * 1024 * 1024;
 
 type UseResumeAutoFillParams = {
   authStatus: 'checking' | 'authed' | 'guest';
-  onParsed: (result: ResumeParseSyncResult | null) => boolean;
 };
 
-export function useResumeAutoFill({ authStatus, onParsed }: UseResumeAutoFillParams) {
+export function useResumeAutoFill({ authStatus }: UseResumeAutoFillParams) {
+  const router = useRouter();
   const handleCommonApiError = useCommonApiErrorHandler({ redirectTo: '/resume' });
   const [autoFillError, setAutoFillError] = useState<string | null>(null);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
@@ -40,11 +42,17 @@ export function useResumeAutoFill({ authStatus, onParsed }: UseResumeAutoFillPar
           file_size: file.size,
         });
         await uploadToPresignedUrl(file, presignedUrl);
-        const data = await parseResumeSync({ file_url: uploadedUrl, mode: 'sync' });
-        const applied = onParsed(data.result);
-        if (!applied) {
-          setAutoFillError('이력서 자동 등록에 실패했습니다.');
+
+        const parseTask = await parseResumeTask({ file_url: uploadedUrl });
+        if (parseTask.taskId) {
+          addPendingResumeParseTask({
+            taskId: parseTask.taskId,
+            fileUrl: uploadedUrl,
+            createdAt: new Date().toISOString(),
+          });
         }
+        router.replace('/resume');
+        return;
       } catch (error) {
         if (await handleCommonApiError(error)) {
           setIsAutoFilling(false);

@@ -32,7 +32,7 @@ export function useResumeEdit(resumeIdParam: string | null) {
       submit.setSubmitError(message);
     },
   });
-  const autoFill = useResumeAutoFill({ authStatus, onParsed: form.applyParsedResult });
+  const autoFill = useResumeAutoFill({ authStatus });
 
   return {
     authStatus,
