@@ -12,6 +12,10 @@ import { normalizeRequestTypeFromUnknown, type ChatSummary } from '@/entities/ch
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { Modal } from '@/shared/ui/modal';
 import { useToast } from '@/shared/ui/toast';
+import {
+  consumeReportCreateAccepted,
+  REPORT_CREATE_ACCEPTED_EVENT,
+} from '@/features/chat';
 import charIcon from '@/shared/icons/char_icon.png';
 import ChatRequestSuccessAnimation from './ChatRequestSuccessAnimation';
 import ReportCreateSuccessAnimation from './ReportCreateSuccessAnimation';
@@ -133,6 +137,19 @@ export default function ChatList() {
     }
     setActiveTab('chats');
   }, [currentUser?.user_type, searchParams]);
+
+  useEffect(() => {
+    const showIfAccepted = () => {
+      if (!consumeReportCreateAccepted()) return;
+      pushToast('레포트 생성이 시작되었습니다. 완료 후 확인해 주세요.', { variant: 'success' });
+    };
+
+    showIfAccepted();
+    window.addEventListener(REPORT_CREATE_ACCEPTED_EVENT, showIfAccepted);
+    return () => {
+      window.removeEventListener(REPORT_CREATE_ACCEPTED_EVENT, showIfAccepted);
+    };
+  }, [pushToast]);
 
   const [requestActionLoading, setRequestActionLoading] = useState<Record<number, boolean>>({});
 

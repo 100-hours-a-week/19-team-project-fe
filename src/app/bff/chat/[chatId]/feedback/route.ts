@@ -1,9 +1,12 @@
+import { after } from 'next/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-import { createChatFeedback } from '@/features/chat.server';
+import { createChatFeedback, requestReportCreate } from '@/features/chat.server';
 import { BusinessError, type ApiResponse } from '@/shared/api';
 import type { ChatFeedbackRequest } from '@/entities/chat';
+
+const CHAT_FEEDBACK_BFF_TIMEOUT_MS = 30000;
 
 type Params = {
   chatId: string;
@@ -51,6 +54,17 @@ export async function POST(req: Request, context: { params: Params }) {
     const accessToken = getAccessToken(req, cookieToken);
 
     const data = await createChatFeedback({ chatId, payload, accessToken, allowRefresh: false });
+    after(async () => {
+      try {
+        await requestReportCreate({ chatId, accessToken, allowRefresh: false });
+      } catch (backgroundError) {
+        console.error('[Report Create Async Error]', {
+          chatId,
+          error:
+            backgroundError instanceof Error ? backgroundError.message : 'unknown_background_error',
+        });
+      }
+    });
 
     const response: ApiResponse<typeof data> = {
       code: 'CREATED',
@@ -67,7 +81,7 @@ export async function POST(req: Request, context: { params: Params }) {
         bffPath: '/bff/chat/[chatId]/feedback',
         upstreamPath: '/api/v2/chats/{chatId}/feedback',
         method: 'POST',
-        timeoutMs: 30000,
+        timeoutMs: CHAT_FEEDBACK_BFF_TIMEOUT_MS,
         requestId,
       });
 
@@ -77,7 +91,7 @@ export async function POST(req: Request, context: { params: Params }) {
         data: null,
       };
       return NextResponse.json(
-        { ...response, degraded: true, requestId, timeoutMs: 30000 },
+        { ...response, degraded: true, requestId, timeoutMs: CHAT_FEEDBACK_BFF_TIMEOUT_MS },
         { status: 504 },
       );
     }
