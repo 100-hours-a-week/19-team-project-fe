@@ -1,8 +1,6 @@
 'use client';
-
-import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
-
+import Image from 'next/image';
 import bannerNum1 from '@/shared/icons/banner_num1.png';
 import bannerNum2 from '@/shared/icons/banner_num2.png';
 import bannerNum3 from '@/shared/icons/banner_num3.png';
@@ -99,6 +97,24 @@ export default function TechBlogTicker() {
 export function TechBlogBanner() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [enableTransition, setEnableTransition] = useState(true);
+  const slides = [
+    {
+      src: bannerNum1,
+      alt: 'RE:FIT 3월 오픈 예정 AI 기능 업데이트 배너',
+    },
+    {
+      src: bannerNum2,
+      alt: 'RE:FIT 현직자 피드백 기반 커리어 개선 안내 배너',
+    },
+    {
+      src: bannerNum3,
+      alt: 'RE:FIT 서비스 주요 기능 및 개선 포인트 안내 배너',
+    },
+    {
+      src: bannerNum1,
+      alt: 'RE:FIT 3월 오픈 예정 AI 기능 업데이트 배너',
+    },
+  ];
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -120,8 +136,6 @@ export function TechBlogBanner() {
     return () => window.clearTimeout(resetId);
   }, [slideIndex]);
 
-  const slides = [bannerNum1, bannerNum2, bannerNum3, bannerNum1];
-
   return (
     <div className="-mt-2 rounded-2xl bg-white px-2.5 py-4">
       <div className="relative w-full overflow-hidden rounded-2xl aspect-[600/174] shadow-[0_14px_32px_rgba(15,23,42,0.2)]">
@@ -129,11 +143,11 @@ export function TechBlogBanner() {
           className={`flex h-full ${enableTransition ? 'transition-transform duration-500 ease-out' : ''}`}
           style={{ transform: `translateX(-${slideIndex * 100}%)` }}
         >
-          {slides.map((src, idx) => (
+          {slides.map((slide, idx) => (
             <div key={`tech-blog-banner-${idx}`} className="relative h-full w-full shrink-0">
               <Image
-                src={src}
-                alt=""
+                src={slide.src}
+                alt={slide.alt}
                 fill
                 sizes="(max-width: 600px) 100vw, 600px"
                 className="object-contain object-[center_0px]"
@@ -142,6 +156,16 @@ export function TechBlogBanner() {
             </div>
           ))}
         </div>
+      </div>
+      <div className="mt-2 flex justify-center gap-1.5" aria-hidden="true">
+        {[0, 1, 2].map((dot) => (
+          <span
+            key={`banner-dot-${dot}`}
+            className={`h-1.5 rounded-full ${
+              dot === slideIndex % 3 ? 'w-5 bg-[#35558b]' : 'w-1.5 bg-[#cfdbee]'
+            }`}
+          />
+        ))}
       </div>
     </div>
   );
