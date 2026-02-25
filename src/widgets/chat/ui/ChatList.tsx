@@ -94,9 +94,28 @@ export default function ChatList() {
   };
   const getResolvedRequestType = (item: unknown) =>
     normalizeRequestTypeFromUnknown(item) ?? undefined;
-  const getRequestTypeTagClass = (type?: string) => {
-    if (type === 'COFFEE_CHAT') return 'bg-[#f4ede6] text-[#7a4b2f]';
-    return 'bg-[#edf4ff] text-[#2b4b7e]';
+  const getRequestTypeTagTheme = (type?: string) => {
+    if (type === 'COFFEE_CHAT') {
+      return {
+        wrap: 'border-[#d8c3af] bg-[#f9f5ef] text-[#70462d]',
+      };
+    }
+
+    return {
+      wrap: 'border-primary-main/30 bg-primary-main/10 text-primary-main',
+    };
+  };
+  const renderRequestTypeTag = (type?: string) => {
+    if (!type) return null;
+    const theme = getRequestTypeTagTheme(type);
+
+    return (
+      <span
+        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none ${theme.wrap}`}
+      >
+        {formatRequestType(type)}
+      </span>
+    );
   };
 
   const chatUnreadCount = chats.reduce((sum, chat) => sum + (chat.unread_count ?? 0), 0);
@@ -271,13 +290,7 @@ export default function ChatList() {
                         <div className="truncate text-base font-semibold">
                           {counterpart.nickname}
                         </div>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getRequestTypeTagClass(
-                            requestType,
-                          )}`}
-                        >
-                          {formatRequestType(requestType)}
-                        </span>
+                        {renderRequestTypeTag(requestType)}
                       </div>
                       <div className="mt-1 truncate text-sm text-neutral-500">
                         요청일 {formatChatTime(request.created_at)}
@@ -341,13 +354,7 @@ export default function ChatList() {
                         <div className="truncate text-base font-semibold">
                           {counterpart.nickname}
                         </div>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getRequestTypeTagClass(
-                            requestType,
-                          )}`}
-                        >
-                          {formatRequestType(requestType)}
-                        </span>
+                        {renderRequestTypeTag(requestType)}
                         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
                           요청 중
                         </span>
@@ -410,15 +417,7 @@ export default function ChatList() {
                           <div className="truncate text-base font-semibold">
                             {counterparty.nickname}
                           </div>
-                          {requestType ? (
-                            <span
-                              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getRequestTypeTagClass(
-                                requestType,
-                              )}`}
-                            >
-                              {formatRequestType(requestType)}
-                            </span>
-                          ) : null}
+                          {renderRequestTypeTag(requestType)}
                           {chat.status === 'CLOSED' ? (
                             <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
                               종료
