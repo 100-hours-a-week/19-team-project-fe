@@ -254,18 +254,54 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         actionLabel="완료"
         onAction={() => setChatInfoSheetOpen(false)}
       >
-        <div className="flex h-full flex-col gap-4">
-          <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
-            <p className="text-sm font-semibold text-text-title">커피챗</p>
-            <p className="mt-2 text-sm text-text-body">
-              가볍게 채팅으로 이야기할 수 있어요. 레포트 생성 없이 진행됩니다.
+        <div className="flex h-full flex-col gap-4 pb-1">
+          <div className="rounded-2xl border border-[#d8c3af] bg-[#f9f5ef] p-4">
+            <p className="text-base font-semibold text-[#70462d]">커피챗</p>
+            <p className="mt-2 text-sm leading-6 text-[#6b4a37]">
+              가볍게 현직자와 이야기를 나누는 자유형 채팅입니다. 이력서나 채용 공고 링크 없이도
+              직무, 커리어 고민, 업계 이야기 등을 부담 없이 대화할 수 있습니다.
             </p>
+            <div className="mt-3 rounded-xl bg-white/80 p-3">
+              <p className="text-xs font-semibold text-[#8a5e42]">핵심 안내</p>
+              <ul className="mt-2 space-y-1.5 text-xs text-[#6b4a37]">
+                <li>이력서/공고 링크 첨부: 선택 사항</li>
+                <li>대화 방식: 자유로운 실시간 채팅</li>
+                <li>종료 권한: 참여자 모두 가능</li>
+                <li>레포트 생성: 없음</li>
+              </ul>
+            </div>
           </div>
-          <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
-            <p className="text-sm font-semibold text-text-title">피드백</p>
-            <p className="mt-2 text-sm text-text-body">
-              채팅이 끝난 뒤 현직자의 레포트가 생성됩니다.
+          <div className="rounded-2xl border border-[#cfd8eb] bg-[#f5f8ff] p-4">
+            <p className="text-base font-semibold text-[#2e4f86]">피드백</p>
+            <p className="mt-2 text-sm leading-6 text-[#3c5d93]">
+              현직자가 지원자의 이력서와 채용 공고를 기준으로 구체적이고 실질적인 피드백을 제공하는
+              심층 상담형 채팅입니다.
             </p>
+            <div className="mt-3 rounded-xl bg-white/90 p-3">
+              <p className="text-xs font-semibold text-[#46649a]">진행 조건</p>
+              <ul className="mt-2 space-y-1.5 text-xs text-[#3c5d93]">
+                <li>이력서 첨부: 필수</li>
+                <li>채용 공고 링크 첨부: 필수</li>
+                <li>대화 종료 권한: 현직자만 가능</li>
+                <li>종료 후: 현직자 설문 작성</li>
+              </ul>
+            </div>
+            <div className="mt-3 rounded-xl border border-[#dce5f8] bg-white p-3">
+              <p className="text-xs font-semibold text-[#46649a]">레포트 생성 방식</p>
+              <p className="mt-1 text-xs leading-5 text-[#3c5d93]">
+                상담 종료 후 AI가 아래 정보를 종합 분석해 맞춤형 피드백 레포트를 생성합니다.
+              </p>
+              <ul className="mt-2 space-y-1.5 text-xs text-[#3c5d93]">
+                <li>채팅 내용</li>
+                <li>현직자 설문 응답</li>
+                <li>지원자가 첨부한 이력서</li>
+                <li>채용 공고 링크</li>
+              </ul>
+              <p className="mt-2 text-xs leading-5 text-[#3c5d93]">
+                생성된 레포트에는 공고 적합도 분석, 이력서 개선 방향, 직무 매칭 인사이트가
+                구조화되어 제공됩니다.
+              </p>
+            </div>
           </div>
         </div>
       </BottomSheet>
@@ -273,12 +309,19 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
       <Modal
         open={confirmOpen}
         title="채팅 요청"
+        compact
         description={
-          pendingRequestType === 'COFFEE_CHAT'
-            ? '커피챗을 요청할까요?'
-            : pendingRequestType === 'FEEDBACK'
-              ? '피드백을 요청할까요?'
-              : null
+          pendingRequestType === 'COFFEE_CHAT' ? (
+            <>
+              <span className="block">커피챗 요청을 보냅니다.</span>
+              <span className="block">자유롭게 대화하는 채팅입니다.</span>
+            </>
+          ) : pendingRequestType === 'FEEDBACK' ? (
+            <>
+              <span className="block">피드백 요청을 보냅니다.</span>
+              <span className="block">이력서·공고 기반 심층 피드백 채팅입니다.</span>
+            </>
+          ) : null
         }
         confirmLabel="확인"
         cancelLabel="취소"

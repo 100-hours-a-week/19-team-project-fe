@@ -92,7 +92,8 @@ export default function ChatList() {
     if (type === 'FEEDBACK') return '피드백';
     return '채팅 요청';
   };
-  const getResolvedRequestType = (item: unknown) => normalizeRequestTypeFromUnknown(item) ?? undefined;
+  const getResolvedRequestType = (item: unknown) =>
+    normalizeRequestTypeFromUnknown(item) ?? undefined;
   const getRequestTypeTagClass = (type?: string) => {
     if (type === 'COFFEE_CHAT') return 'bg-[#f4ede6] text-[#7a4b2f]';
     return 'bg-[#edf4ff] text-[#2b4b7e]';
@@ -272,7 +273,7 @@ export default function ChatList() {
                         </div>
                         <span
                           className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getRequestTypeTagClass(
-                            requestType
+                            requestType,
                           )}`}
                         >
                           {formatRequestType(requestType)}
@@ -342,7 +343,7 @@ export default function ChatList() {
                         </div>
                         <span
                           className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getRequestTypeTagClass(
-                            requestType
+                            requestType,
                           )}`}
                         >
                           {formatRequestType(requestType)}
@@ -412,7 +413,7 @@ export default function ChatList() {
                           {requestType ? (
                             <span
                               className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${getRequestTypeTagClass(
-                                requestType
+                                requestType,
                               )}`}
                             >
                               {formatRequestType(requestType)}
