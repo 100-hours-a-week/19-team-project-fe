@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuthStatus } from '@/entities/auth';
 import { useUserMeQuery } from '@/entities/user';
-import { getChatList } from '@/features/chat';
 import type { ChatSummary } from '@/entities/chat';
+import { getChatList } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 
 import { normalizeChatList } from '@/entities/chat';

@@ -1,5 +1,7 @@
 import type { ChatListData, ChatSummary } from '@/entities/chat';
 
+import { normalizeRequestTypeFromUnknown } from './requestType';
+
 const getChatSortKey = (chat: ChatSummary) => {
   const lastMessageAt = chat.last_message?.last_message_at ?? null;
   const updatedAt = chat.updated_at ?? null;
@@ -14,12 +16,14 @@ const normalizeChatId = (chat: ChatSummary): ChatSummary | null => {
   const parsedChatId = typeof rawChatId === 'string' ? Number(rawChatId) : rawChatId;
   const chatId =
     typeof parsedChatId === 'number' && !Number.isNaN(parsedChatId) ? parsedChatId : null;
+  const requestType = normalizeRequestTypeFromUnknown(chat) ?? undefined;
 
   if (chatId === null) return null;
 
   return {
     ...chat,
     chat_id: chatId,
+    request_type: requestType,
   };
 };
 

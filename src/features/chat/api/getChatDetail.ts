@@ -1,5 +1,5 @@
 import { apiFetch, readAccessToken } from '@/shared/api';
-import type { ChatDetailData } from '@/entities/chat';
+import { normalizeChatDetail, type ChatDetailData } from '@/entities/chat';
 
 const CHAT_DETAIL_PATH = '/bff/chat';
 
@@ -10,8 +10,9 @@ export interface ChatDetailParams {
 export async function getChatDetail(params: ChatDetailParams): Promise<ChatDetailData> {
   const url = `${CHAT_DETAIL_PATH}/${params.chatId}`;
   const accessToken = readAccessToken();
-  return apiFetch<ChatDetailData>(url, {
+  const data = await apiFetch<ChatDetailData>(url, {
     method: 'GET',
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
   });
+  return normalizeChatDetail(data);
 }

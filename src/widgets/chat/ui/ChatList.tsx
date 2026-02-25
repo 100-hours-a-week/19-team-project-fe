@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { KakaoLoginButton } from '@/features/auth';
 import { Header } from '@/widgets/header';
 import { useChatList, useChatRequestList, updateChatRequestStatus } from '@/features/chat';
-import type { ChatSummary } from '@/entities/chat';
+import { normalizeRequestTypeFromUnknown, type ChatSummary } from '@/entities/chat';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { Modal } from '@/shared/ui/modal';
 import { useToast } from '@/shared/ui/toast';
@@ -91,6 +91,31 @@ export default function ChatList() {
     if (type === 'COFFEE_CHAT') return '커피챗';
     if (type === 'FEEDBACK') return '피드백';
     return '채팅 요청';
+  };
+  const getResolvedRequestType = (item: unknown) =>
+    normalizeRequestTypeFromUnknown(item) ?? undefined;
+  const getRequestTypeTagTheme = (type?: string) => {
+    if (type === 'COFFEE_CHAT') {
+      return {
+        wrap: 'border-[#d8c3af] bg-[#f9f5ef] text-[#70462d]',
+      };
+    }
+
+    return {
+      wrap: 'border-primary-main/30 bg-primary-main/10 text-primary-main',
+    };
+  };
+  const renderRequestTypeTag = (type?: string) => {
+    if (!type) return null;
+    const theme = getRequestTypeTagTheme(type);
+
+    return (
+      <span
+        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none ${theme.wrap}`}
+      >
+        {formatRequestType(type)}
+      </span>
+    );
   };
 
   const chatUnreadCount = chats.reduce((sum, chat) => sum + (chat.unread_count ?? 0), 0);
@@ -248,6 +273,7 @@ export default function ChatList() {
           ) : (
             receivedRequests.map((request) => {
               const counterpart = request.requester;
+              const requestType = getResolvedRequestType(request);
               return (
                 <li key={request.chat_request_id} className="border-b border-neutral-200/70">
                   <div className="flex w-full items-center gap-4 rounded-2xl px-2.5 py-4">
@@ -264,9 +290,7 @@ export default function ChatList() {
                         <div className="truncate text-base font-semibold">
                           {counterpart.nickname}
                         </div>
-                        <span className="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
-                          {formatRequestType(request.request_type)}
-                        </span>
+                        {renderRequestTypeTag(requestType)}
                       </div>
                       <div className="mt-1 truncate text-sm text-neutral-500">
                         요청일 {formatChatTime(request.created_at)}
@@ -313,6 +337,7 @@ export default function ChatList() {
           ) : (
             sentRequests.map((request) => {
               const counterpart = request.receiver;
+              const requestType = getResolvedRequestType(request);
               return (
                 <li key={request.chat_request_id} className="border-b border-neutral-200/70">
                   <div className="flex w-full items-center gap-4 rounded-2xl px-2.5 py-4">
@@ -329,9 +354,7 @@ export default function ChatList() {
                         <div className="truncate text-base font-semibold">
                           {counterpart.nickname}
                         </div>
-                        <span className="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
-                          {formatRequestType(request.request_type)}
-                        </span>
+                        {renderRequestTypeTag(requestType)}
                         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
                           요청 중
                         </span>
@@ -368,14 +391,15 @@ export default function ChatList() {
             <>
               {chats.map((chat) => {
                 const counterparty = getCounterparty(chat, currentUser?.id ?? null);
+                const requestType = getResolvedRequestType(chat);
                 const lastMessage = chat.last_message;
                 const showUnread = chat.unread_count > 0;
                 return (
                   <li key={chat.chat_id} className="border-b border-neutral-200/70">
                     <Link
                       href={
-                        chat.request_type
-                          ? `/chat/${chat.chat_id}?requestType=${chat.request_type}`
+                        requestType
+                          ? `/chat/${chat.chat_id}?requestType=${requestType}`
                           : `/chat/${chat.chat_id}`
                       }
                       className="flex w-full items-center gap-4 rounded-2xl px-2.5 py-4 text-left transition hover:bg-neutral-100"
@@ -393,11 +417,7 @@ export default function ChatList() {
                           <div className="truncate text-base font-semibold">
                             {counterparty.nickname}
                           </div>
-                          {chat.request_type ? (
-                            <span className="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
-                              {formatRequestType(chat.request_type)}
-                            </span>
-                          ) : null}
+                          {renderRequestTypeTag(requestType)}
                           {chat.status === 'CLOSED' ? (
                             <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
                               종료

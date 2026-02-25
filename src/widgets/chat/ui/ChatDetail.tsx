@@ -4,7 +4,12 @@ import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import type { ChatDetailData, ChatParticipant, ChatRequestType } from '@/entities/chat';
+import {
+  normalizeRequestTypeFromUnknown,
+  type ChatDetailData,
+  type ChatParticipant,
+  type ChatRequestType,
+} from '@/entities/chat';
 import { useChatCurrentUser, useChatDetail } from '@/features/chat';
 import charIcon from '@/shared/icons/char_icon.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
@@ -34,6 +39,29 @@ const formatRequestType = (value: ChatRequestType | null | undefined) => {
   if (value === 'FEEDBACK') return '피드백';
   if (value === 'COFFEE_CHAT') return '커피챗';
   return '—';
+};
+const getRequestTypeTagTheme = (type: ChatRequestType | null | undefined) => {
+  if (type === 'COFFEE_CHAT') {
+    return {
+      wrap: 'border-[#d8c3af] bg-[#f9f5ef] text-[#70462d]',
+    };
+  }
+
+  return {
+    wrap: 'border-primary-main/30 bg-primary-main/10 text-primary-main',
+  };
+};
+const renderRequestTypeTag = (type: ChatRequestType | null | undefined) => {
+  if (!type) return '—';
+  const theme = getRequestTypeTagTheme(type);
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none ${theme.wrap}`}
+    >
+      {formatRequestType(type)}
+    </span>
+  );
 };
 
 const DetailRow = ({ label, value }: { label: string; value: ReactNode }) => (
@@ -69,10 +97,11 @@ const ParticipantCard = ({
 export default function ChatDetail({ chatId, detail, requestType }: ChatDetailProps) {
   const router = useRouter();
   const { currentUserId, isLoading: isCurrentUserLoading } = useChatCurrentUser();
-  const resolvedRequestType = detail.request_type ?? requestType ?? null;
+  const resolvedRequestType = normalizeRequestTypeFromUnknown(detail) ?? requestType ?? null;
   const {
     isClosed,
     isClosing,
+    isCoffeeChat,
     closeError,
     isResumeModalOpen,
     setIsResumeModalOpen,
@@ -92,7 +121,7 @@ export default function ChatDetail({ chatId, detail, requestType }: ChatDetailPr
     { title: '수신자', data: detail.receiver },
   ];
   const isReceiver = currentUserId !== null && currentUserId === detail.receiver.user_id;
-  const canCloseChat = isReceiver && !isCurrentUserLoading;
+  const canCloseChat = (isCoffeeChat || isReceiver) && !isCurrentUserLoading;
   const closeButtonDisabled = isClosed || isClosing || !canCloseChat;
 
   return (
@@ -177,7 +206,7 @@ export default function ChatDetail({ chatId, detail, requestType }: ChatDetailPr
                 <span className="text-neutral-900">—</span>
               )}
             </div>
-            <DetailRow label="채팅방 유형" value={formatRequestType(resolvedRequestType)} />
+            <DetailRow label="채팅방 유형" value={renderRequestTypeTag(resolvedRequestType)} />
             <DetailRow label="생성 일시" value={formatDateTime(detail.created_at)} />
           </div>
         </section>
