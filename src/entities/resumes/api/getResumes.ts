@@ -3,6 +3,7 @@ import { apiFetch } from '@/shared/api';
 export type Resume = {
   resumeId: number;
   title: string;
+  status?: string;
   isFresher: boolean;
   educationLevel: string;
   fileUrl: string;
@@ -18,6 +19,7 @@ type ResumeApiResponse = {
   resumeId?: number;
   resume_id?: number;
   title?: string;
+  status?: string;
   isFresher?: boolean;
   is_fresher?: boolean;
   educationLevel?: string;
@@ -41,6 +43,7 @@ const normalizeResume = (resume: ResumeApiResponse, index: number): Resume => {
   return {
     resumeId,
     title: resume.title ?? '',
+    status: resume.status ?? '',
     isFresher: resume.isFresher ?? resume.is_fresher ?? false,
     educationLevel: resume.educationLevel ?? resume.education_level ?? '',
     fileUrl: resume.fileUrl ?? resume.file_url ?? '',
