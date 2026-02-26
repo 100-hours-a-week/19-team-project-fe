@@ -23,6 +23,10 @@ type CachedRecommendation = {
 
 const recommendationsCache = new Map<string, CachedRecommendation>();
 
+function nowMs() {
+  return performance.now();
+}
+
 function buildCacheKey(accessToken: string | undefined, query: string) {
   return `${accessToken ?? 'guest'}::${query || 'top_k=12'}`;
 }
@@ -46,7 +50,7 @@ function setCachedRecommendation(cacheKey: string, body: ExpertRecommendationsRe
 }
 
 export default async function ExpertRecommendationsServer() {
-  const startMs = Date.now();
+  const startMs = nowMs();
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('access_token')?.value;
   const hasAuth = Boolean(accessToken);
@@ -61,7 +65,7 @@ export default async function ExpertRecommendationsServer() {
       hasAuth,
       query: queryString,
       count: freshCache.body.recommendations.length,
-      durationMs: Date.now() - startMs,
+      durationMs: nowMs() - startMs,
       path: '/api/v1/experts/recommendations',
     });
     return <ExpertRecommendations recommendations={freshCache.body.recommendations} />;
@@ -72,7 +76,7 @@ export default async function ExpertRecommendationsServer() {
   let degraded = false;
 
   try {
-    const upstreamStartMs = Date.now();
+    const upstreamStartMs = nowMs();
     data = await apiFetch<ExpertRecommendationsResponse>(url, {
       method: 'GET',
       cache: 'no-store',
@@ -85,8 +89,8 @@ export default async function ExpertRecommendationsServer() {
       hasAuth,
       query: queryString,
       count: data.recommendations.length,
-      upstreamDurationMs: Date.now() - upstreamStartMs,
-      durationMs: Date.now() - startMs,
+      upstreamDurationMs: nowMs() - upstreamStartMs,
+      durationMs: nowMs() - startMs,
       path: '/api/v1/experts/recommendations',
     });
   } catch (error) {
@@ -100,7 +104,7 @@ export default async function ExpertRecommendationsServer() {
         hasAuth,
         query: queryString,
         count: data.recommendations.length,
-        durationMs: Date.now() - startMs,
+        durationMs: nowMs() - startMs,
         path: '/api/v1/experts/recommendations',
       });
     } else {
@@ -110,7 +114,7 @@ export default async function ExpertRecommendationsServer() {
         cache: 'MISS_ERROR_NO_STALE',
         hasAuth,
         query: queryString,
-        durationMs: Date.now() - startMs,
+        durationMs: nowMs() - startMs,
         path: '/api/v1/experts/recommendations',
       });
     }
