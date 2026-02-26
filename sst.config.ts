@@ -43,9 +43,9 @@ export default $config({
         cert: process.env.ACM_CERTIFICATE_ARN,
         dns: false,
       },
-      warm: 1,
+      warm: 3,
       server: {
-        memory: '1024 MB',
+        memory: '1769 MB',
         timeout: '30 seconds',
       },
       environment,
