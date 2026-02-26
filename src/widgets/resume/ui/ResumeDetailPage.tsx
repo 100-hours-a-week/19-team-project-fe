@@ -250,7 +250,6 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
                 </div>
               )}
             </div>
-
           </div>
         ) : (
           <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">

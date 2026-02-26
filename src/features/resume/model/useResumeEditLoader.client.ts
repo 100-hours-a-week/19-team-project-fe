@@ -48,7 +48,9 @@ export function useResumeEditLoader({
           setIsLoadingResume(false);
           return;
         }
-        onErrorRef.current(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
+        onErrorRef.current(
+          error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.',
+        );
       } finally {
         if (cancelled) return;
         setIsLoadingResume(false);

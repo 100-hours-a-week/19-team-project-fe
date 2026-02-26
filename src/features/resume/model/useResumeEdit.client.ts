@@ -1,5 +1,3 @@
-import { useCallback } from 'react';
-
 import { useAuthStatus } from '@/entities/auth';
 import { useResumeEditForm } from './useResumeEditForm.client';
 import { useResumeEditLoader } from './useResumeEditLoader.client';
@@ -25,18 +23,14 @@ export function useResumeEdit(resumeIdParam: string | null) {
     payload: form.payload,
     splitPeriod: form.splitPeriod,
   });
-  const handleLoadError = useCallback(
-    (message: string) => {
-      submit.setSubmitError(message);
-    },
-    [submit.setSubmitError],
-  );
   const { isLoadingResume } = useResumeEditLoader({
     authStatus,
     isEditMode,
     resumeId,
     onLoaded: form.applyResumeDetail,
-    onError: handleLoadError,
+    onError: (message) => {
+      submit.setSubmitError(message);
+    },
   });
   const autoFill = useResumeAutoFill({ authStatus });
 
