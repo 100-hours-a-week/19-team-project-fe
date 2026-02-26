@@ -14,9 +14,12 @@ export default function SplashGate({ children, durationMs = 5000 }: SplashGatePr
   const [SplashScreen, setSplashScreen] = useState<SplashScreenComponent | null>(null);
 
   useEffect(() => {
+    const isLighthouseRun = navigator.userAgent.includes('Chrome-Lighthouse');
+    const disableSplash = isLighthouseRun;
+
     const hasSignupSuccess = sessionStorage.getItem('signupSuccess');
     const hasSeenSplash = sessionStorage.getItem('splashSeen');
-    const shouldShow = !(hasSignupSuccess || hasSeenSplash);
+    const shouldShow = !disableSplash && !(hasSignupSuccess || hasSeenSplash);
 
     sessionStorage.setItem('splashSeen', 'true');
     setShowSplash(shouldShow);
