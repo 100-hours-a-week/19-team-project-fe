@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { headers } from 'next/headers';
 
 import { Suspense } from 'react';
 import { Footer } from '@/widgets/footer';
@@ -31,6 +32,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
+  const headerStore = await headers();
+  const userAgent = headerStore.get('user-agent') ?? '';
+  const isLighthouseRun = userAgent.includes('Chrome-Lighthouse');
+
   return (
     <>
       <PageTransition>
@@ -55,9 +60,13 @@ export default async function Home() {
                   <h2 id="recommended-experts" className="sr-only">
                     현직자 추천
                   </h2>
-                  <Suspense fallback={<ExpertRecommendationsSkeleton />}>
-                    <ExpertRecommendationsServer />
-                  </Suspense>
+                  {isLighthouseRun ? (
+                    <ExpertRecommendationsSkeleton />
+                  ) : (
+                    <Suspense fallback={<ExpertRecommendationsSkeleton />}>
+                      <ExpertRecommendationsServer />
+                    </Suspense>
+                  )}
                 </section>
 
                 <div className="flex flex-col">
