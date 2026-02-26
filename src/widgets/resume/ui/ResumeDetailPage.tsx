@@ -57,8 +57,7 @@ const toProjects = (value: unknown) => {
     const title = typeof project.title === 'string' ? project.title.trim() : '';
     const startDate = typeof project.start_date === 'string' ? project.start_date.trim() : '';
     const endDate = typeof project.end_date === 'string' ? project.end_date.trim() : '';
-    const description =
-      typeof project.description === 'string' ? project.description.trim() : '';
+    const description = typeof project.description === 'string' ? project.description.trim() : '';
     acc.push({
       title: title || undefined,
       start_date: startDate || undefined,

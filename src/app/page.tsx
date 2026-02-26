@@ -10,13 +10,9 @@ import { PageTransition } from '@/shared/ui/page-transition';
 import {
   ExpertRecommendationsServer,
   ExpertRecommendationsSkeleton,
-  GuideButtons,
-  HomeGuardToast,
-  RecruitmentLinksTicker,
-  SignupConfetti,
+  HomeDeferredEffects,
+  HomeDeferredSections,
   TechBlogBanner,
-  TechBlogTicker,
-  WhyRefitSection,
 } from '@/widgets/home';
 import iconMarkB from '@/shared/icons/icon-mark_B.png';
 
@@ -39,10 +35,7 @@ export default async function Home() {
     <>
       <PageTransition>
         <SplashGate>
-          <SignupConfetti />
-          <Suspense fallback={null}>
-            <HomeGuardToast />
-          </Suspense>
+          <HomeDeferredEffects />
           <div className="flex min-h-full flex-col bg-[#D2DEEA]">
             <div className="flex flex-col">
               <Header />
@@ -73,10 +66,7 @@ export default async function Home() {
                       <div className="-mt-3">
                         <TechBlogBanner />
                       </div>
-                      <GuideButtons />
-                      <RecruitmentLinksTicker />
-                      <TechBlogTicker />
-                      <WhyRefitSection />
+                      <HomeDeferredSections />
                     </div>
                   </div>
                 </div>
