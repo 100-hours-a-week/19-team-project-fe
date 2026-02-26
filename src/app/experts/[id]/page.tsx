@@ -29,13 +29,13 @@ export async function generateMetadata({ params }: ExpertDetailRouteProps): Prom
     const description = `${expert.nickname} ${primaryJob}${skillsText} 전문가 프로필을 확인하고 RE:FIT에서 커피챗 및 피드백을 요청해보세요.`;
 
     return {
-      title: `${expert.nickname} ${primaryJob} | 현직자 피드백`,
+      title: `${expert.nickname} 전문가 프로필`,
       description,
       alternates: {
         canonical: `/experts/${userId}`,
       },
       openGraph: {
-        title: `${expert.nickname} ${primaryJob} | 현직자 피드백`,
+        title: `${expert.nickname} 전문가 프로필 | RE:FIT`,
         description,
         images: expert.profile_image_url
           ? [

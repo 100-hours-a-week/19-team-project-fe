@@ -5,12 +5,13 @@ import { useQuery } from '@tanstack/react-query';
 import { getAuthStatus } from '../api/getAuthStatus.client';
 
 export type AuthStatusState = 'checking' | 'authed' | 'guest';
+export const authStatusQueryKey = ['auth', 'me'] as const;
 
 export function useAuthStatus() {
   const query = useQuery({
-    queryKey: ['auth', 'me'],
+    queryKey: authStatusQueryKey,
     queryFn: getAuthStatus,
-    staleTime: 10_000,
+    staleTime: 0,
     retry: false,
   });
 

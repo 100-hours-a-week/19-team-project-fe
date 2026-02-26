@@ -5,12 +5,68 @@ import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton } from '@/features/auth';
 import { useResumeDetail } from '@/features/resume';
-import { normalizeResumeContent, toStringArray } from '@/entities/resumes';
+import { normalizeResumeContent } from '@/entities/resumes';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
 const EMPTY_CONTENT_LABEL = '내용이 없습니다.';
+
+const readString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+const toDisplayText = (value: unknown): string | null => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    const item = value as Record<string, unknown>;
+    const company = readString(item.company) || readString(item.company_name);
+    const role = readString(item.job);
+    const position = readString(item.position);
+    const startDate = readString(item.start_date);
+    const endDate = readString(item.end_date);
+    const period = [startDate, endDate].filter(Boolean).join(' - ');
+    const careerText = [company, period, role, position].filter(Boolean).join(' | ');
+    if (careerText) return careerText;
+    const title = readString(item.title);
+    const description = readString(item.description);
+    const fallback = [title, description].filter(Boolean).join(' - ');
+    return fallback || null;
+  }
+  return null;
+};
+const toTextArray = (value?: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.reduce<string[]>((acc, item) => {
+    const text = toDisplayText(item);
+    if (text) acc.push(text);
+    return acc;
+  }, []);
+};
+const toSafeSummary = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+const toProjects = (value: unknown) => {
+  if (!Array.isArray(value)) return [];
+  return value.reduce<
+    Array<{ title?: string; start_date?: string; end_date?: string; description?: string }>
+  >((acc, item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return acc;
+    const project = item as Record<string, unknown>;
+    const title = typeof project.title === 'string' ? project.title.trim() : '';
+    const startDate = typeof project.start_date === 'string' ? project.start_date.trim() : '';
+    const endDate = typeof project.end_date === 'string' ? project.end_date.trim() : '';
+    const description = typeof project.description === 'string' ? project.description.trim() : '';
+    acc.push({
+      title: title || undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+      description: description || undefined,
+    });
+    return acc;
+  }, []);
+};
 
 export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
   const router = useRouter();
@@ -21,13 +77,13 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
   };
 
   const content = useMemo(() => normalizeResumeContent(resume?.contentJson ?? null), [resume]);
-  const careers = toStringArray(content?.careers);
-  const projects = Array.isArray(content?.projects) ? (content?.projects ?? []) : [];
-  const education = toStringArray(content?.education);
-  const awards = toStringArray(content?.awards);
-  const certificates = toStringArray(content?.certificates);
-  const activities = toStringArray(content?.activities);
-  const summary = content?.summary?.trim();
+  const careers = toTextArray(content?.careers);
+  const projects = toProjects(content?.projects);
+  const education = toTextArray(content?.education);
+  const awards = toTextArray(content?.awards);
+  const certificates = toTextArray(content?.certificates);
+  const activities = toTextArray(content?.activities);
+  const summary = toSafeSummary(content?.summary);
   const hasContent =
     Boolean(summary) ||
     careers.length > 0 ||

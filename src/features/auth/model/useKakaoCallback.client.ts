@@ -2,13 +2,17 @@
 
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { kakaoLogin } from '@/features/auth';
+import { authStatusQueryKey } from '@/entities/auth';
+import { userMeQueryKey } from '@/entities/user';
 import { readAccessToken, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
 
 export function useKakaoCallback() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const handleCommonApiError = useCommonApiErrorHandler();
 
@@ -57,6 +61,8 @@ export function useKakaoCallback() {
           refreshToken: result.refreshToken,
           userId: result.userId,
         });
+        queryClient.setQueryData(authStatusQueryKey, { authenticated: true });
+        await queryClient.invalidateQueries({ queryKey: userMeQueryKey });
 
         try {
           const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
@@ -80,5 +86,5 @@ export function useKakaoCallback() {
         if (await handleCommonApiError(err)) return;
         router.replace('/login?error=server');
       });
-  }, [handleCommonApiError, router, searchParams]);
+  }, [handleCommonApiError, queryClient, router, searchParams]);
 }

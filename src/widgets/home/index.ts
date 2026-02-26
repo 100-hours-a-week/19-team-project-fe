@@ -1,4 +1,6 @@
 export { default as SignupConfetti } from './ui/SignupConfetti';
+export { default as HomeDeferredEffects } from './ui/HomeDeferredEffects';
+export { default as HomeDeferredSections } from './ui/HomeDeferredSections';
 export { default as RecruitmentLinksTicker } from './ui/RecruitmentLinksTicker';
 export { TechBlogBanner, default as TechBlogTicker } from './ui/TechBlogTicker';
 export { default as ExpertRecommendations } from './ui/ExpertRecommendations';

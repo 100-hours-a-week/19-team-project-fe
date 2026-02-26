@@ -21,10 +21,10 @@ export type {
 export {
   normalizeResumeContent,
   normalizeResumeDetail,
+  toProjectArray,
+  toSafeTrimmedString,
   toStringArray,
 } from './lib/normalizeResumeDetail';
-export {
-  RESUME_TASK_REFRESH_EVENT,
-  parseResumeTaskRealtimePayload,
-} from './lib/realtimeEvent';
+export type { ResumeProjectItem } from './lib/normalizeResumeDetail';
+export { RESUME_TASK_REFRESH_EVENT, parseResumeTaskRealtimePayload } from './lib/realtimeEvent';
 export type { ResumeTaskRefreshPayload } from './lib/realtimeEvent';
