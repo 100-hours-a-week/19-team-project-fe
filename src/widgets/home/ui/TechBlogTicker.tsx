@@ -95,6 +95,7 @@ export default function TechBlogTicker() {
 }
 
 export function TechBlogBanner() {
+  const [isMounted, setIsMounted] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   const [enableTransition, setEnableTransition] = useState(true);
   const slides = [
@@ -117,6 +118,11 @@ export function TechBlogBanner() {
   ];
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
     const intervalId = window.setInterval(() => {
       setEnableTransition(true);
       setSlideIndex((prev) => prev + 1);
@@ -125,7 +131,7 @@ export function TechBlogBanner() {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
     if (slideIndex !== 3) return;
@@ -143,15 +149,18 @@ export function TechBlogBanner() {
           className={`flex h-full ${enableTransition ? 'transition-transform duration-500 ease-out' : ''}`}
           style={{ transform: `translateX(-${slideIndex * 100}%)` }}
         >
-          {slides.map((slide, idx) => (
-            <div key={`tech-blog-banner-${idx}`} className="relative h-full w-full shrink-0">
+          {(isMounted ? slides : slides.slice(0, 1)).map((slide, idx) => (
+            <div key={`tech-blog-banner-${idx}`} className="w-full shrink-0">
               <Image
                 src={slide.src}
                 alt={slide.alt}
-                fill
-                sizes="(max-width: 600px) 100vw, 600px"
-                className="object-contain object-[center_0px]"
-                priority={idx === 0}
+                width={600}
+                height={174}
+                sizes="(max-width: 640px) calc(100vw - 20px), 600px"
+                className="h-auto w-full"
+                preload={idx === 0}
+                fetchPriority={idx === 0 ? 'high' : 'auto'}
+                loading={idx === 0 ? 'eager' : 'lazy'}
               />
             </div>
           ))}
