@@ -130,7 +130,9 @@ export async function GET(req: Request) {
                 ? (body as { data?: { status?: string; result?: unknown } }).data
                 : null;
             const status =
-              data?.status === 'COMPLETED' || data?.status === 'FAILED' ? data.status : 'PROCESSING';
+              data?.status === 'COMPLETED' || data?.status === 'FAILED'
+                ? data.status
+                : 'PROCESSING';
 
             const payload: StreamStatusPayload = {
               taskId,

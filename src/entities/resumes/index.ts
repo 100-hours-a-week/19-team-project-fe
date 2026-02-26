@@ -23,8 +23,5 @@ export {
   normalizeResumeDetail,
   toStringArray,
 } from './lib/normalizeResumeDetail';
-export {
-  RESUME_TASK_REFRESH_EVENT,
-  parseResumeTaskRealtimePayload,
-} from './lib/realtimeEvent';
+export { RESUME_TASK_REFRESH_EVENT, parseResumeTaskRealtimePayload } from './lib/realtimeEvent';
 export type { ResumeTaskRefreshPayload } from './lib/realtimeEvent';

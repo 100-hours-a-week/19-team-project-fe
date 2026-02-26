@@ -29,7 +29,9 @@ export function parseResumeTaskRealtimePayload(raw: unknown): ResumeTaskRefreshP
   const event = raw as ResumeEventLike;
 
   const target =
-    event.data && typeof event.data === 'object' ? ({ ...event.data, type: event.type } as ResumeEventLike) : event;
+    event.data && typeof event.data === 'object'
+      ? ({ ...event.data, type: event.type } as ResumeEventLike)
+      : event;
   const taskIdValue = target.taskId ?? target.task_id;
   if (typeof taskIdValue !== 'string' || !taskIdValue.trim()) return null;
 
