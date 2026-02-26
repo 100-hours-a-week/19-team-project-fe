@@ -10,7 +10,11 @@ import type { ResumeDetail } from '@/entities/resumes';
 import { closeChat } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
-import { normalizeResumeContent, normalizeResumeDetail, toStringArray } from '@/entities/resumes';
+import {
+  normalizeResumeContent,
+  normalizeResumeDetail,
+  toStringArray,
+} from '@/entities/resumes';
 
 export function useChatDetail(
   chatId: number,
@@ -71,12 +75,12 @@ export function useChatDetail(
 
   const content = normalizeResumeContent(resumeDetail?.contentJson ?? null);
   const careers = toStringArray(content?.careers);
-  const projects = Array.isArray(content?.projects) ? (content?.projects ?? []) : [];
+  const projects = toProjects(content?.projects);
   const education = toStringArray(content?.education);
   const awards = toStringArray(content?.awards);
   const certificates = toStringArray(content?.certificates);
   const activities = toStringArray(content?.activities);
-  const summary = content?.summary?.trim();
+  const summary = toSafeSummary(content?.summary);
   const hasContent =
     Boolean(summary) ||
     careers.length > 0 ||
@@ -108,6 +112,30 @@ export function useChatDetail(
     hasContent,
   };
 }
+
+const toSafeSummary = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+const toProjects = (value: unknown) => {
+  if (!Array.isArray(value)) return [];
+  return value.reduce<
+    Array<{ title?: string; start_date?: string; end_date?: string; description?: string }>
+  >((acc, item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return acc;
+    const project = item as Record<string, unknown>;
+    const title = typeof project.title === 'string' ? project.title.trim() : '';
+    const startDate = typeof project.start_date === 'string' ? project.start_date.trim() : '';
+    const endDate = typeof project.end_date === 'string' ? project.end_date.trim() : '';
+    const description =
+      typeof project.description === 'string' ? project.description.trim() : '';
+    acc.push({
+      title: title || undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+      description: description || undefined,
+    });
+    return acc;
+  }, []);
+};
 
 function normalizeRequestType(value: unknown): ChatRequestType | null {
   if (typeof value !== 'string') return null;
