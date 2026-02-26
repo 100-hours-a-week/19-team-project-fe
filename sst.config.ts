@@ -38,6 +38,11 @@ export default $config({
     const BACKEND_PATH_PATTERNS = ['/swagger-ui/*', '/v3/api-docs*', '/actuator/*'];
 
     new sst.aws.Nextjs('ReFitWeb', {
+      domain: {
+        name: 're-fit.kr',
+        cert: process.env.ACM_CERTIFICATE_ARN,
+        dns: false,
+      },
       warm: 1,
       server: {
         memory: '1024 MB',
@@ -73,6 +78,7 @@ export default $config({
               compress: true,
               forwardedValues: {
                 queryString: true,
+                headers: ['Authorization'],
                 cookies: { forward: 'none' },
               },
             })),
