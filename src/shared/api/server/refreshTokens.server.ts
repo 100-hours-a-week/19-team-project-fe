@@ -24,6 +24,8 @@ export async function refreshAuthTokens(): Promise<{
   refreshToken: string;
 }> {
   const cookieStore = await cookies();
+  const secure = process.env.NODE_ENV === 'production';
+  const domain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
   const refreshToken = cookieStore.get('refresh_token')?.value;
   const accessToken = cookieStore.get('access_token')?.value;
   if (!refreshToken) {
@@ -76,15 +78,17 @@ export async function refreshAuthTokens(): Promise<{
   try {
     cookieStore.set('access_token', nextTokens.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       sameSite: 'lax',
       path: '/',
+      domain,
     });
     cookieStore.set('refresh_token', nextTokens.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       sameSite: 'lax',
       path: '/',
+      domain,
     });
   } catch {
     // Cookies may be immutable in server components; ignore and return tokens.

@@ -63,7 +63,7 @@ type RestoreResponsePayload = {
 };
 
 export async function loginWithKakao(code: string): Promise<KakaoLoginBackendResponse> {
-  const res = await fetch(buildApiUrl('/api/v1/auth/oauth/kakao/login'), {
+  const res = await fetch(buildApiUrl('/api/v1/auth/oauth/kakao/login/local'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code }),

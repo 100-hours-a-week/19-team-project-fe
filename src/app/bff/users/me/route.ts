@@ -15,11 +15,13 @@ function getAccessToken(req: Request, cookieToken?: string) {
 }
 
 function clearAuthCookies(response: NextResponse) {
+  const domain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
   const base = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
     path: '/',
+    domain,
     expires: new Date(0),
   };
   response.cookies.set('access_token', '', base);

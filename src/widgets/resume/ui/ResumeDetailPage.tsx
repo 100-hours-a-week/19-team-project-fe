@@ -7,6 +7,7 @@ import { KakaoLoginButton } from '@/features/auth';
 import { useResumeDetail } from '@/features/resume';
 import { normalizeResumeContent } from '@/entities/resumes';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
+import { formatKstString } from '@/shared/lib/date';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
@@ -146,7 +147,11 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
               </p>
               <p className="mt-2 text-xs text-text-caption">
                 {resume.createdAt
-                  ? new Date(resume.createdAt).toLocaleDateString('ko-KR')
+                  ? (formatKstString(resume.createdAt, {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                    }) ?? resume.createdAt)
                   : '등록일 정보 없음'}
               </p>
             </div>

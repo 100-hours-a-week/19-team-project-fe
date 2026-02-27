@@ -14,36 +14,31 @@ import { Modal } from '@/shared/ui/modal';
 import { useToast } from '@/shared/ui/toast';
 import { consumeReportCreateAccepted, REPORT_CREATE_ACCEPTED_EVENT } from '@/features/chat';
 import charIcon from '@/shared/icons/char_icon.png';
+import {
+  formatKstAmPmTime,
+  formatKstMonthDay,
+  isSameKstDay,
+  parseServerDate,
+} from '@/shared/lib/date';
 import ChatRequestSuccessAnimation from './ChatRequestSuccessAnimation';
 import ReportCreateSuccessAnimation from './ReportCreateSuccessAnimation';
 
-const pad2 = (value: number) => value.toString().padStart(2, '0');
-
 const formatChatTime = (value?: string | null) => {
   if (!value) return '';
-  const normalized = value.replace(' ', 'T');
-  const parsed = new Date(normalized);
+  const parsed = parseServerDate(value);
 
-  if (Number.isNaN(parsed.getTime())) {
+  if (!parsed) {
     return value;
   }
 
   const now = new Date();
-  const isToday =
-    parsed.getFullYear() === now.getFullYear() &&
-    parsed.getMonth() === now.getMonth() &&
-    parsed.getDate() === now.getDate();
+  const isToday = isSameKstDay(parsed, now);
 
   if (!isToday) {
-    return `${pad2(parsed.getMonth() + 1)}.${pad2(parsed.getDate())}`;
+    return formatKstMonthDay(parsed) ?? value;
   }
 
-  const hours = parsed.getHours();
-  const minutes = pad2(parsed.getMinutes());
-  const period = hours < 12 ? '오전' : '오후';
-  const displayHours = pad2(hours % 12 === 0 ? 12 : hours % 12);
-
-  return `${period} ${displayHours}:${minutes}`;
+  return formatKstAmPmTime(parsed) ?? value;
 };
 
 const formatUnreadCount = (value?: number | null) => {

@@ -21,17 +21,18 @@ import { Header } from '@/widgets/header';
 import notificationChatRequest from '@/shared/icons/notification_chat_request.png';
 import notificationMessage from '@/shared/icons/notification_message.png';
 import notificationResumeAnalysis from '@/shared/icons/notification_resume_analysis.png';
+import { formatKstString } from '@/shared/lib/date';
 import { useToast } from '@/shared/ui/toast';
 
 function formatNotificationDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString('ko-KR', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return (
+    formatKstString(value, {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }) ?? value
+  );
 }
 
 function getNotificationIconSrc(notification: NotificationItem) {

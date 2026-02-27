@@ -28,17 +28,22 @@ export async function POST(req: Request) {
     };
 
     const responseWithCookies = NextResponse.json(response);
+    const secure = process.env.NODE_ENV === 'production';
+    const domain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
+
     responseWithCookies.cookies.set('access_token', result.accessToken, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       path: '/',
+      domain,
     });
     responseWithCookies.cookies.set('refresh_token', result.refreshToken, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       path: '/',
+      domain,
     });
 
     return responseWithCookies;

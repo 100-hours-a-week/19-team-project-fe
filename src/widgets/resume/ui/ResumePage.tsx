@@ -8,6 +8,7 @@ import { useResumeList } from '@/features/resume';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import iconResume from '@/shared/icons/icon_resume.png';
 import charResume from '@/shared/icons/char_resume.png';
+import { formatKstString } from '@/shared/lib/date';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
@@ -121,7 +122,12 @@ export default function ResumePage() {
                       </p>
                     </div>
                     <p className="mt-2 pl-4 text-xs text-[#6b7b92]">
-                      {new Date(task.createdAt).toLocaleDateString('ko-KR')} 요청
+                      {formatKstString(task.createdAt, {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                      }) ?? task.createdAt}{' '}
+                      요청
                     </p>
                   </div>
                 ))}
@@ -188,7 +194,12 @@ export default function ResumePage() {
                       </div>
                     </div>
                     <p className="mt-2 pl-4 text-xs text-[#6b7b92]">
-                      {new Date(resume.createdAt).toLocaleDateString('ko-KR')} 등록
+                      {formatKstString(resume.createdAt, {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                      }) ?? resume.createdAt}{' '}
+                      등록
                     </p>
 
                     {openMenuId === resume.resumeId ? (

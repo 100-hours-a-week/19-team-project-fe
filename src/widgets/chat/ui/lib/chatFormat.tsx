@@ -1,36 +1,20 @@
 import type { ReactNode } from 'react';
-
-const pad2 = (value: number) => value.toString().padStart(2, '0');
-
-const parseChatDate = (value: string) => {
-  const normalized = value.replace(' ', 'T');
-  const parsed = new Date(normalized);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed;
-};
+import {
+  formatKstAmPmTime,
+  formatKstLongDate,
+  formatKstYmd,
+} from '@/shared/lib/date';
 
 export const formatChatTime = (value: string) => {
-  const parsed = parseChatDate(value);
-  if (!parsed) return value;
-
-  const hours = parsed.getHours();
-  const minutes = pad2(parsed.getMinutes());
-  const period = hours < 12 ? '오전' : '오후';
-  const displayHours = pad2(hours % 12 === 0 ? 12 : hours % 12);
-
-  return `${period} ${displayHours}:${minutes}`;
+  return formatKstAmPmTime(value) ?? value;
 };
 
 export const formatChatDate = (value: string) => {
-  const parsed = parseChatDate(value);
-  if (!parsed) return value;
-  return `${parsed.getFullYear()}년 ${parsed.getMonth() + 1}월 ${parsed.getDate()}일`;
+  return formatKstLongDate(value) ?? value;
 };
 
 export const getChatDateKey = (value: string) => {
-  const parsed = parseChatDate(value);
-  if (!parsed) return value;
-  return `${parsed.getFullYear()}-${pad2(parsed.getMonth() + 1)}-${pad2(parsed.getDate())}`;
+  return formatKstYmd(value) ?? value;
 };
 
 export const renderMessageContent = (content: string) => {

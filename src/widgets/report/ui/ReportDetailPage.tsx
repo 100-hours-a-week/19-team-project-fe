@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { KakaoLoginButton } from '@/features/auth';
 import { useReportDetail } from '@/features/report';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
+import { formatKstString } from '@/shared/lib/date';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 
@@ -72,7 +73,12 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
                 </span>
               </div>
               <p className="mt-1 text-xs text-text-caption">
-                {new Date(report.updatedAt).toLocaleDateString('ko-KR')} 업데이트
+                {formatKstString(report.updatedAt, {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                }) ?? report.updatedAt}{' '}
+                업데이트
               </p>
               {report.jobPostUrl ? (
                 <a
