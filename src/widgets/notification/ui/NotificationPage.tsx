@@ -57,6 +57,35 @@ function sanitizeNotificationContent(content: string) {
   return content.replace(/\s*\(task_id:[^)]+\)\s*$/i, '').trim();
 }
 
+function resolveNotificationPath(notification: NotificationItem) {
+  const type = notification.type.toLowerCase();
+  const title = notification.title.toLowerCase();
+  const content = notification.content.toLowerCase();
+  const source = `${type} ${title} ${content}`;
+
+  if (
+    source.includes('report') ||
+    source.includes('리포트') ||
+    source.includes('레포트') ||
+    source.includes('분석 결과')
+  ) {
+    return '/report';
+  }
+  if (source.includes('resume') || source.includes('이력서')) {
+    return '/resume';
+  }
+  if (
+    source.includes('chat') ||
+    source.includes('message') ||
+    source.includes('채팅') ||
+    source.includes('메시지') ||
+    source.includes('요청')
+  ) {
+    return '/chat';
+  }
+  return null;
+}
+
 export default function NotificationPage() {
   const router = useRouter();
   const { status: authStatus } = useAuthStatus();
@@ -71,7 +100,9 @@ export default function NotificationPage() {
 
   const notifications = useMemo<NotificationItem[]>(() => {
     if (!notificationsQuery.data) return [];
-    return notificationsQuery.data.pages.flatMap((page) => page.notifications);
+    return notificationsQuery.data.pages
+      .flatMap((page) => page.notifications)
+      .filter((notification) => !notification.is_read);
   }, [notificationsQuery.data]);
 
   const unreadCount = notificationsQuery.data?.pages[0]?.unread_count ?? 0;
@@ -280,9 +311,14 @@ export default function NotificationPage() {
               <button
                 key={notification.notification_id}
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (notification.is_read || readOneMutation.isPending) return;
-                  readOneMutation.mutate(notification.notification_id);
+                  const path = resolveNotificationPath(notification);
+                  try {
+                    await readOneMutation.mutateAsync(notification.notification_id);
+                  } finally {
+                    if (path) router.push(path);
+                  }
                 }}
                 className="w-full px-2 py-4 text-left"
               >

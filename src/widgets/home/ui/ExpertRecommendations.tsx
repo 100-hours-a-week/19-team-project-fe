@@ -221,6 +221,7 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const durationMs = 3000;
+  const hasShownAlertRef = useRef(false);
 
   const safeRecommendations = useMemo(
     () => recommendations.filter((item) => item && item.nickname),
@@ -259,6 +260,14 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
       document.body.style.overflow = prevOverflow;
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (hasShownAlertRef.current) return;
+    if (safeRecommendations.length === 0) return;
+
+    hasShownAlertRef.current = true;
+    window.alert(JSON.stringify(safeRecommendations, null, 2));
+  }, [safeRecommendations]);
 
   useEffect(() => {
     if (!isOpen) return;

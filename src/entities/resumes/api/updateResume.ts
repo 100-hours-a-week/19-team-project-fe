@@ -20,7 +20,7 @@ export type UpdateResumePayload = {
   title: string;
   is_fresher: boolean;
   education_level: string;
-  content_json: {
+  content_json: Record<string, unknown> & {
     careers: UpdateResumeCareer[];
     projects: UpdateResumeProject[];
   };

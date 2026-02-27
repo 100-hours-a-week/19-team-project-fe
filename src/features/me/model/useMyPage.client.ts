@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useLogout } from '@/features/auth';
+import { authStatusQueryKey, useAuthStatus } from '@/entities/auth';
+import { userMeQueryKey, useUserMeQuery, type UserMe } from '@/entities/user';
 import { deleteMe, getExpertStatus, type ExpertStatus } from '@/features/me';
-import { useAuthStatus } from '@/entities/auth';
-import { useUserMeQuery, type UserMe } from '@/entities/user';
 import { useCommonApiErrorHandler } from '@/shared/api';
+import { stompManager } from '@/shared/ws';
 
 export function useMyPage() {
+  const queryClient = useQueryClient();
   const { status: authStatus, refresh: refreshAuthStatus } = useAuthStatus();
   const handleCommonApiError = useCommonApiErrorHandler();
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -90,6 +93,13 @@ export function useMyPage() {
     setIsDeletingAccount(true);
     try {
       await deleteMe();
+      queryClient.setQueryData(authStatusQueryKey, { authenticated: false });
+      queryClient.removeQueries({ queryKey: userMeQueryKey });
+      await stompManager.disconnect().catch(() => null);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('kakaoLoginResult');
+        sessionStorage.removeItem('kakaoRestoreRequired');
+      }
       return true;
     } catch (error) {
       if (await handleCommonApiError(error)) {
