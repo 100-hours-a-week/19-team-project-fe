@@ -109,6 +109,7 @@ export function useResumeSubmit({
             is_fresher: isFresher,
             education_level: education[0]?.value ?? '',
             content_json: {
+              ...(payload.content_json ?? {}),
               careers: careersPayload,
               projects: projectsPayload,
             },

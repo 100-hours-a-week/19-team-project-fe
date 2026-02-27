@@ -4,6 +4,8 @@ import { setAuthCookies } from './setAuthCookies.server';
 
 type SignupResult = {
   userId: number;
+  accessToken: string;
+  refreshToken: string;
 };
 
 export async function signup(payload: SignupRequest): Promise<SignupResult> {
@@ -17,5 +19,7 @@ export async function signup(payload: SignupRequest): Promise<SignupResult> {
 
   return {
     userId: data.user_id,
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
   };
 }

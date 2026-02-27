@@ -141,6 +141,11 @@ export function useOnboardingSubmit({
         }
       }
 
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('kakaoLoginResult');
+        sessionStorage.removeItem('kakaoRestoreRequired');
+      }
+
       router.replace('/');
     } catch (error) {
       if (await handleCommonApiError(error)) return;

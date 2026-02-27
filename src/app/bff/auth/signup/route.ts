@@ -5,7 +5,9 @@ import { BusinessError } from '@/shared/api';
 import { signup } from '@/features/auth.server';
 
 type SignupResult = {
-  userId: number;
+  user_id: number;
+  access_token: string;
+  refresh_token: string;
 };
 
 export async function POST(req: Request) {
@@ -16,7 +18,11 @@ export async function POST(req: Request) {
     const response: ApiResponse<SignupResult> = {
       code: 'OK',
       message: '',
-      data: result,
+      data: {
+        user_id: result.userId,
+        access_token: result.accessToken,
+        refresh_token: result.refreshToken,
+      },
     };
 
     return NextResponse.json(response);
