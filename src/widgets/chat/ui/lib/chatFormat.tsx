@@ -1,9 +1,5 @@
 import type { ReactNode } from 'react';
-import {
-  formatKstAmPmTime,
-  formatKstLongDate,
-  formatKstYmd,
-} from '@/shared/lib/date';
+import { formatKstAmPmTime, formatKstLongDate, formatKstYmd } from '@/shared/lib/date';
 
 export const formatChatTime = (value: string) => {
   return formatKstAmPmTime(value) ?? value;

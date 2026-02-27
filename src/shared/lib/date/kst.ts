@@ -24,8 +24,7 @@ const normalizeDateString = (value: string) => {
 export const parseServerDate = (value: string | Date | number | null | undefined): Date | null => {
   if (value === null || value === undefined) return null;
 
-  const parsed =
-    typeof value === 'string' ? new Date(normalizeDateString(value)) : new Date(value);
+  const parsed = typeof value === 'string' ? new Date(normalizeDateString(value)) : new Date(value);
 
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed;
