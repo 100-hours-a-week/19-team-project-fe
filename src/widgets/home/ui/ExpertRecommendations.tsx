@@ -39,9 +39,7 @@ const getExpertId = (expert: ExpertRecommendation) => {
     raw.user?.id ??
     null;
   const parsed =
-    typeof candidate === 'string'
-      ? Number(candidate.replace(/[^\d-]/g, ''))
-      : candidate;
+    typeof candidate === 'string' ? Number(candidate.replace(/[^\d-]/g, '')) : candidate;
   return typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : null;
 };
 
@@ -142,64 +140,64 @@ const StoryViewer = memo(function StoryViewer({
                 key={`story-${expertId ?? index}`}
                 className="flex h-full w-full shrink-0 flex-col items-center justify-center px-6 pb-10 pt-6 text-white"
               >
-              <div className="flex flex-col items-center">
-                <div className="rounded-full bg-gradient-to-br from-[var(--color-primary-main)] via-[#4a6fb3] to-[var(--color-primary-sub)] p-[3px]">
-                  <div className="relative h-[180px] w-[180px] overflow-hidden rounded-full bg-white p-[3px]">
-                    <Image
-                      src={expert.profile_image_url || defaultUserImage}
-                      alt={`${expert.nickname} 프로필`}
-                      fill
-                      sizes="180px"
-                      className="rounded-full object-cover"
-                      unoptimized={!!expert.profile_image_url}
-                    />
+                <div className="flex flex-col items-center">
+                  <div className="rounded-full bg-gradient-to-br from-[var(--color-primary-main)] via-[#4a6fb3] to-[var(--color-primary-sub)] p-[3px]">
+                    <div className="relative h-[180px] w-[180px] overflow-hidden rounded-full bg-white p-[3px]">
+                      <Image
+                        src={expert.profile_image_url || defaultUserImage}
+                        alt={`${expert.nickname} 프로필`}
+                        fill
+                        sizes="180px"
+                        className="rounded-full object-cover"
+                        unoptimized={!!expert.profile_image_url}
+                      />
+                    </div>
                   </div>
+                  <p className="mt-4 text-xl font-semibold">{expert.nickname}</p>
+                  <p className="mt-1 text-sm text-white/80">
+                    {expert.company_name} · {expert.jobs[0] ?? '직무 정보 없음'}
+                  </p>
+                  {expert.verified ? (
+                    <span className="mt-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                      인증됨
+                    </span>
+                  ) : null}
                 </div>
-                <p className="mt-4 text-xl font-semibold">{expert.nickname}</p>
-                <p className="mt-1 text-sm text-white/80">
-                  {expert.company_name} · {expert.jobs[0] ?? '직무 정보 없음'}
+
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                  {expert.skills?.slice(0, 4).map((skill) => (
+                    <span
+                      key={`${expertId ?? index}-${skill}`}
+                      className="rounded-full border border-white/30 px-3 py-1 text-xs text-white/90"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-4 line-clamp-3 text-center text-sm text-white/80">
+                  {expert.introduction || '소개가 아직 없어요.'}
                 </p>
-                {expert.verified ? (
-                  <span className="mt-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
-                    인증됨
-                  </span>
-                ) : null}
-              </div>
 
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                {expert.skills?.slice(0, 4).map((skill) => (
-                  <span
-                    key={`${expertId ?? index}-${skill}`}
-                    className="rounded-full border border-white/30 px-3 py-1 text-xs text-white/90"
+                {expertId ? (
+                  <Link
+                    href={`/experts/${String(expertId)}`}
+                    onClick={onClose}
+                    className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white px-4 py-3 text-center text-sm font-semibold text-[#2b4b7e]"
                   >
-                    {skill}
-                  </span>
-                ))}
+                    상세 보기
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white/60 px-4 py-3 text-sm font-semibold text-[#2b4b7e]/60"
+                  >
+                    상세 정보 없음
+                  </button>
+                )}
               </div>
-              <p className="mt-4 line-clamp-3 text-center text-sm text-white/80">
-                {expert.introduction || '소개가 아직 없어요.'}
-              </p>
-
-              {expertId ? (
-                <Link
-                  href={`/experts/${String(expertId)}`}
-                  onClick={onClose}
-                  className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white px-4 py-3 text-center text-sm font-semibold text-[#2b4b7e]"
-                >
-                  상세 보기
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white/60 px-4 py-3 text-sm font-semibold text-[#2b4b7e]/60"
-                >
-                  상세 정보 없음
-                </button>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
         </div>
 
         <button
@@ -293,41 +291,41 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
               onClick={() => openStory(index)}
               className="flex min-w-[92px] flex-col items-center gap-2 snap-start"
             >
-            <span className="rounded-full bg-gradient-to-br from-[var(--color-primary-main)] via-[#4a6fb3] to-[var(--color-primary-sub)] p-[3px]">
-              <span className="block rounded-full bg-white p-[2px]">
-                <span className="relative block h-[68px] w-[68px] overflow-hidden rounded-full bg-white">
-                  <Image
-                    src={expert.profile_image_url || defaultUserImage}
-                    alt={`${expert.nickname} 프로필`}
-                    fill
-                    sizes="68px"
-                    className="object-cover"
-                    unoptimized={!!expert.profile_image_url}
-                  />
+              <span className="rounded-full bg-gradient-to-br from-[var(--color-primary-main)] via-[#4a6fb3] to-[var(--color-primary-sub)] p-[3px]">
+                <span className="block rounded-full bg-white p-[2px]">
+                  <span className="relative block h-[68px] w-[68px] overflow-hidden rounded-full bg-white">
+                    <Image
+                      src={expert.profile_image_url || defaultUserImage}
+                      alt={`${expert.nickname} 프로필`}
+                      fill
+                      sizes="68px"
+                      className="object-cover"
+                      unoptimized={!!expert.profile_image_url}
+                    />
+                  </span>
                 </span>
               </span>
-            </span>
-            <div className="flex max-w-[110px] items-center justify-center gap-0.5">
-              <span className="max-w-[72px] truncate text-[13px] font-semibold text-neutral-900">
-                {expert.nickname}
-              </span>
-              {expert.verified ? (
-                <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#2b4b7e] text-white">
-                  <svg
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    className="h-3 w-3"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
+              <div className="flex max-w-[110px] items-center justify-center gap-0.5">
+                <span className="max-w-[72px] truncate text-[13px] font-semibold text-neutral-900">
+                  {expert.nickname}
                 </span>
-              ) : null}
-            </div>
+                {expert.verified ? (
+                  <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#2b4b7e] text-white">
+                    <svg
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      className="h-3 w-3"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  </span>
+                ) : null}
+              </div>
             </button>
           );
         })}

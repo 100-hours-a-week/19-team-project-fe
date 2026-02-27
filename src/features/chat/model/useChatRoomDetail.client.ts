@@ -62,10 +62,10 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
         setIsFeedbackSubmitted(
           Boolean(
             raw.chat_feedback_id ??
-              raw.chatFeedbackId ??
-              raw.report_id ??
-              raw.reportId ??
-              hasChatFeedbackSubmitted(chatId),
+            raw.chatFeedbackId ??
+            raw.report_id ??
+            raw.reportId ??
+            hasChatFeedbackSubmitted(chatId),
           ),
         );
       } catch (error) {

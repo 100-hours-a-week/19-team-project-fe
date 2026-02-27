@@ -106,7 +106,10 @@ export default function ReportPage() {
                       {report.status?.toUpperCase() === 'PROCESSING' ? 'PROCESSING' : 'REPORT'}
                     </p>
                     <p className="mt-2 text-xs text-[#6b7b92]">
-                      {formatKstDateTime(report.updatedAt || report.createdAt, REPORT_DATETIME_OPTIONS)}{' '}
+                      {formatKstDateTime(
+                        report.updatedAt || report.createdAt,
+                        REPORT_DATETIME_OPTIONS,
+                      )}{' '}
                       업데이트
                     </p>
                   </button>

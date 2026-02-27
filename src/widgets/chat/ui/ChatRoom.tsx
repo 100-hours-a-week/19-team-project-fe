@@ -50,7 +50,9 @@ export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
       chatStatus === 'CLOSED' &&
       isRequestReceiver,
   });
-  const hasReportForChat = (reportsQuery.data?.reports ?? []).some((report) => report.chatRoomId === chatId);
+  const hasReportForChat = (reportsQuery.data?.reports ?? []).some(
+    (report) => report.chatRoomId === chatId,
+  );
   const shouldShowFeedbackButton =
     requestType === 'FEEDBACK' &&
     chatStatus === 'CLOSED' &&

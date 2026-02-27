@@ -38,7 +38,8 @@ const parseDateTime = (value: string) => {
     offsetMinutes = sign * (zoneHours * 60 + zoneMinutes);
   }
 
-  const utcTime = Date.UTC(year, month - 1, day, hour, minute, second, millisecond) - offsetMinutes * 60 * 1000;
+  const utcTime =
+    Date.UTC(year, month - 1, day, hour, minute, second, millisecond) - offsetMinutes * 60 * 1000;
   const parsed = new Date(utcTime);
 
   if (Number.isNaN(parsed.getTime())) return null;
@@ -69,10 +70,7 @@ export const formatKstDateTime = (
   }).format(parsed);
 };
 
-export const formatKstDate = (
-  value: Date | string | null | undefined,
-  locale = 'ko-KR',
-) =>
+export const formatKstDate = (value: Date | string | null | undefined, locale = 'ko-KR') =>
   formatKstDateTime(
     value,
     {

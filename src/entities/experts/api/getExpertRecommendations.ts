@@ -75,9 +75,9 @@ export async function getExpertRecommendations(
               raw.expertId ??
               raw.member_id ??
               raw.memberId ??
-              ((raw.user as Record<string, unknown> | undefined)?.user_id ??
-                (raw.user as Record<string, unknown> | undefined)?.userId ??
-                (raw.user as Record<string, unknown> | undefined)?.id),
+              (raw.user as Record<string, unknown> | undefined)?.user_id ??
+              (raw.user as Record<string, unknown> | undefined)?.userId ??
+              (raw.user as Record<string, unknown> | undefined)?.id,
           ),
         } as ExpertRecommendation;
       })

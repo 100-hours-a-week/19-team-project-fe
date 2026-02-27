@@ -5,9 +5,7 @@ import { formatKstDateTime, getKstDateKey, parseKstDate } from '@/shared/lib/dat
 export const formatChatTime = (value: string) => {
   const parsed = parseChatDate(value);
   if (!parsed) return value;
-  return (
-    formatKstDateTime(parsed, { hour: '2-digit', minute: '2-digit', hour12: false }) || value
-  );
+  return formatKstDateTime(parsed, { hour: '2-digit', minute: '2-digit', hour12: false }) || value;
 };
 
 export const formatChatDate = (value: string) => {

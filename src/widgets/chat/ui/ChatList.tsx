@@ -13,7 +13,12 @@ import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { Modal } from '@/shared/ui/modal';
 import { useToast } from '@/shared/ui/toast';
 import { consumeReportCreateAccepted, REPORT_CREATE_ACCEPTED_EVENT } from '@/features/chat';
-import { formatKstDate, formatKstDateTime, getKstDateKey, parseKstDate } from '@/shared/lib/dateTime';
+import {
+  formatKstDate,
+  formatKstDateTime,
+  getKstDateKey,
+  parseKstDate,
+} from '@/shared/lib/dateTime';
 import charIcon from '@/shared/icons/char_icon.png';
 import ChatRequestSuccessAnimation from './ChatRequestSuccessAnimation';
 import ReportCreateSuccessAnimation from './ReportCreateSuccessAnimation';
@@ -35,7 +40,11 @@ const formatChatTime = (value?: string | null) => {
     return `${month}.${day}`;
   }
 
-  const formatted = formatKstDateTime(parsed, { hour: '2-digit', minute: '2-digit', hour12: false });
+  const formatted = formatKstDateTime(parsed, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
   if (!formatted) return value;
 
   return formatted;
@@ -453,7 +462,9 @@ export default function ChatList() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <div className="truncate text-base font-semibold">{counterparty.nickname}</div>
+                        <div className="truncate text-base font-semibold">
+                          {counterparty.nickname}
+                        </div>
                         {renderRequestTypeTag(requestType)}
                         <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
                           종료
