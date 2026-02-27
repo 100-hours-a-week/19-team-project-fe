@@ -5,6 +5,7 @@ import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
 import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 const LOGOUT_PATH = '/api/v1/auth/logout';
+const cookieDomain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
 
 function getAccessToken(req: Request, cookieToken?: string) {
   const authHeader = req.headers.get('authorization');
@@ -21,6 +22,7 @@ function clearAuthCookies(response: NextResponse) {
     sameSite: 'lax' as const,
     path: '/',
     expires: new Date(0),
+    domain: cookieDomain,
   };
   response.cookies.set('access_token', '', base);
   response.cookies.set('refresh_token', '', base);

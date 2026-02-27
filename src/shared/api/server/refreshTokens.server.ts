@@ -2,6 +2,8 @@ import { cookies } from 'next/headers';
 import { buildApiUrl } from '@/shared/api';
 import type { ApiResponse } from '@/shared/api';
 
+const cookieDomain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
+
 type RefreshTokenResponse = {
   access_token: string;
   refresh_token: string;
@@ -79,12 +81,14 @@ export async function refreshAuthTokens(): Promise<{
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      domain: cookieDomain,
     });
     cookieStore.set('refresh_token', nextTokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      domain: cookieDomain,
     });
   } catch {
     // Cookies may be immutable in server components; ignore and return tokens.

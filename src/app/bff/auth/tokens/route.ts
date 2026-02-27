@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { RefreshTokenError, refreshAuthTokens } from '@/shared/api/server';
 
+const cookieDomain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
+
 export const dynamic = 'force-dynamic';
 
 export async function POST() {
@@ -19,12 +21,14 @@ export async function POST() {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      domain: cookieDomain,
     });
     response.cookies.set('refresh_token', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      domain: cookieDomain,
     });
     return response;
   } catch (error) {
@@ -44,6 +48,7 @@ export async function POST() {
         sameSite: 'lax',
         path: '/',
         expires: new Date(0),
+        domain: cookieDomain,
       });
       response.cookies.set('refresh_token', '', {
         httpOnly: true,
@@ -51,6 +56,7 @@ export async function POST() {
         sameSite: 'lax',
         path: '/',
         expires: new Date(0),
+        domain: cookieDomain,
       });
     }
     return response;

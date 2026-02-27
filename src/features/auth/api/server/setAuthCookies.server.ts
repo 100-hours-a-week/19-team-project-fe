@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 
+const cookieDomain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
+
 export async function setAuthCookies({
   accessToken,
   refreshToken,
@@ -16,6 +18,7 @@ export async function setAuthCookies({
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
+    domain: cookieDomain,
   });
 
   cookieStore.set('refresh_token', refreshToken, {
@@ -23,6 +26,7 @@ export async function setAuthCookies({
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
+    domain: cookieDomain,
   });
 
   if (userId !== null && userId !== undefined) {

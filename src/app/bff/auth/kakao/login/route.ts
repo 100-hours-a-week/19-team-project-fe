@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import type { ApiResponse } from '@/shared/api';
 import { kakaoLogin } from '@/features/auth.server';
 
+const cookieDomain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
+
 export async function POST(req: Request) {
   const { code } = await req.json();
 
@@ -94,6 +96,7 @@ export async function POST(req: Request) {
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
+    domain: cookieDomain,
   });
 
   responseWithCookies.cookies.set('refresh_token', result.refreshToken, {
@@ -101,6 +104,7 @@ export async function POST(req: Request) {
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
+    domain: cookieDomain,
   });
 
   return responseWithCookies;

@@ -4,6 +4,8 @@ import type { ApiResponse } from '@/shared/api';
 import { BusinessError } from '@/shared/api';
 import { restoreAccount } from '@/features/auth.server';
 
+const cookieDomain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
+
 type RestoreResult = {
   user_id: number;
   user_type: string;
@@ -33,12 +35,14 @@ export async function POST(req: Request) {
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
+      domain: cookieDomain,
     });
     responseWithCookies.cookies.set('refresh_token', result.refreshToken, {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
+      domain: cookieDomain,
     });
 
     return responseWithCookies;
