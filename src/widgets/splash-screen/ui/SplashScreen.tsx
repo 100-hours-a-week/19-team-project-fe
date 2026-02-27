@@ -20,7 +20,7 @@ export default function SplashScreen() {
   }, []);
 
   return (
-    <section className="relative h-screen w-full overflow-hidden">
+    <section className="relative h-[100dvh] w-screen overflow-hidden bg-white">
       <Lanyard position={[0, 0, 20]} gravity={[0, -65, 0]} />
       <div className="pointer-events-none absolute inset-0">
         <div

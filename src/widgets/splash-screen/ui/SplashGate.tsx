@@ -36,11 +36,30 @@ export default function SplashGate({ children, durationMs = 5000 }: SplashGatePr
     };
   }, [durationMs]);
 
+  useEffect(() => {
+    if (!(showSplash && SplashScreen)) return;
+
+    const { documentElement, body } = document;
+    const prevHtmlOverflow = documentElement.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevBodyTouchAction = body.style.touchAction;
+
+    documentElement.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    body.style.touchAction = 'none';
+
+    return () => {
+      documentElement.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      body.style.touchAction = prevBodyTouchAction;
+    };
+  }, [SplashScreen, showSplash]);
+
   return (
     <>
       {children}
       {showSplash && SplashScreen ? (
-        <div className="absolute inset-0 z-50 bg-white">
+        <div className="fixed left-1/2 top-0 z-[1000] h-[100dvh] w-full max-w-[600px] -translate-x-1/2 overflow-hidden bg-white">
           <SplashScreen />
         </div>
       ) : null}

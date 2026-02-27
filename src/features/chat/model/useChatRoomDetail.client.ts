@@ -4,9 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { getChatDetail } from '@/features/chat';
-import { CHAT_REALTIME_REFRESH_EVENT, type ChatRealtimeRefreshPayload } from '@/entities/chat';
+import {
+  CHAT_REALTIME_REFRESH_EVENT,
+  type ChatDetailData,
+  type ChatRealtimeRefreshPayload,
+} from '@/entities/chat';
 import { BusinessError, HttpError, useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
+import { hasChatFeedbackSubmitted } from '../lib/reportCreate.client';
 
 export function useChatRoomDetail(chatId: number, currentUserId: number | null) {
   const router = useRouter();
@@ -14,6 +19,8 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
   const handleCommonApiError = useCommonApiErrorHandler();
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
+  const [isRequestReceiver, setIsRequestReceiver] = useState(false);
+  const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const handleInvalidAccess = useCallback(
@@ -33,6 +40,7 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
   useEffect(() => {
     if (!chatId) return;
     let cancelled = false;
+    setIsFeedbackSubmitted(hasChatFeedbackSubmitted(chatId));
 
     const loadDetail = async () => {
       try {
@@ -44,6 +52,22 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
           meId !== null && detail.receiver.user_id === meId ? detail.requester : detail.receiver;
         setHeaderTitle(counterpart.nickname ?? '채팅');
         setChatStatus(detail.status);
+        setIsRequestReceiver(meId !== null && detail.receiver.user_id === meId);
+        const raw = detail as ChatDetailData & {
+          chat_feedback_id?: unknown;
+          chatFeedbackId?: unknown;
+          report_id?: unknown;
+          reportId?: unknown;
+        };
+        setIsFeedbackSubmitted(
+          Boolean(
+            raw.chat_feedback_id ??
+            raw.chatFeedbackId ??
+            raw.report_id ??
+            raw.reportId ??
+            hasChatFeedbackSubmitted(chatId),
+          ),
+        );
       } catch (error) {
         if (cancelled) return;
         const handled = await handleCommonApiError(error);
@@ -75,5 +99,5 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
     };
   }, [chatId, currentUserId, handleCommonApiError, handleInvalidAccess]);
 
-  return { headerTitle, chatStatus, isLoading };
+  return { headerTitle, chatStatus, isRequestReceiver, isFeedbackSubmitted, isLoading };
 }

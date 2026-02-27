@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton } from '@/features/auth';
 import { useResumeList } from '@/features/resume';
+import { formatKstDate } from '@/shared/lib/dateTime';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import iconResume from '@/shared/icons/icon_resume.png';
 import charResume from '@/shared/icons/char_resume.png';
@@ -121,7 +122,7 @@ export default function ResumePage() {
                       </p>
                     </div>
                     <p className="mt-2 pl-4 text-xs text-[#6b7b92]">
-                      {new Date(task.createdAt).toLocaleDateString('ko-KR')} 요청
+                      {formatKstDate(task.createdAt)} 요청
                     </p>
                   </div>
                 ))}
@@ -188,7 +189,7 @@ export default function ResumePage() {
                       </div>
                     </div>
                     <p className="mt-2 pl-4 text-xs text-[#6b7b92]">
-                      {new Date(resume.createdAt).toLocaleDateString('ko-KR')} 등록
+                      {formatKstDate(resume.createdAt)} 등록
                     </p>
 
                     {openMenuId === resume.resumeId ? (

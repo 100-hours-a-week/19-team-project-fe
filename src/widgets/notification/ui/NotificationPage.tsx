@@ -11,6 +11,7 @@ import {
   useReadNotificationMutation,
   type NotificationItem,
 } from '@/entities/notification';
+import { formatKstDateTime } from '@/shared/lib/dateTime';
 import {
   readStoredFcmToken,
   removeRegisteredFcmToken,
@@ -24,14 +25,15 @@ import notificationResumeAnalysis from '@/shared/icons/notification_resume_analy
 import { useToast } from '@/shared/ui/toast';
 
 function formatNotificationDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString('ko-KR', {
+  const formatted = formatKstDateTime(value, {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   });
+  if (!formatted) return value;
+  return formatted;
 }
 
 function getNotificationIconSrc(notification: NotificationItem) {

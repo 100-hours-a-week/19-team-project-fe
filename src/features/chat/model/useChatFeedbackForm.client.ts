@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { markReportCreateAccepted } from '@/features/chat';
+import { markChatFeedbackSubmitted, markReportCreateAccepted } from '../lib/reportCreate.client';
 import type { ChatFeedbackRequest } from '@/entities/chat';
 import { readAccessToken } from '@/shared/api';
 
@@ -305,9 +305,55 @@ export function useChatFeedbackForm(chatId: number) {
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
-
-    setIsSubmitting(true);
     setSubmitError(null);
+    const nextValidationErrors: ValidationErrors = {};
+    const nextStep2ValidationErrors: Step2ValidationErrors = {};
+
+    for (const question of CHAT_FEEDBACK_QUESTIONS) {
+      if (
+        question.id === 2 ||
+        question.id === 3 ||
+        question.id === 4 ||
+        question.id === 5 ||
+        question.id === 6 ||
+        question.id === 7
+      ) {
+        continue;
+      }
+
+      if (!hasValidValue(question, answers[question.id])) {
+        nextValidationErrors[question.id] =
+          question.type === 'multi'
+            ? `${question.maxSelect ?? 1}개 선택은 필수입니다.`
+            : '필수 입력 항목입니다.';
+      }
+    }
+
+    for (const requirement of selectedCoreRequirements) {
+      const status = step2Evaluations[requirement]?.status?.trim() ?? '';
+      const reason = step2Evaluations[requirement]?.reason?.trim() ?? '';
+      if (!status || !reason) {
+        nextStep2ValidationErrors[requirement] = {
+          status: status ? '' : '필수 선택 항목입니다.',
+          reason: reason ? '' : '필수 입력 항목입니다.',
+        };
+      }
+    }
+
+    const hasValidationError =
+      Object.keys(nextValidationErrors).length > 0 ||
+      Object.keys(nextStep2ValidationErrors).length > 0;
+
+    if (hasValidationError) {
+      setValidationErrors(nextValidationErrors);
+      setStep2ValidationErrors(nextStep2ValidationErrors);
+      setSubmitError('모든 설문 문항은 필수입니다. 미입력 항목을 확인해 주세요.');
+      return;
+    }
+
+    setValidationErrors({});
+    setStep2ValidationErrors({});
+    setIsSubmitting(true);
 
     const payload: ChatFeedbackRequest = _buildPayload({
       questions: CHAT_FEEDBACK_QUESTIONS,
@@ -405,6 +451,7 @@ function sendFeedbackInBackground(
 
     const first = await postFeedback(payload);
     if (first.ok) {
+      markChatFeedbackSubmitted(chatId);
       markReportCreateAccepted();
       return;
     }
@@ -415,6 +462,7 @@ function sendFeedbackInBackground(
 
     const second = await postFeedback(retryPayload);
     if (second.ok) {
+      markChatFeedbackSubmitted(chatId);
       markReportCreateAccepted();
     }
   })();
