@@ -1,20 +1,33 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import type { ChatDetailData } from '@/entities/chat';
+import {
+  normalizeRequestTypeFromUnknown,
+  type ChatDetailData,
+  type ChatRequestType,
+} from '@/entities/chat';
 import type { ResumeDetail } from '@/entities/resumes';
-import { normalizeResumeContent, normalizeResumeDetail, toStringArray } from '@/entities/resumes';
 import { closeChat } from '@/features/chat';
 import { useCommonApiErrorHandler } from '@/shared/api';
+import { useToast } from '@/shared/ui/toast';
+import { normalizeResumeContent, normalizeResumeDetail, toStringArray } from '@/entities/resumes';
 
-export function useChatDetail(chatId: number, detail: ChatDetailData) {
+export function useChatDetail(
+  chatId: number,
+  detail: ChatDetailData,
+  fallbackRequestType?: ChatRequestType | null,
+) {
   const router = useRouter();
+  const { pushToast } = useToast();
   const handleCommonApiError = useCommonApiErrorHandler();
   const [status, setStatus] = useState(detail.status);
   const [isClosing, setIsClosing] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const isClosed = useMemo(() => status === 'CLOSED', [status]);
+  const requestType = resolveRequestType(detail, fallbackRequestType);
+  const isFeedbackChat = requestType === 'FEEDBACK';
+  const isCoffeeChat = requestType === 'COFFEE_CHAT';
 
   const resumeSource =
     detail.resume ??
@@ -26,18 +39,31 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
     : null;
 
   const handleCloseChat = async () => {
-    if (isClosed || isClosing) return;
-    setIsClosing(true);
+    if (isClosed) return;
+    if (isClosing) return;
     setCloseError(null);
+
+    if (isFeedbackChat) {
+      router.push(`/chat/${chatId}/feedback`);
+      return;
+    }
+
+    if (!isCoffeeChat) {
+      setCloseError('채팅 유형을 확인할 수 없어 종료할 수 없습니다.');
+      return;
+    }
+
+    setIsClosing(true);
     try {
       await closeChat({ chatId });
       setStatus('CLOSED');
+      pushToast('채팅이 종료되었습니다.');
       router.replace('/chat');
     } catch (error) {
-      if (await handleCommonApiError(error)) {
-        return;
+      const handled = await handleCommonApiError(error);
+      if (!handled) {
+        setCloseError(error instanceof Error ? error.message : '채팅 종료에 실패했습니다.');
       }
-      setCloseError(error instanceof Error ? error.message : '채팅방 종료에 실패했습니다.');
     } finally {
       setIsClosing(false);
     }
@@ -45,12 +71,12 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
 
   const content = normalizeResumeContent(resumeDetail?.contentJson ?? null);
   const careers = toStringArray(content?.careers);
-  const projects = Array.isArray(content?.projects) ? (content?.projects ?? []) : [];
+  const projects = toProjects(content?.projects);
   const education = toStringArray(content?.education);
   const awards = toStringArray(content?.awards);
   const certificates = toStringArray(content?.certificates);
   const activities = toStringArray(content?.activities);
-  const summary = content?.summary?.trim();
+  const summary = toSafeSummary(content?.summary);
   const hasContent =
     Boolean(summary) ||
     careers.length > 0 ||
@@ -64,6 +90,8 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
     status,
     isClosed,
     isClosing,
+    isFeedbackChat,
+    isCoffeeChat,
     closeError,
     isResumeModalOpen,
     setIsResumeModalOpen,
@@ -79,4 +107,44 @@ export function useChatDetail(chatId: number, detail: ChatDetailData) {
     summary,
     hasContent,
   };
+}
+
+const toSafeSummary = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+const toProjects = (value: unknown) => {
+  if (!Array.isArray(value)) return [];
+  return value.reduce<
+    Array<{ title?: string; start_date?: string; end_date?: string; description?: string }>
+  >((acc, item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return acc;
+    const project = item as Record<string, unknown>;
+    const title = typeof project.title === 'string' ? project.title.trim() : '';
+    const startDate = typeof project.start_date === 'string' ? project.start_date.trim() : '';
+    const endDate = typeof project.end_date === 'string' ? project.end_date.trim() : '';
+    const description = typeof project.description === 'string' ? project.description.trim() : '';
+    acc.push({
+      title: title || undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+      description: description || undefined,
+    });
+    return acc;
+  }, []);
+};
+
+function normalizeRequestType(value: unknown): ChatRequestType | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toUpperCase();
+  if (normalized === 'FEEDBACK') return 'FEEDBACK';
+  if (normalized === 'COFFEE_CHAT') return 'COFFEE_CHAT';
+  return null;
+}
+
+function resolveRequestType(
+  detail: ChatDetailData,
+  fallbackRequestType?: ChatRequestType | null,
+): ChatRequestType | null {
+  return (
+    normalizeRequestTypeFromUnknown(detail) ?? normalizeRequestType(fallbackRequestType) ?? null
+  );
 }

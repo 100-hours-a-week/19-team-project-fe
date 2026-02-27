@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
+import { authStatusQueryKey } from '@/entities/auth';
 import type { CareerLevel, Job, Skill, UserType } from '@/entities/onboarding';
+import { userMeQueryKey } from '@/entities/user';
 import { signup } from '@/features/onboarding';
 import { BusinessError, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
 import { stompManager } from '@/shared/ws';
@@ -54,6 +57,7 @@ export function useOnboardingSubmit({
   pledgeAgreed,
 }: UseOnboardingSubmitParams) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const handleCommonApiError = useCommonApiErrorHandler();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -123,6 +127,8 @@ export function useOnboardingSubmit({
         refreshToken: response.refreshToken,
         userId: response.userId,
       });
+      queryClient.setQueryData(authStatusQueryKey, { authenticated: true });
+      await queryClient.invalidateQueries({ queryKey: userMeQueryKey });
 
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
       if (wsUrl && response.accessToken) {

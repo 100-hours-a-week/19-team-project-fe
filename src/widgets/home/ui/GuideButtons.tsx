@@ -57,7 +57,7 @@ const seekerItems = [
   {
     id: 'seeker-5',
     title: '채팅 요청',
-    body: '[채팅 요청하기] 버튼으로 현직자에게 커피챗을 요청합니다.',
+    body: '[피드백 요청하기] 또는 [커피챗 요청하기] 버튼으로 현직자에게 요청합니다.',
     note: '요청 수락 후 채팅이 시작됩니다.',
   },
 ];
@@ -102,16 +102,30 @@ function GuideCard({
   );
 }
 
-export default function GuideButtons() {
+type GuideButtonsProps = {
+  containerClassName?: string;
+  buttonClassName?: string;
+};
+
+export default function GuideButtons({
+  containerClassName,
+  buttonClassName,
+}: GuideButtonsProps = {}) {
   const [activeGuide, setActiveGuide] = useState<GuideId>(null);
+  const containerClass = containerClassName ?? 'mt-2 grid grid-cols-2 gap-3';
+  const baseButtonClass =
+    'flex items-center gap-2 rounded-full border border-[#2b4b7e] bg-[var(--color-primary-active)] px-3 py-2';
+  const mergedButtonClass = buttonClassName
+    ? `${baseButtonClass} ${buttonClassName}`
+    : baseButtonClass;
 
   return (
     <>
-      <div className="mt-2 grid grid-cols-2 gap-3">
+      <div className={containerClass}>
         <button
           type="button"
           onClick={() => setActiveGuide('seeker')}
-          className="ml-2 flex items-center gap-2 rounded-full border border-[#2b4b7e] bg-[var(--color-primary-active)] px-3 py-2"
+          className={mergedButtonClass}
         >
           <Image src={iconMark} alt="" width={20} height={20} />
           <span className="text-sm font-semibold text-primary-main">구직자 이용 가이드</span>
@@ -119,7 +133,7 @@ export default function GuideButtons() {
         <button
           type="button"
           onClick={() => setActiveGuide('expert')}
-          className="mr-2 flex items-center gap-2 rounded-full border border-[#2b4b7e] bg-[var(--color-primary-active)] px-3 py-2"
+          className={mergedButtonClass}
         >
           <Image src={iconMark} alt="" width={20} height={20} />
           <span className="text-sm font-semibold text-primary-main">현직자 이용 가이드</span>

@@ -1,17 +1,51 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { pretendard } from '../shared/config/font';
+import { FcmBootstrap } from '@/features/notification-fcm';
 import { QueryProvider } from '@/shared/lib/react-query';
 import { ToastProvider } from '@/shared/ui/toast';
 import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
 import { GaPageView } from '@/shared/metrics/GaPageView';
+import { ServiceWorkerRegistrar } from '@/shared/lib/pwa';
 import './globals.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://dev.re-fit.kr';
+const DEFAULT_OG_IMAGE = '/icons/refit-og-home.png';
+
 export const metadata: Metadata = {
-  title: 'RE:FIT',
-  description: 'RE:FIT',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'RE:FIT',
+    template: '%s | RE:FIT',
+  },
+  description: '현직자와 연결되어 커리어 피드백을 받고, 이력서와 지원 전략을 개선하는 RE:FIT',
   applicationName: 'RE:FIT',
   manifest: '/manifest.webmanifest',
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    siteName: 'RE:FIT',
+    title: 'RE:FIT',
+    description: '현직자와 연결되어 커리어 피드백을 받고, 이력서와 지원 전략을 개선하는 RE:FIT',
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: 'RE:FIT 서비스 대표 이미지',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RE:FIT',
+    description: '현직자와 연결되어 커리어 피드백을 받고, 이력서와 지원 전략을 개선하는 RE:FIT',
+    images: [DEFAULT_OG_IMAGE],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   appleWebApp: {
     capable: true,
     title: 'RE:FIT',
@@ -36,7 +70,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <head>
         <Script
           async
@@ -68,10 +102,12 @@ gtag('config', 'G-8YM02T7012', { send_page_view: false });`}
         </Script>
       </head>
       <body className={`${pretendard.variable} app-shell antialiased`}>
+        <ServiceWorkerRegistrar />
         <MetricsInitializer />
         <GaPageView />
         <QueryProvider>
           <ToastProvider>
+            <FcmBootstrap />
             <div className="app-frame">{children}</div>
           </ToastProvider>
         </QueryProvider>

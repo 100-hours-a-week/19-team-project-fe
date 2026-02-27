@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 export async function GET(req: Request, { params }: { params: Promise<{ resumeId: string }> }) {
   try {
@@ -34,7 +35,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ resumeId
       return NextResponse.json(response, { status: 400 });
     }
 
-    const res = await fetch(buildApiUrl(`/api/v1/resumes/${normalizedId}`), {
+    const res = await fetchBffUpstream(buildApiUrl(`/api/v1/resumes/${normalizedId}`), {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -111,7 +112,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ resum
       return NextResponse.json(response, { status: 400 });
     }
 
-    const res = await fetch(buildApiUrl(`/api/v1/resumes/${normalizedId}`), {
+    const res = await fetchBffUpstream(buildApiUrl(`/api/v1/resumes/${normalizedId}`), {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -190,7 +191,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ resume
     }
 
     const payload = await req.json();
-    const res = await fetch(buildApiUrl(`/api/v1/resumes/${normalizedId}`), {
+    const res = await fetchBffUpstream(buildApiUrl(`/api/v1/resumes/${normalizedId}`), {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${accessToken}`,

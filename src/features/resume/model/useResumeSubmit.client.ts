@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { createResume, updateResume } from '@/entities/resumes';
+import { createResume, resumesQueryKey, updateResume } from '@/entities/resumes';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import type { CareerItem, ProjectItem, SimpleItem } from './useResumeEditForm.client';
 
@@ -39,6 +40,7 @@ export function useResumeSubmit({
   onError,
 }: UseResumeSubmitParams) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const handleCommonApiError = useCommonApiErrorHandler({ redirectTo: '/resume' });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,6 +124,7 @@ export function useResumeSubmit({
           };
           await createResume(createPayload);
         }
+        await queryClient.invalidateQueries({ queryKey: resumesQueryKey });
         router.replace('/resume');
       } catch (error) {
         if (await handleCommonApiError(error)) {

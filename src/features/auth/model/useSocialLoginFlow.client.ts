@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { restoreAccount } from '@/features/auth';
+import { authStatusQueryKey } from '@/entities/auth';
+import { userMeQueryKey } from '@/entities/user';
 import { readAccessToken, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 import { stompManager } from '@/shared/ws';
@@ -26,6 +29,7 @@ type SignupRequiredPayload = {
 
 export function useSocialLoginFlow() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const handleCommonApiError = useCommonApiErrorHandler();
   const { pushToast } = useToast();
 
@@ -108,6 +112,8 @@ export function useSocialLoginFlow() {
         refreshToken: result.refresh_token,
         userId: result.user_id,
       });
+      queryClient.setQueryData(authStatusQueryKey, { authenticated: true });
+      await queryClient.invalidateQueries({ queryKey: userMeQueryKey });
 
       try {
         const wsUrl = process.env.NEXT_PUBLIC_WS_URL;

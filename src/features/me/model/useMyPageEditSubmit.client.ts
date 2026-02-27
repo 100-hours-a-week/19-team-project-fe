@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { deleteProfileImage, updateUserMe } from '@/features/me';
 import { createPresignedUrl, uploadToPresignedUrl } from '@/features/uploads';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
+import type { UserMe } from '@/entities/user';
 import type { CareerLevel, Job, Skill } from '@/entities/onboarding';
 
 const updateErrorMessages: Record<string, string> = {
@@ -62,6 +64,7 @@ export function useMyPageEditSubmit({
   setSubmitError,
 }: UseMyPageEditSubmitParams) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const handleCommonApiError = useCommonApiErrorHandler();
   const { pushToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,7 +137,7 @@ export function useMyPageEditSubmit({
         setProfileImageUrl(null);
       }
 
-      await updateUserMe({
+      const updatedUser = await updateUserMe({
         nickname: trimmed,
         introduction: introduction.trim(),
         career_level_id: selectedCareer.id,
@@ -143,6 +146,8 @@ export function useMyPageEditSubmit({
         profile_image_url: uploadedImageUrl,
       });
 
+      queryClient.setQueryData<UserMe | null>(['user', 'me'], updatedUser);
+      await queryClient.invalidateQueries({ queryKey: ['user', 'me'] });
       router.replace('/me');
     } catch (error: unknown) {
       if (await handleCommonApiError(error)) return;

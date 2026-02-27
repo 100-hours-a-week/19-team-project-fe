@@ -9,7 +9,7 @@ export default function Footer() {
   const isChat = pathname === '/chat';
   const isMyPage = pathname === '/me';
   const isResume = pathname === '/resume';
-  const isReport = pathname === '/report';
+  const isReport = pathname.startsWith('/report');
 
   return (
     <footer className="fixed bottom-0 left-1/2 z-10 flex h-[calc(var(--app-footer-height)+4px)] w-full max-w-[600px] -translate-x-1/2 items-center justify-around rounded-t-2xl border-t border-neutral-200 bg-white px-4 pb-2">

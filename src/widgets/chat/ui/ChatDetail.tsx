@@ -4,14 +4,20 @@ import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import type { ChatDetailData, ChatParticipant } from '@/entities/chat';
-import { useChatDetail } from '@/features/chat';
+import {
+  normalizeRequestTypeFromUnknown,
+  type ChatDetailData,
+  type ChatParticipant,
+  type ChatRequestType,
+} from '@/entities/chat';
+import { useChatCurrentUser, useChatDetail } from '@/features/chat';
 import charIcon from '@/shared/icons/char_icon.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 
 type ChatDetailProps = {
   chatId: number;
   detail: ChatDetailData;
+  requestType?: ChatRequestType | null;
 };
 
 const formatDateTime = (value: string | null) => {
@@ -28,6 +34,35 @@ const formatDateTime = (value: string | null) => {
 };
 
 const EMPTY_CONTENT_LABEL = '내용이 없습니다.';
+
+const formatRequestType = (value: ChatRequestType | null | undefined) => {
+  if (value === 'FEEDBACK') return '피드백';
+  if (value === 'COFFEE_CHAT') return '커피챗';
+  return '—';
+};
+const getRequestTypeTagTheme = (type: ChatRequestType | null | undefined) => {
+  if (type === 'COFFEE_CHAT') {
+    return {
+      wrap: 'border-[#d8c3af] bg-[#f9f5ef] text-[#70462d]',
+    };
+  }
+
+  return {
+    wrap: 'border-primary-main/30 bg-primary-main/10 text-primary-main',
+  };
+};
+const renderRequestTypeTag = (type: ChatRequestType | null | undefined) => {
+  if (!type) return '—';
+  const theme = getRequestTypeTagTheme(type);
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none ${theme.wrap}`}
+    >
+      {formatRequestType(type)}
+    </span>
+  );
+};
 
 const DetailRow = ({ label, value }: { label: string; value: ReactNode }) => (
   <div className="flex items-start justify-between gap-4 text-sm text-neutral-700">
@@ -59,11 +94,14 @@ const ParticipantCard = ({
   </div>
 );
 
-export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
+export default function ChatDetail({ chatId, detail, requestType }: ChatDetailProps) {
   const router = useRouter();
+  const { currentUserId, isLoading: isCurrentUserLoading } = useChatCurrentUser();
+  const resolvedRequestType = normalizeRequestTypeFromUnknown(detail) ?? requestType ?? null;
   const {
     isClosed,
     isClosing,
+    isCoffeeChat,
     closeError,
     isResumeModalOpen,
     setIsResumeModalOpen,
@@ -77,11 +115,14 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
     activities,
     summary,
     hasContent,
-  } = useChatDetail(chatId, detail);
+  } = useChatDetail(chatId, detail, requestType);
   const participants: Array<{ title: string; data: ChatParticipant }> = [
     { title: '요청자', data: detail.requester },
     { title: '수신자', data: detail.receiver },
   ];
+  const isReceiver = currentUserId !== null && currentUserId === detail.receiver.user_id;
+  const canCloseChat = (isCoffeeChat || isReceiver) && !isCurrentUserLoading;
+  const closeButtonDisabled = isClosed || isClosing || !canCloseChat;
 
   return (
     <div
@@ -165,22 +206,29 @@ export default function ChatDetail({ chatId, detail }: ChatDetailProps) {
                 <span className="text-neutral-900">—</span>
               )}
             </div>
+            <DetailRow label="채팅방 유형" value={renderRequestTypeTag(resolvedRequestType)} />
             <DetailRow label="생성 일시" value={formatDateTime(detail.created_at)} />
           </div>
         </section>
       </div>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-[#f7f7f7] px-2.5 pb-6 pt-3">
-        <button
-          type="button"
-          onClick={handleCloseChat}
-          disabled={isClosed || isClosing}
-          className="w-full rounded-2xl bg-neutral-200 py-3 text-sm font-semibold text-neutral-700 disabled:opacity-60"
-        >
-          {isClosed ? '채팅방 종료됨' : isClosing ? '종료 처리 중...' : '채팅방 종료하기'}
-        </button>
-        {closeError ? <p className="mt-2 text-center text-xs text-red-500">{closeError}</p> : null}
-      </div>
+      {canCloseChat ? (
+        <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-[#f7f7f7] px-2.5 pb-6 pt-3">
+          <button
+            type="button"
+            onClick={() => {
+              void handleCloseChat();
+            }}
+            disabled={closeButtonDisabled}
+            className="w-full rounded-2xl bg-neutral-200 py-3 text-sm font-semibold text-neutral-700 disabled:opacity-60"
+          >
+            {isClosed ? '채팅방 종료됨' : isClosing ? '종료 처리 중...' : '채팅 종료하기'}
+          </button>
+          {closeError ? (
+            <p className="mt-2 text-center text-xs text-red-500">{closeError}</p>
+          ) : null}
+        </div>
+      ) : null}
 
       <BottomSheet
         open={isResumeModalOpen}

@@ -16,6 +16,7 @@ export default function ResumePage() {
   const {
     authStatus,
     resumes,
+    pendingTasks,
     isLoadingResumes,
     loadError,
     openMenuId,
@@ -29,11 +30,29 @@ export default function ResumePage() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#eef1f6] text-black">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 right-[-120px] h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(53,85,139,0.18)_0%,_rgba(53,85,139,0)_70%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-64 left-[-160px] h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(101,119,140,0.14)_0%,_rgba(101,119,140,0)_72%)]"
+      />
       <Header />
 
-      <section className="flex flex-1 flex-col px-2.5 pt-6 pb-[calc(var(--app-footer-height)+16px)]">
-        <h1 className="text-2xl font-semibold text-black">이력서</h1>
+      <section className="relative z-10 flex flex-1 flex-col px-2.5 pb-[calc(var(--app-footer-height)+16px)] pt-6">
+        <div className="mt-3 rounded-3xl border border-white/60 bg-[linear-gradient(135deg,#35558b_0%,#65778c_100%)] px-5 py-5 text-white shadow-[0_16px_36px_rgba(31,46,71,0.25)]">
+          <p className="text-xs font-semibold tracking-[0.14em] text-white/80">RESUME STUDIO</p>
+          <p className="mt-2 text-lg font-semibold leading-snug">
+            최신 이력서를 정리하고
+            <br />
+            피드백 준비를 빠르게 진행하세요
+          </p>
+          <div className="mt-4 inline-flex rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-semibold">
+            총 {resumes.length + pendingTasks.length}개
+          </div>
+        </div>
 
         {authStatus === 'checking' ? (
           <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
@@ -56,19 +75,19 @@ export default function ResumePage() {
             <button
               type="button"
               onClick={() => router.push('/resume/edit')}
-              className="mt-4 flex w-full items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+              className="mt-4 flex w-full items-center justify-between rounded-2xl border border-[#dbe2ec] bg-white p-4 shadow-[0_14px_32px_rgba(22,33,53,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(22,33,53,0.12)]"
             >
               <div className="flex items-center gap-3">
                 <Image src={iconResume} alt="이력서 추가하기" width={40} height={40} />
                 <div className="text-left">
-                  <span className="text-base font-semibold text-text-body">이력서 추가하기</span>
-                  <p className="mt-1 text-xs text-text-caption">이력서를 업데이트해 보세요</p>
+                  <span className="text-base font-semibold text-[#1f2f46]">이력서 추가하기</span>
+                  <p className="mt-1 text-xs text-[#5f6f85]">이력서를 업데이트해 보세요</p>
                 </div>
               </div>
-              <span className="text-xl text-gray-300">›</span>
+              <span className="text-xl text-[#7f8ea4]">›</span>
             </button>
 
-            {resumes.length === 0 ? (
+            {resumes.length === 0 && pendingTasks.length === 0 ? (
               <div className="mt-6 flex flex-1 items-center justify-center">
                 <Image
                   src={charResume}
@@ -79,11 +98,42 @@ export default function ResumePage() {
               </div>
             ) : (
               <div className="mt-6 flex flex-col gap-3">
+                {pendingTasks.map((task) => (
+                  <div
+                    key={task.taskId}
+                    className="relative rounded-2xl border border-[#dde5ef] bg-white px-5 py-4 shadow-[0_14px_32px_rgba(23,33,52,0.08)]"
+                  >
+                    <div
+                      aria-hidden="true"
+                      className="absolute bottom-3 left-3 top-3 w-1.5 rounded-full bg-gradient-to-b from-[#9aa7b8] to-[#c7d0db]"
+                    />
+                    <div className="w-full pl-4 text-left">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[15px] font-semibold text-[#1f2f46]">이력서 생성 중</p>
+                          <p className="mt-2 inline-flex rounded-full bg-[#f2f4f7] px-2.5 py-1 text-[11px] font-semibold text-[#5f6f85]">
+                            PROCESSING
+                          </p>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs text-[#6b7b92]">
+                        AI가 이력서를 생성하고 있습니다.
+                      </p>
+                    </div>
+                    <p className="mt-2 pl-4 text-xs text-[#6b7b92]">
+                      {new Date(task.createdAt).toLocaleDateString('ko-KR')} 요청
+                    </p>
+                  </div>
+                ))}
                 {resumes.map((resume) => (
                   <div
                     key={resume.resumeId}
-                    className="relative rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                    className="relative rounded-2xl border border-[#dde5ef] bg-white px-5 py-4 shadow-[0_14px_32px_rgba(23,33,52,0.08)]"
                   >
+                    <div
+                      aria-hidden="true"
+                      className="absolute bottom-3 left-3 top-3 w-1.5 rounded-full bg-gradient-to-b from-[#35558b] to-[#8aa0bf]"
+                    />
                     <div
                       role="button"
                       tabIndex={0}
@@ -94,12 +144,15 @@ export default function ResumePage() {
                           router.push(`/resume/${resume.resumeId}`);
                         }
                       }}
-                      className="w-full cursor-pointer text-left"
+                      className="w-full cursor-pointer pl-4 text-left"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-[14px] font-semibold text-text-title">
-                            {resume.title}
+                          <p className="text-[15px] font-semibold text-[#1f2f46]">{resume.title}</p>
+                          <p className="mt-2 inline-flex rounded-full bg-[#edf4ff] px-2.5 py-1 text-[11px] font-semibold text-[#35558b]">
+                            {resume.status?.toUpperCase() === 'PROCESSING'
+                              ? 'PROCESSING'
+                              : 'RESUME'}
                           </p>
                         </div>
                         <div className="flex items-start gap-2">
@@ -134,12 +187,12 @@ export default function ResumePage() {
                         </div>
                       </div>
                     </div>
-                    <p className="mt-1 text-xs text-text-caption">
+                    <p className="mt-2 pl-4 text-xs text-[#6b7b92]">
                       {new Date(resume.createdAt).toLocaleDateString('ko-KR')} 등록
                     </p>
 
                     {openMenuId === resume.resumeId ? (
-                      <div className="absolute right-4 top-10 z-10 w-28 rounded-xl border border-gray-100 bg-white py-2 shadow-lg">
+                      <div className="absolute right-4 top-10 z-10 w-28 border border-gray-100 bg-white py-2 shadow-lg">
                         <button
                           type="button"
                           onClick={() => {

@@ -1,5 +1,22 @@
 export type ChatMessageType = 'TEXT';
 export type ChatRequestType = 'FEEDBACK' | 'COFFEE_CHAT';
+export type ChatRequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
+
+export interface ChatFeedbackAnswer {
+  question_id: number;
+  answer_value: string;
+}
+
+export interface ChatFeedbackRequest {
+  answers: ChatFeedbackAnswer[];
+}
+
+export interface ChatFeedbackCreatedData {
+  reportId?: number;
+  report_id?: number;
+  chat_feedback_id?: number;
+  chat_id?: number;
+}
 
 export interface SendChatMessageRequest {
   chat_id: number;
@@ -22,6 +39,10 @@ export type ChatResponse<T> =
 
 export interface ChatCreatedData {
   chat_id: number;
+}
+
+export interface ChatRequestCreatedData {
+  chat_request_id: number;
 }
 
 export interface ChatCreateRequest {
@@ -55,6 +76,7 @@ export interface ChatSummary {
   receiver: ChatParticipant;
   last_message: ChatMessageSummary | null;
   unread_count: number;
+  request_type?: ChatRequestType;
   status?: string;
   created_at?: string;
   updated_at?: string;
@@ -64,6 +86,30 @@ export interface ChatListData {
   chats: ChatSummary[];
   nextCursor: number | null;
   hasMore: boolean;
+}
+
+export interface ChatRequestItem {
+  chat_request_id: number;
+  requester: ChatParticipant;
+  receiver: ChatParticipant;
+  resume_id: number | null;
+  request_type: ChatRequestType;
+  status: ChatRequestStatus;
+  job_post_url: string | null;
+  created_at: string;
+  responded_at: string | null;
+}
+
+export interface ChatRequestUpdateData {
+  chat_request_id: number;
+  status: ChatRequestStatus;
+  chat_id: number | null;
+}
+
+export interface ChatRequestListData {
+  requests: ChatRequestItem[];
+  next_cursor: number | string | null;
+  has_more: boolean;
 }
 
 export interface ChatMessageItem {
@@ -100,6 +146,7 @@ export interface ChatDetailData {
     updated_at?: string;
   } | null;
   job_post_url: string;
+  request_type?: ChatRequestType;
   status: 'ACTIVE' | 'CLOSED';
   created_at: string;
   closed_at: string | null;

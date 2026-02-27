@@ -1,5 +1,7 @@
 import type { ChatListData, ChatSummary } from '@/entities/chat';
 
+import { normalizeRequestTypeFromUnknown } from './requestType';
+
 const getChatSortKey = (chat: ChatSummary) => {
   const lastMessageAt = chat.last_message?.last_message_at ?? null;
   const updatedAt = chat.updated_at ?? null;
@@ -14,11 +16,14 @@ const normalizeChatId = (chat: ChatSummary): ChatSummary | null => {
   const parsedChatId = typeof rawChatId === 'string' ? Number(rawChatId) : rawChatId;
   const chatId =
     typeof parsedChatId === 'number' && !Number.isNaN(parsedChatId) ? parsedChatId : null;
+  const requestType = normalizeRequestTypeFromUnknown(chat) ?? undefined;
 
   if (chatId === null) return null;
+
   return {
     ...chat,
     chat_id: chatId,
+    request_type: requestType,
   };
 };
 
@@ -27,3 +32,29 @@ export const normalizeChatList = (data: ChatListData): ChatSummary[] =>
     .map((chat) => normalizeChatId(chat))
     .filter((chat): chat is ChatSummary => !!chat)
     .sort((a, b) => getChatSortKey(b) - getChatSortKey(a));
+
+export const normalizeChatListData = (data: Partial<ChatListData>): ChatListData => {
+  const nextCursorRaw =
+    (data as { nextCursor?: unknown }).nextCursor ??
+    (data as { next_cursor?: unknown }).next_cursor ??
+    null;
+  const hasMoreRaw =
+    (data as { hasMore?: unknown }).hasMore ?? (data as { has_more?: unknown }).has_more ?? false;
+
+  const parsedNextCursor =
+    typeof nextCursorRaw === 'number'
+      ? nextCursorRaw
+      : typeof nextCursorRaw === 'string'
+        ? Number(nextCursorRaw)
+        : null;
+  const nextCursor =
+    typeof parsedNextCursor === 'number' && Number.isFinite(parsedNextCursor)
+      ? parsedNextCursor
+      : null;
+
+  return {
+    chats: (data.chats ?? []) as ChatSummary[],
+    nextCursor,
+    hasMore: Boolean(hasMoreRaw),
+  };
+};

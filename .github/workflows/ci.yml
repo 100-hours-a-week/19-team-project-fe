@@ -162,7 +162,7 @@ jobs:
             });
             console.log('✅ CD-Dev workflow triggered successfully');
 
-  # 4. 프로덕션 릴리즈 (main 브랜치 - 아티팩트 기반)
+  # 4. 프로덕션 릴리즈 (main 브랜치 - SST 기반)
   release-prod:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
@@ -170,7 +170,6 @@ jobs:
     runs-on: ubuntu-24.04-arm
     outputs:
       version_tag: ${{ steps.version.outputs.version_tag }}
-      artifact_prefix: ${{ steps.version.outputs.artifact_prefix }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -200,7 +199,7 @@ jobs:
         run: pnpm run test:all || echo "⚠️  Full tests not yet implemented"
 
       - name: Setup Environment Variables
-        run: echo "${{ secrets.PROD_ENV_FILE }}" > .env.production
+        run: echo "${{ secrets.PROD_V2_ENV_FILE }}" > .env.production
 
       - name: Production Build
         run: pnpm run build
@@ -219,34 +218,6 @@ jobs:
             exit 1
           fi
 
-      - name: Compress Build Artifacts
-        if: success()
-        run: |
-          tar -czf next-build.tar.gz .next/
-          echo "✅ Build artifacts compressed"
-          ls -lh next-build.tar.gz
-
-      - name: Archive Build Artifacts
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-build-${{ steps.version.outputs.artifact_prefix }}
-          path: next-build.tar.gz
-          retention-days: 7
-
-      - name: Archive Deployment Files
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-files-${{ steps.version.outputs.artifact_prefix }}
-          path: |
-            package.json
-            pnpm-lock.yaml
-            next.config.mjs
-            public/
-            scripts/
-          retention-days: 7
-
       - name: Create Release Tag
         run: |
           TAG_NAME="${{ steps.version.outputs.version_tag }}"
@@ -262,7 +233,7 @@ jobs:
           git push origin "$TAG_NAME"
           echo "✅ Created and pushed tag: $TAG_NAME"
 
-      - name: Trigger CD Workflow
+      - name: Trigger CD-Prod-V2 Workflow
         if: success()
         uses: actions/github-script@v7
         with:
@@ -271,14 +242,12 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'cd-prod.yml',
-              ref: context.ref,
+              workflow_id: 'cd-prod-v2.yml',
+              ref: 'main',
               inputs: {
-                run_id: '${{ github.run_id }}',
                 sha: '${{ github.sha }}',
-                branch: '${{ github.ref_name }}',
                 version_tag: '${{ steps.version.outputs.version_tag }}',
-                artifact_prefix: '${{ steps.version.outputs.artifact_prefix }}'
+                stage: 'prod'
               }
             });
-            console.log('CD workflow triggered successfully');
+            console.log('✅ CD-Prod-V2 (SST) workflow triggered successfully');

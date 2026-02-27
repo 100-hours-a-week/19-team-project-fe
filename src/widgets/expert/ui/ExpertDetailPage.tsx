@@ -1,13 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton } from '@/features/auth';
 import { useAuthStatus } from '@/entities/auth';
+import type { ChatRequestType } from '@/entities/chat';
 import { useExpertDetail, useExpertResumes, useChatRequest } from '@/features/expert';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
+import { Modal } from '@/shared/ui/modal';
 import defaultUserImage from '@/shared/icons/char_icon.png';
 import iconMark from '@/shared/icons/icon-mark.png';
 import ExpertDetailHeader from './ExpertDetailHeader';
@@ -22,6 +25,9 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const { expert, isLoading, errorMessage } = useExpertDetail(userId);
   const { resumes, resumeError, isLoadingResumes, selectedResumeId, setSelectedResumeId } =
     useExpertResumes(authStatus);
+  const [chatInfoSheetOpen, setChatInfoSheetOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingRequestType, setPendingRequestType] = useState<ChatRequestType | null>(null);
   const {
     authSheetOpen,
     setAuthSheetOpen,
@@ -32,10 +38,21 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
     handleChatRequestClick,
   } = useChatRequest(userId);
 
+  const openConfirm = (requestType: ChatRequestType) => {
+    setPendingRequestType(requestType);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!pendingRequestType) return;
+    setConfirmOpen(false);
+    await handleChatRequestClick(selectedResumeId, pendingRequestType);
+  };
+
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#f7f7f7] text-black">
       <ExpertDetailHeader />
-      <section className="px-4 pt-6 pb-[calc(96px+24px)]">
+      <section className="px-4 pt-6 pb-8">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -166,6 +183,62 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
                 )}
               </div>
             </div>
+
+            <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">
+              <div className="relative pr-10">
+                <p className="text-base font-semibold text-text-title">채팅 요청하기</p>
+                <button
+                  type="button"
+                  onClick={() => setChatInfoSheetOpen(true)}
+                  aria-label="채팅 요청 안내"
+                  className="absolute right-0 top-0 text-primary-main"
+                >
+                  <svg
+                    data-slot="icon"
+                    fill="none"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                    className="h-6 w-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  onClick={() => openConfirm('COFFEE_CHAT')}
+                  disabled={isCheckingAuth || !expert || isJobPostOverLimit}
+                  icon={<Image src={iconMark} alt="" width={18} height={18} />}
+                  className="py-2 font-semibold"
+                >
+                  <span className="leading-none">커피챗</span>
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => openConfirm('FEEDBACK')}
+                  disabled={
+                    isCheckingAuth ||
+                    !expert ||
+                    isJobPostOverLimit ||
+                    !selectedResumeId ||
+                    !jobPostUrl.trim()
+                  }
+                  icon={<Image src={iconMark} alt="" width={18} height={18} />}
+                  className="py-2 font-semibold"
+                >
+                  <span className="leading-none">피드백</span>
+                </Button>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="mt-4 rounded-3xl bg-white px-4 py-5 shadow-sm">
@@ -174,16 +247,87 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
         )}
       </section>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-[600px] -translate-x-1/2 bg-white/90 px-4 pb-6 pt-3">
-        <Button
-          type="button"
-          onClick={() => handleChatRequestClick(selectedResumeId)}
-          disabled={isCheckingAuth || !expert || isJobPostOverLimit}
-          icon={<Image src={iconMark} alt="" width={18} height={18} />}
-        >
-          채팅 요청하기
-        </Button>
-      </div>
+      <BottomSheet
+        open={chatInfoSheetOpen}
+        title="채팅 요청 안내"
+        onClose={() => setChatInfoSheetOpen(false)}
+        actionLabel="완료"
+        onAction={() => setChatInfoSheetOpen(false)}
+      >
+        <div className="flex h-full flex-col gap-4 pb-1">
+          <div className="rounded-2xl border border-[#d8c3af] bg-[#f9f5ef] p-4">
+            <p className="text-base font-semibold text-[#70462d]">커피챗</p>
+            <p className="mt-2 text-sm leading-6 text-[#6b4a37]">
+              가볍게 현직자와 이야기를 나누는 자유형 채팅입니다. 이력서나 채용 공고 링크 없이도
+              직무, 커리어 고민, 업계 이야기 등을 부담 없이 대화할 수 있습니다.
+            </p>
+            <div className="mt-3 rounded-xl bg-white/80 p-3">
+              <p className="text-xs font-semibold text-[#8a5e42]">핵심 안내</p>
+              <ul className="mt-2 space-y-1.5 text-xs text-[#6b4a37]">
+                <li>이력서/공고 링크 첨부: 선택 사항</li>
+                <li>대화 방식: 자유로운 실시간 채팅</li>
+                <li>종료 권한: 참여자 모두 가능</li>
+                <li>레포트 생성: 없음</li>
+              </ul>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[#cfd8eb] bg-[#f5f8ff] p-4">
+            <p className="text-base font-semibold text-[#2e4f86]">피드백</p>
+            <p className="mt-2 text-sm leading-6 text-[#3c5d93]">
+              현직자가 지원자의 이력서와 채용 공고를 기준으로 구체적이고 실질적인 피드백을 제공하는
+              심층 상담형 채팅입니다.
+            </p>
+            <div className="mt-3 rounded-xl bg-white/90 p-3">
+              <p className="text-xs font-semibold text-[#46649a]">진행 조건</p>
+              <ul className="mt-2 space-y-1.5 text-xs text-[#3c5d93]">
+                <li>이력서 첨부: 필수</li>
+                <li>채용 공고 링크 첨부: 필수</li>
+                <li>대화 종료 권한: 현직자만 가능</li>
+                <li>종료 후: 현직자 설문 작성</li>
+              </ul>
+            </div>
+            <div className="mt-3 rounded-xl border border-[#dce5f8] bg-white p-3">
+              <p className="text-xs font-semibold text-[#46649a]">레포트 생성 방식</p>
+              <p className="mt-1 text-xs leading-5 text-[#3c5d93]">
+                상담 종료 후 AI가 아래 정보를 종합 분석해 맞춤형 피드백 레포트를 생성합니다.
+              </p>
+              <ul className="mt-2 space-y-1.5 text-xs text-[#3c5d93]">
+                <li>채팅 내용</li>
+                <li>현직자 설문 응답</li>
+                <li>지원자가 첨부한 이력서</li>
+                <li>채용 공고 링크</li>
+              </ul>
+              <p className="mt-2 text-xs leading-5 text-[#3c5d93]">
+                생성된 레포트에는 공고 적합도 분석, 이력서 개선 방향, 직무 매칭 인사이트가
+                구조화되어 제공됩니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </BottomSheet>
+
+      <Modal
+        open={confirmOpen}
+        title="채팅 요청"
+        compact
+        description={
+          pendingRequestType === 'COFFEE_CHAT' ? (
+            <>
+              <span className="block">커피챗 요청을 보냅니다.</span>
+              <span className="block">자유롭게 대화하는 채팅입니다.</span>
+            </>
+          ) : pendingRequestType === 'FEEDBACK' ? (
+            <>
+              <span className="block">피드백 요청을 보냅니다.</span>
+              <span className="block">이력서·공고 기반 심층 피드백 채팅입니다.</span>
+            </>
+          ) : null
+        }
+        confirmLabel="확인"
+        cancelLabel="취소"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleConfirm}
+      />
 
       <BottomSheet
         open={authSheetOpen}

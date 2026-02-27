@@ -1392,3 +1392,302 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-13 Raw Log
+
+- Logged at: 2026-02-13 08:16:29Z
+
+```
+> re-fit@1.1.2 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/app/page.tsx
+  5:1  error  '@/entities/experts/api/getExpertRecommendations.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 1 problem (1 error, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-13 Raw Log
+
+- Logged at: 2026-02-13 08:17:33Z
+
+```
+> re-fit@1.1.2 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/app/page.tsx
+  5:1  error  '@/entities/experts/server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 1 problem (1 error, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-23 Raw Log
+
+- Logged at: 2026-02-23 07:46:23Z
+
+```
+> re-fit@1.1.2 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/public/firebase-messaging-sw.js
+  1:1  warning  Unused eslint-disable directive (no problems were reported from 'no-undef')
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/header/ui/Header.tsx
+  19:9  warning  'notifications' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/notification/ui/NotificationPage.tsx
+  16:1  error  '@/shared/icons/notifications/notification_chat_request.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다     no-restricted-imports
+  17:1  error  '@/shared/icons/notifications/notification_message.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다          no-restricted-imports
+  18:1  error  '@/shared/icons/notifications/notification_resume_analysis.png' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 5 problems (3 errors, 2 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-26 Raw Log
+
+- Logged at: 2026-02-26 08:15:10Z
+
+```
+> re-fit@1.1.2 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx
+   49:19  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:49:19
+  47 |
+  48 | export default async function ExpertRecommendationsServer() {
+> 49 |   const startMs = Date.now();
+     |                   ^^^^^^^^^^ Cannot call impure function
+  50 |   const cookieStore = await cookies();
+  51 |   const accessToken = cookieStore.get('access_token')?.value;
+  52 |   const hasAuth = Boolean(accessToken);                               react-hooks/purity
+   64:19  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:64:19
+  62 |       query: queryString,
+  63 |       count: freshCache.body.recommendations.length,
+> 64 |       durationMs: Date.now() - startMs,
+     |                   ^^^^^^^^^^ Cannot call impure function
+  65 |       path: '/api/v1/experts/recommendations',
+  66 |     });
+  67 |     return <ExpertRecommendations recommendations={freshCache.body.recommendations} />;  react-hooks/purity
+   75:29  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:75:29
+  73 |
+  74 |   try {
+> 75 |     const upstreamStartMs = Date.now();
+     |                             ^^^^^^^^^^ Cannot call impure function
+  76 |     data = await apiFetch<ExpertRecommendationsResponse>(url, {
+  77 |       method: 'GET',
+  78 |       cache: 'no-store',                                                                                                react-hooks/purity
+   88:27  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:88:27
+  86 |       query: queryString,
+  87 |       count: data.recommendations.length,
+> 88 |       upstreamDurationMs: Date.now() - upstreamStartMs,
+     |                           ^^^^^^^^^^ Cannot call impure function
+  89 |       durationMs: Date.now() - startMs,
+  90 |       path: '/api/v1/experts/recommendations',
+  91 |     });                                     react-hooks/purity
+   89:19  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:89:19
+  87 |       count: data.recommendations.length,
+  88 |       upstreamDurationMs: Date.now() - upstreamStartMs,
+> 89 |       durationMs: Date.now() - startMs,
+     |                   ^^^^^^^^^^ Cannot call impure function
+  90 |       path: '/api/v1/experts/recommendations',
+  91 |     });
+  92 |   } catch (error) {                                                   react-hooks/purity
+  103:21  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:103:21
+  101 |         query: queryString,
+  102 |         count: data.recommendations.length,
+> 103 |         durationMs: Date.now() - startMs,
+      |                     ^^^^^^^^^^ Cannot call impure function
+  104 |         path: '/api/v1/experts/recommendations',
+  105 |       });
+  106 |     } else {                                                                    react-hooks/purity
+  113:21  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:113:21
+  111 |         hasAuth,
+  112 |         query: queryString,
+> 113 |         durationMs: Date.now() - startMs,
+      |                     ^^^^^^^^^^ Cannot call impure function
+  114 |         path: '/api/v1/experts/recommendations',
+  115 |       });
+  116 |     }                                                                                                      react-hooks/purity
+
+✖ 7 problems (7 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-26 Raw Log
+
+- Logged at: 2026-02-26 08:17:57Z
+
+```
+> re-fit@1.1.2 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx
+   49:19  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:49:19
+  47 |
+  48 | export default async function ExpertRecommendationsServer() {
+> 49 |   const startMs = Date.now();
+     |                   ^^^^^^^^^^ Cannot call impure function
+  50 |   const cookieStore = await cookies();
+  51 |   const accessToken = cookieStore.get('access_token')?.value;
+  52 |   const hasAuth = Boolean(accessToken);                               react-hooks/purity
+   64:19  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:64:19
+  62 |       query: queryString,
+  63 |       count: freshCache.body.recommendations.length,
+> 64 |       durationMs: Date.now() - startMs,
+     |                   ^^^^^^^^^^ Cannot call impure function
+  65 |       path: '/api/v1/experts/recommendations',
+  66 |     });
+  67 |     return <ExpertRecommendations recommendations={freshCache.body.recommendations} />;  react-hooks/purity
+   75:29  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:75:29
+  73 |
+  74 |   try {
+> 75 |     const upstreamStartMs = Date.now();
+     |                             ^^^^^^^^^^ Cannot call impure function
+  76 |     data = await apiFetch<ExpertRecommendationsResponse>(url, {
+  77 |       method: 'GET',
+  78 |       cache: 'no-store',                                                                                                react-hooks/purity
+   88:27  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:88:27
+  86 |       query: queryString,
+  87 |       count: data.recommendations.length,
+> 88 |       upstreamDurationMs: Date.now() - upstreamStartMs,
+     |                           ^^^^^^^^^^ Cannot call impure function
+  89 |       durationMs: Date.now() - startMs,
+  90 |       path: '/api/v1/experts/recommendations',
+  91 |     });                                     react-hooks/purity
+   89:19  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:89:19
+  87 |       count: data.recommendations.length,
+  88 |       upstreamDurationMs: Date.now() - upstreamStartMs,
+> 89 |       durationMs: Date.now() - startMs,
+     |                   ^^^^^^^^^^ Cannot call impure function
+  90 |       path: '/api/v1/experts/recommendations',
+  91 |     });
+  92 |   } catch (error) {                                                   react-hooks/purity
+  103:21  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:103:21
+  101 |         query: queryString,
+  102 |         count: data.recommendations.length,
+> 103 |         durationMs: Date.now() - startMs,
+      |                     ^^^^^^^^^^ Cannot call impure function
+  104 |         path: '/api/v1/experts/recommendations',
+  105 |       });
+  106 |     } else {                                                                    react-hooks/purity
+  113:21  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx:113:21
+  111 |         hasAuth,
+  112 |         query: queryString,
+> 113 |         durationMs: Date.now() - startMs,
+      |                     ^^^^^^^^^^ Cannot call impure function
+  114 |         path: '/api/v1/experts/recommendations',
+  115 |       });
+  116 |     }                                                                                                      react-hooks/purity
+
+✖ 7 problems (7 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-02-26 Raw Log
+
+- Logged at: 2026-02-26 23:51:07Z
+
+```
+> re-fit@1.1.2 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/resume/model/useResumeEdit.client.ts
+  29:5  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `submit`, but the source dependencies were [submit.setSubmitError]. Inferred less specific property than source.
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/resume/model/useResumeEdit.client.ts:29:5
+  27 |   });
+  28 |   const handleLoadError = useCallback(
+> 29 |     (message: string) => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^
+> 30 |       submit.setSubmitError(message);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 31 |     },
+     | ^^^^^^ Could not preserve existing manual memoization
+  32 |     [submit.setSubmitError],
+  33 |   );
+  34 |   const { isLoadingResume } = useResumeEditLoader({  react-hooks/preserve-manual-memoization
+  32:5  warning  React Hook useCallback has a missing dependency: 'submit'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+✖ 2 problems (1 error, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

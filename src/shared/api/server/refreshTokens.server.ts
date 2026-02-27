@@ -1,10 +1,23 @@
 import { cookies } from 'next/headers';
 import { buildApiUrl } from '@/shared/api';
+import type { ApiResponse } from '@/shared/api';
 
 type RefreshTokenResponse = {
   access_token: string;
   refresh_token: string;
 };
+
+export class RefreshTokenError extends Error {
+  status: number;
+  code: string;
+
+  constructor(code: string, status: number, message?: string) {
+    super(message ?? code);
+    this.name = 'RefreshTokenError';
+    this.code = code;
+    this.status = status;
+  }
+}
 
 export async function refreshAuthTokens(): Promise<{
   accessToken: string;
@@ -12,23 +25,45 @@ export async function refreshAuthTokens(): Promise<{
 }> {
   const cookieStore = await cookies();
   const refreshToken = cookieStore.get('refresh_token')?.value;
+  const accessToken = cookieStore.get('access_token')?.value;
   if (!refreshToken) {
-    throw new Error('REFRESH_TOKEN_MISSING');
+    throw new RefreshTokenError('REFRESH_TOKEN_MISSING', 401);
   }
 
-  const res = await fetch(buildApiUrl('/api/v1/auth/tokens'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Refresh-Token': refreshToken,
-      // Some auth servers only read RT from cookies; include it explicitly.
-      Cookie: `refresh_token=${refreshToken}`,
-    },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
+  let res: Response;
+  try {
+    const forwardedCookies = [
+      `refresh_token=${encodeURIComponent(refreshToken)}`,
+      accessToken ? `access_token=${encodeURIComponent(accessToken)}` : null,
+    ]
+      .filter(Boolean)
+      .join('; ');
+
+    res = await fetch(buildApiUrl('/api/v1/auth/tokens'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Refresh-Token': refreshToken,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        // Some auth servers only read tokens from cookies; include both.
+        ...(forwardedCookies ? { Cookie: forwardedCookies } : {}),
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+  } catch {
+    throw new RefreshTokenError('TOKEN_REFRESH_NETWORK_FAILED', 502);
+  }
 
   if (!res.ok) {
-    throw new Error('TOKEN_REFRESH_FAILED');
+    let body: ApiResponse<unknown> | null = null;
+    try {
+      body = (await res.json()) as ApiResponse<unknown>;
+    } catch {
+      body = null;
+    }
+    const code = body?.code ?? 'TOKEN_REFRESH_FAILED';
+    const message = body?.message ?? 'TOKEN_REFRESH_FAILED';
+    throw new RefreshTokenError(code, res.status, message);
   }
 
   const body = await res.json();

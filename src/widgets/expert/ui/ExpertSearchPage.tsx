@@ -225,8 +225,10 @@ export default function ExpertSearchPage() {
                       <p className="text-[13px] font-semibold text-text-title">채팅 요청</p>
                     </div>
                     <p className="mt-2 text-[12px] text-text-caption">
-                      <span className="font-semibold text-text-body">[채팅 요청하기] 버튼</span>을
-                      클릭하여 현직자에게 커피챗을 요청합니다. 요청 완료 후, 현직자의 수락 시 채팅이
+                      <span className="font-semibold text-text-body">
+                        [피드백 요청하기] 또는 [커피챗 요청하기] 버튼
+                      </span>
+                      을 클릭하여 현직자에게 요청합니다. 요청 완료 후, 현직자의 수락 시 채팅이
                       시작됩니다.
                     </p>
                   </div>
@@ -287,7 +289,20 @@ export default function ExpertSearchPage() {
                       sessionStorage.setItem('nav-direction', 'forward');
                     }}
                   >
-                    <span className="text-sm font-semibold text-text-body">{expert.nickname}</span>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-sm font-semibold text-text-body">
+                        {expert.nickname}
+                      </span>
+                      {expert.verified ? (
+                        <span className="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[10px] font-semibold text-[#2b4b7e]">
+                          인증됨
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-neutral-600">
+                          비인증
+                        </span>
+                      )}
+                    </div>
                     <Image
                       src={expert.profile_image_url || defaultUserImage}
                       alt={`${expert.nickname} 프로필`}
@@ -304,29 +319,45 @@ export default function ExpertSearchPage() {
           ) : (
             <ul className="flex flex-col gap-3">
               {experts.map((expert) => (
-                <li
-                  key={expert.user_id}
-                  className="flex items-center justify-between gap-4 bg-white px-1 py-4"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <Image
-                      src={expert.profile_image_url || defaultUserImage}
-                      alt={`${expert.nickname} 프로필`}
-                      width={40}
-                      height={40}
-                      unoptimized={!!expert.profile_image_url}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      <span className="truncate text-sm font-semibold text-text-body">
-                        {expert.nickname}
-                      </span>
-                      <span className="truncate text-xs text-text-caption">
-                        {expert.company_name} · {expert.jobs[0]?.name ?? '직무 정보 없음'} ·{' '}
-                        {expert.career_level.level}
-                      </span>
+                <li key={expert.user_id} className="bg-white px-1 py-4">
+                  <Link
+                    href={`/experts/${String(expert.user_id)}`}
+                    className="flex items-center justify-between gap-4"
+                    onClick={() => {
+                      sessionStorage.setItem('nav-direction', 'forward');
+                    }}
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <Image
+                        src={expert.profile_image_url || defaultUserImage}
+                        alt={`${expert.nickname} 프로필`}
+                        width={40}
+                        height={40}
+                        unoptimized={!!expert.profile_image_url}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <div className="flex flex-col gap-1">
+                          <span className="truncate text-sm font-semibold text-text-body">
+                            {expert.nickname}
+                          </span>
+                          {expert.verified ? (
+                            <span className="w-fit rounded-full bg-[#edf4ff] px-2 py-0.5 text-[10px] font-semibold text-[#2b4b7e]">
+                              인증됨
+                            </span>
+                          ) : (
+                            <span className="w-fit rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-neutral-600">
+                              비인증
+                            </span>
+                          )}
+                        </div>
+                        <span className="truncate text-xs text-text-caption">
+                          {expert.company_name} · {expert.jobs[0]?.name ?? '직무 정보 없음'} ·{' '}
+                          {expert.career_level.level}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -1,4 +1,4 @@
-import type { ChatListData } from '@/entities/chat';
+import { normalizeChatListData, type ChatListData } from '@/entities/chat';
 import { buildApiUrl } from '@/shared/api';
 import { apiFetchWithRefresh } from '@/shared/api/server';
 
@@ -23,10 +23,11 @@ export async function getChatList(params: ChatListParams = {}): Promise<ChatList
 
   const fullUrl = `${url}?${query.toString()}`;
 
-  return apiFetchWithRefresh<ChatListData>(
+  const data = await apiFetchWithRefresh<ChatListData>(
     fullUrl,
     { method: 'GET' },
     params.accessToken,
     params.allowRefresh ?? true,
   );
+  return normalizeChatListData(data as ChatListData);
 }

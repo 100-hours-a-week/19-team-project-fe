@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { ResumeDetail } from '@/entities/resumes';
 import { getResumeDetail } from '@/entities/resumes';
@@ -23,6 +23,13 @@ export function useResumeEditLoader({
 }: UseResumeEditLoaderParams) {
   const handleCommonApiError = useCommonApiErrorHandler({ redirectTo: '/resume' });
   const [isLoadingResume, setIsLoadingResume] = useState(false);
+  const onLoadedRef = useRef(onLoaded);
+  const onErrorRef = useRef(onError);
+  const handleCommonApiErrorRef = useRef(handleCommonApiError);
+
+  onLoadedRef.current = onLoaded;
+  onErrorRef.current = onError;
+  handleCommonApiErrorRef.current = handleCommonApiError;
 
   useEffect(() => {
     if (!isEditMode || authStatus !== 'authed' || !resumeId) return;
@@ -34,14 +41,16 @@ export function useResumeEditLoader({
       try {
         const data = await getResumeDetail(resumeId);
         if (cancelled) return;
-        onLoaded(data);
+        onLoadedRef.current(data);
       } catch (error) {
         if (cancelled) return;
-        if (await handleCommonApiError(error)) {
+        if (await handleCommonApiErrorRef.current(error)) {
           setIsLoadingResume(false);
           return;
         }
-        onError(error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.');
+        onErrorRef.current(
+          error instanceof Error ? error.message : '이력서를 불러오지 못했습니다.',
+        );
       } finally {
         if (cancelled) return;
         setIsLoadingResume(false);
@@ -51,7 +60,7 @@ export function useResumeEditLoader({
     return () => {
       cancelled = true;
     };
-  }, [authStatus, handleCommonApiError, isEditMode, onError, onLoaded, resumeId]);
+  }, [authStatus, isEditMode, resumeId]);
 
   return { isLoadingResume };
 }

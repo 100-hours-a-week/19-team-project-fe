@@ -1,8 +1,7 @@
 import { apiFetch } from '@/shared/api';
 
-export type ResumeParseSyncRequest = {
+export type ResumeParseTaskRequest = {
   file_url: string;
-  mode: 'sync';
 };
 
 export type ResumeParseProject = {
@@ -31,27 +30,59 @@ export type ResumeParseContentJson = {
   activities?: string[];
 };
 
-export type ResumeParseSyncResult = {
+export type ResumeParseTaskResult = {
+  isFresher?: boolean;
+  educationLevel?: string;
+  contentJson?: ResumeParseContentJson;
+  rawTextExcerpt?: string;
   is_fresher?: boolean;
   education_level?: string;
   content_json?: ResumeParseContentJson;
   raw_text_excerpt?: string;
 };
 
-export type ResumeParseSyncData = {
-  task_id: string;
+type ResumeParseTaskApiData = {
+  taskId?: string;
+  task_id?: string;
   status: string;
-  result: ResumeParseSyncResult | null;
+  result: ResumeParseTaskResult | null;
 };
 
-export async function parseResumeSync(
-  payload: ResumeParseSyncRequest,
-): Promise<ResumeParseSyncData> {
-  return apiFetch<ResumeParseSyncData>('/bff/resumes/tasks', {
+export type ResumeParseTaskData = {
+  taskId: string;
+  status: string;
+  result: ResumeParseTaskResult | null;
+};
+
+const normalizeResult = (result: ResumeParseTaskResult): ResumeParseTaskResult => ({
+  is_fresher: result.is_fresher ?? result.isFresher,
+  education_level: result.education_level ?? result.educationLevel,
+  content_json: result.content_json ?? result.contentJson,
+  raw_text_excerpt: result.raw_text_excerpt ?? result.rawTextExcerpt,
+});
+
+const normalizeTaskData = (data: ResumeParseTaskApiData): ResumeParseTaskData => ({
+  taskId: data.taskId ?? data.task_id ?? '',
+  status: data.status ?? 'PROCESSING',
+  result: data.result ? normalizeResult(data.result) : null,
+});
+
+export async function parseResumeTask(
+  payload: ResumeParseTaskRequest,
+): Promise<ResumeParseTaskData> {
+  const data = await apiFetch<ResumeParseTaskApiData>('/bff/resumes/tasks', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   });
+
+  return normalizeTaskData(data);
+}
+
+export async function getResumeParseTask(taskId: string): Promise<ResumeParseTaskData> {
+  const encodedTaskId = encodeURIComponent(taskId);
+  const data = await apiFetch<ResumeParseTaskApiData>(`/bff/resumes/tasks/${encodedTaskId}`);
+  return normalizeTaskData(data);
 }

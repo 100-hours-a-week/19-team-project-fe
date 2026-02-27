@@ -17,6 +17,9 @@ const eslintConfig = defineConfig([
     // Tooling configs (CommonJS)
     "lighthouserc*.js",
     "lighthouserc*.cjs",
+    // SST auto-generated / config
+    "sst.config.ts",
+    "sst-env.d.ts",
   ]),
   {
     plugins: { boundaries },
