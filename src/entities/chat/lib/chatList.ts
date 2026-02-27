@@ -1,4 +1,5 @@
 import type { ChatListData, ChatSummary } from '@/entities/chat';
+import { parseKstDate } from '@/shared/lib/dateTime';
 
 import { normalizeRequestTypeFromUnknown } from './requestType';
 
@@ -7,7 +8,7 @@ const getChatSortKey = (chat: ChatSummary) => {
   const updatedAt = chat.updated_at ?? null;
   const raw = lastMessageAt ?? updatedAt ?? null;
   if (!raw) return 0;
-  const parsed = new Date(raw.replace(' ', 'T')).getTime();
+  const parsed = parseKstDate(raw)?.getTime() ?? Number.NaN;
   return Number.isNaN(parsed) ? 0 : parsed;
 };
 

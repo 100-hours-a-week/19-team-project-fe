@@ -13,6 +13,20 @@ interface ChatFeedbackFormProps {
   chatId: number;
 }
 
+function getTextPlaceholder(questionId: number) {
+  const map: Record<number, string> = {
+    3: '예: 유사 도메인 프로젝트 2건을 수행했고, 백엔드 API 설계/운영 경험이 있습니다.',
+    5: '예: 협업은 강점이지만 장애 대응 경험은 상대적으로 부족해 보입니다.',
+    7: '예: 경력 연차는 충족하나, 최근 실무 공백에 대한 보완 설명이 필요합니다.',
+    9: '예: 프로젝트 성과 수치와 역할 기여도가 명확하게 드러나 강점으로 판단했습니다.',
+    11: '예: 2주 내 포트폴리오 프로젝트에 성능 개선 전/후 지표를 추가해 보세요.',
+    12: '예: JD 핵심 키워드 중심으로 이력서 요약 문구를 재정리해 보세요.',
+    15: '추가로 전달하고 싶은 조언이나 코멘트를 자유롭게 작성해 주세요.',
+  };
+
+  return map[questionId] ?? '내용을 입력해 주세요.';
+}
+
 export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
   const router = useRouter();
   const {
@@ -22,6 +36,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
     step2ValidationErrors,
     submitError,
     isSubmitting,
+    isComplete,
     selectedCoreRequirements,
     step2Evaluations,
     setTextAnswer,
@@ -58,6 +73,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
   };
   const stepLeadTextClass = 'text-sm leading-6 tracking-normal text-[var(--color-primary-main)]';
   const stepDescriptionClass = 'text-xs leading-5 tracking-normal text-[var(--color-primary-main)]';
+  const canSubmit = isComplete && !isSubmitting;
 
   return (
     <div
@@ -142,7 +158,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                               return (
                                 <label
                                   key={`${requirement}-${option}`}
-                                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm ${
+                                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium ${
                                     checked
                                       ? 'border-[var(--color-primary-main)] bg-[var(--color-primary-main)] text-white'
                                       : 'border-[var(--color-primary-main)] text-[var(--color-primary-main)]'
@@ -172,6 +188,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                             onChange={(event) => {
                               setStep2Reason(requirement, event.target.value, 100);
                             }}
+                            placeholder="예: 해당 역량을 보여준 경험/성과가 이력서에 구체적으로 확인됩니다."
                             rows={3}
                             className="mt-2 min-h-[88px] w-full border border-neutral-300 p-3 text-xs text-neutral-900 outline-none focus:border-neutral-500"
                           />
@@ -187,7 +204,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                   )}
                 </div>
               ) : step === 'STEP 5' ? (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-0.5">
                   {[11, 12].map((questionId) => {
                     const question = stepQuestions.find((item) => item.id === questionId);
                     if (!question || question.type !== 'text') return null;
@@ -199,11 +216,15 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                     return (
                       <div key={question.id} className="flex items-start">
                         <div className="w-full">
+                          <p className="mb-2 text-sm font-semibold text-neutral-800">
+                            {question.id === 11 ? '첫 번째 액션' : '두 번째 액션'}
+                          </p>
                           <textarea
                             value={value}
                             onChange={(event) => {
                               setTextAnswer(question.id, event.target.value.slice(0, maxLength));
                             }}
+                            placeholder={getTextPlaceholder(question.id)}
                             rows={4}
                             className="min-h-[88px] w-full resize-y border border-neutral-300 bg-white p-3 text-xs text-neutral-900 outline-none focus:border-neutral-500"
                           />
@@ -268,9 +289,9 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                             return (
                               <div key={option} className="flex flex-col gap-2">
                                 <label
-                                  className={`flex items-center gap-2 text-sm ${
+                                  className={`flex min-h-11 items-center gap-3 rounded-xl border px-3 py-2 text-sm ${
                                     disabled ? 'text-neutral-400' : 'text-neutral-800'
-                                  }`}
+                                  } ${checked ? 'border-[var(--color-primary-main)] bg-[var(--color-primary-main)]/10' : 'border-neutral-200 bg-white'}`}
                                 >
                                   <input
                                     type="checkbox"
@@ -279,7 +300,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                                     onChange={() =>
                                       toggleMultiAnswer(question.id, option, maxSelect)
                                     }
-                                    className="h-4 w-4 accent-[var(--color-primary-main)]"
+                                    className="h-5 w-5 accent-[var(--color-primary-main)]"
                                   />
                                   <span>
                                     {isOtherOption && customSelected ? customSelected : option}
@@ -331,14 +352,14 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                               return (
                                 <label
                                   key={option}
-                                  className="flex items-center gap-2 text-sm text-neutral-900"
+                                  className="flex min-h-11 items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900"
                                 >
                                   <input
                                     type="radio"
                                     name={`question-${question.id}`}
                                     checked={checked}
                                     onChange={() => setRadioAnswer(question.id, option)}
-                                    className="h-4 w-4 accent-[var(--color-primary-main)]"
+                                    className="h-5 w-5 accent-[var(--color-primary-main)]"
                                   />
                                   <span>{option}</span>
                                 </label>
@@ -353,7 +374,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                               return (
                                 <label
                                   key={option}
-                                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm ${
+                                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium ${
                                     checked
                                       ? 'border-[var(--color-primary-main)] bg-[var(--color-primary-main)] text-white'
                                       : 'border-[var(--color-primary-main)] text-[var(--color-primary-main)]'
@@ -384,6 +405,7 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
                                 : event.target.value;
                               setTextAnswer(question.id, nextValue);
                             }}
+                            placeholder={getTextPlaceholder(question.id)}
                             rows={4}
                             className={`min-h-[96px] w-full border border-neutral-300 p-3 text-xs text-neutral-900 outline-none focus:border-neutral-500 ${
                               question.id === 9 || question.id === 15 ? '' : 'rounded-xl'
@@ -413,11 +435,13 @@ export default function ChatFeedbackForm({ chatId }: ChatFeedbackFormProps) {
         <Button
           type="button"
           onClick={() => {
+            if (!canSubmit) return;
             void handleSubmit();
           }}
-          disabled={isSubmitting}
+          disabled={!canSubmit}
+          aria-disabled={!canSubmit}
           icon={<Image src={iconMark} alt="" width={20} height={20} />}
-          className="mt-0 rounded-2xl bg-neutral-900 py-3 text-sm font-semibold hover:bg-neutral-900 active:bg-neutral-900 disabled:opacity-50"
+          className="mt-0 rounded-2xl py-3 text-sm font-semibold enabled:bg-[var(--color-primary-main)] enabled:hover:bg-[var(--color-primary-main)] enabled:active:bg-[var(--color-primary-main)] disabled:pointer-events-none disabled:opacity-50"
         >
           {isSubmitting ? '제출 중...' : '제출하기'}
         </Button>

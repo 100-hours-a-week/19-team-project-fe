@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { KakaoLoginButton } from '@/features/auth';
 import { useResumeDetail } from '@/features/resume';
 import { normalizeResumeContent } from '@/entities/resumes';
+import { formatKstDate } from '@/shared/lib/dateTime';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
@@ -145,9 +146,7 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
                 {resume.isFresher ? '신입' : '경력'} · {resume.educationLevel || '학력 정보 없음'}
               </p>
               <p className="mt-2 text-xs text-text-caption">
-                {resume.createdAt
-                  ? new Date(resume.createdAt).toLocaleDateString('ko-KR')
-                  : '등록일 정보 없음'}
+                {resume.createdAt ? formatKstDate(resume.createdAt) : '등록일 정보 없음'}
               </p>
             </div>
 
