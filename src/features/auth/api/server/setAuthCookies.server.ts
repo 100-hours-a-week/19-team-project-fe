@@ -10,19 +10,23 @@ export async function setAuthCookies({
   userId?: number;
 }) {
   const cookieStore = await cookies();
+  const secure = process.env.NODE_ENV === 'production';
+  const domain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
 
   cookieStore.set('access_token', accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     sameSite: 'lax',
     path: '/',
+    domain,
   });
 
   cookieStore.set('refresh_token', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     sameSite: 'lax',
     path: '/',
+    domain,
   });
 
   if (userId !== null && userId !== undefined) {

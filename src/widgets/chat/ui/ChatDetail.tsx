@@ -12,6 +12,7 @@ import {
 } from '@/entities/chat';
 import { useChatCurrentUser, useChatDetail } from '@/features/chat';
 import charIcon from '@/shared/icons/char_icon.png';
+import { formatKstString } from '@/shared/lib/date';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 
 type ChatDetailProps = {
@@ -22,15 +23,15 @@ type ChatDetailProps = {
 
 const formatDateTime = (value: string | null) => {
   if (!value) return '—';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return (
+    formatKstString(value, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }) ?? value
+  );
 };
 
 const EMPTY_CONTENT_LABEL = '내용이 없습니다.';

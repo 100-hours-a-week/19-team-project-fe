@@ -6,6 +6,9 @@ export const dynamic = 'force-dynamic';
 export async function POST() {
   try {
     const tokens = await refreshAuthTokens();
+    const secure = process.env.NODE_ENV === 'production';
+    const domain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
+
     const response = NextResponse.json({
       code: 'CREATED',
       message: 'token_refreshed',
@@ -16,15 +19,17 @@ export async function POST() {
     });
     response.cookies.set('access_token', tokens.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       sameSite: 'lax',
       path: '/',
+      domain,
     });
     response.cookies.set('refresh_token', tokens.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       sameSite: 'lax',
       path: '/',
+      domain,
     });
     return response;
   } catch (error) {
@@ -38,18 +43,23 @@ export async function POST() {
       { status: isUnauthorized ? 401 : status >= 500 ? 502 : status },
     );
     if (isUnauthorized) {
+      const secure = process.env.NODE_ENV === 'production';
+      const domain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
+
       response.cookies.set('access_token', '', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure,
         sameSite: 'lax',
         path: '/',
+        domain,
         expires: new Date(0),
       });
       response.cookies.set('refresh_token', '', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure,
         sameSite: 'lax',
         path: '/',
+        domain,
         expires: new Date(0),
       });
     }
