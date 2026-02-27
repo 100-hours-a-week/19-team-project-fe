@@ -1657,3 +1657,37 @@ React refs are values that are not needed for rendering. Refs should only be acc
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-02-26 Raw Log
+
+- Logged at: 2026-02-26 23:51:07Z
+
+```
+> re-fit@1.1.2 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/resume/model/useResumeEdit.client.ts
+  29:5  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `submit`, but the source dependencies were [submit.setSubmitError]. Inferred less specific property than source.
+
+/Users/junseopark/Desktop/19-team-project-fe/src/features/resume/model/useResumeEdit.client.ts:29:5
+  27 |   });
+  28 |   const handleLoadError = useCallback(
+> 29 |     (message: string) => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^
+> 30 |       submit.setSubmitError(message);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 31 |     },
+     | ^^^^^^ Could not preserve existing manual memoization
+  32 |     [submit.setSubmitError],
+  33 |   );
+  34 |   const { isLoadingResume } = useResumeEditLoader({  react-hooks/preserve-manual-memoization
+  32:5  warning  React Hook useCallback has a missing dependency: 'submit'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+✖ 2 problems (1 error, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

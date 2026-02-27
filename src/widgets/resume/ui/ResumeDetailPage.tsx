@@ -250,17 +250,6 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
                 </div>
               )}
             </div>
-
-            {resume.fileUrl ? (
-              <a
-                href={resume.fileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-2xl border border-gray-100 bg-white px-5 py-4 text-center text-sm font-semibold text-primary-main shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
-              >
-                첨부 파일 보기
-              </a>
-            ) : null}
           </div>
         ) : (
           <div className="mt-4 rounded-3xl bg-white px-2.5 py-5 shadow-sm">
