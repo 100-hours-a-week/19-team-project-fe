@@ -47,9 +47,44 @@ export async function getExpertRecommendations(
     ? `/bff/experts/recommendations?${query.toString()}`
     : '/bff/experts/recommendations';
 
-  return apiFetch<ExpertRecommendationsResponse>(path, {
+  const data = await apiFetch<ExpertRecommendationsResponse>(path, {
     method: 'GET',
     cache: 'no-store',
     headers: params.accessToken ? { Authorization: `Bearer ${params.accessToken}` } : undefined,
   });
+
+  const normalizeId = (value: unknown) => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+      const parsed = Number(value.replace(/[^\d-]/g, ''));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
+  };
+
+  const recommendations = Array.isArray((data as { recommendations?: unknown }).recommendations)
+    ? ((data as { recommendations?: unknown[] }).recommendations ?? []).map((item) => {
+        const raw = (item ?? {}) as Record<string, unknown>;
+        return {
+          ...raw,
+          user_id: normalizeId(
+            raw.user_id ??
+              raw.userId ??
+              raw.id ??
+              raw.expert_id ??
+              raw.expertId ??
+              raw.member_id ??
+              raw.memberId ??
+              ((raw.user as Record<string, unknown> | undefined)?.user_id ??
+                (raw.user as Record<string, unknown> | undefined)?.userId ??
+                (raw.user as Record<string, unknown> | undefined)?.id),
+          ),
+        } as ExpertRecommendation;
+      })
+    : [];
+
+  return {
+    ...data,
+    recommendations,
+  };
 }

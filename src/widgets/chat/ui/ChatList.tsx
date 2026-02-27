@@ -13,37 +13,37 @@ import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { Modal } from '@/shared/ui/modal';
 import { useToast } from '@/shared/ui/toast';
 import { consumeReportCreateAccepted, REPORT_CREATE_ACCEPTED_EVENT } from '@/features/chat';
+import { formatKstDate, formatKstDateTime, getKstDateKey, parseKstDate } from '@/shared/lib/dateTime';
 import charIcon from '@/shared/icons/char_icon.png';
 import ChatRequestSuccessAnimation from './ChatRequestSuccessAnimation';
 import ReportCreateSuccessAnimation from './ReportCreateSuccessAnimation';
 
-const pad2 = (value: number) => value.toString().padStart(2, '0');
-
 const formatChatTime = (value?: string | null) => {
   if (!value) return '';
-  const normalized = value.replace(' ', 'T');
-  const parsed = new Date(normalized);
+  const parsed = parseKstDate(value);
 
-  if (Number.isNaN(parsed.getTime())) {
+  if (!parsed) {
     return value;
   }
 
-  const now = new Date();
-  const isToday =
-    parsed.getFullYear() === now.getFullYear() &&
-    parsed.getMonth() === now.getMonth() &&
-    parsed.getDate() === now.getDate();
+  const isToday = getKstDateKey(parsed) === getKstDateKey(new Date());
 
   if (!isToday) {
-    return `${pad2(parsed.getMonth() + 1)}.${pad2(parsed.getDate())}`;
+    const month = formatKstDateTime(parsed, { month: '2-digit' }, 'en-US');
+    const day = formatKstDateTime(parsed, { day: '2-digit' }, 'en-US');
+    if (!month || !day) return value;
+    return `${month}.${day}`;
   }
 
-  const hours = parsed.getHours();
-  const minutes = pad2(parsed.getMinutes());
-  const period = hours < 12 ? '오전' : '오후';
-  const displayHours = pad2(hours % 12 === 0 ? 12 : hours % 12);
+  const formatted = formatKstDateTime(parsed, { hour: '2-digit', minute: '2-digit', hour12: false });
+  if (!formatted) return value;
 
-  return `${period} ${displayHours}:${minutes}`;
+  return formatted;
+};
+
+const formatChatRequestDate = (value?: string | null) => {
+  if (!value) return '';
+  return formatKstDate(value) || value;
 };
 
 const formatUnreadCount = (value?: number | null) => {
@@ -64,8 +64,19 @@ const getCounterparty = (chat: ChatSummary, currentUserId: number | null) => {
 export default function ChatList() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { authStatus, chats, currentUser, isLoading, loadingMore, hasMore, loadMore, loadError } =
-    useChatList();
+  const {
+    authStatus,
+    chats: chatsData,
+    closedChats: closedChatsData,
+    currentUser,
+    isLoading,
+    loadingMore,
+    hasMore,
+    loadMore,
+    loadError,
+  } = useChatList();
+  const chats = chatsData ?? [];
+  const closedChats = closedChatsData ?? [];
   const {
     requests: receivedRequests,
     isLoading: isReceivedLoading,
@@ -78,7 +89,8 @@ export default function ChatList() {
     loadError: sentLoadError,
   } = useChatRequestList({ direction: 'sent', status: 'PENDING', size: 5 });
   const { pushToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'chats' | 'received' | 'sent'>('chats');
+  const [activeTab, setActiveTab] = useState<'chats' | 'received' | 'sent' | 'closed'>('chats');
+  const [isHydrated, setIsHydrated] = useState(false);
   const listRef = useRef<HTMLUListElement | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingRequestId, setPendingRequestId] = useState<number | null>(null);
@@ -122,8 +134,16 @@ export default function ChatList() {
   const chatUnreadCount = chats.reduce((sum, chat) => sum + (chat.unread_count ?? 0), 0);
 
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
     const tab = searchParams.get('tab');
-    const isExpert = currentUser?.user_type === 'EXPERT';
+    const isExpert = isHydrated && currentUser?.user_type === 'EXPERT';
+    if (tab === 'closed') {
+      setActiveTab('closed');
+      return;
+    }
     if (tab === 'sent') {
       setActiveTab('sent');
       return;
@@ -133,7 +153,7 @@ export default function ChatList() {
       return;
     }
     setActiveTab('chats');
-  }, [currentUser?.user_type, searchParams]);
+  }, [isHydrated, currentUser?.user_type, searchParams]);
 
   useEffect(() => {
     const showIfAccepted = () => {
@@ -232,7 +252,18 @@ export default function ChatList() {
                 </span>
               ) : null}
             </button>
-            {currentUser?.user_type === 'EXPERT' ? (
+            <button
+              type="button"
+              onClick={() => setActiveTab('closed')}
+              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                activeTab === 'closed'
+                  ? 'border-primary-main bg-primary-main/10 text-primary-main'
+                  : 'border-neutral-200 bg-white text-neutral-500'
+              }`}
+            >
+              종료
+            </button>
+            {isHydrated && currentUser?.user_type === 'EXPERT' ? (
               <button
                 type="button"
                 onClick={() => setActiveTab('received')}
@@ -259,7 +290,7 @@ export default function ChatList() {
                   : 'border-neutral-200 bg-white text-neutral-500'
               }`}
             >
-              {currentUser?.user_type === 'EXPERT' ? '보낸 요청' : '요청 중'}
+              {isHydrated && currentUser?.user_type === 'EXPERT' ? '보낸 요청' : '요청 중'}
               {sentRequests.length > 0 ? (
                 <span className="rounded-full bg-primary-main px-2 py-0.5 text-xs font-semibold text-white">
                   {sentRequests.length > 99 ? '99+' : sentRequests.length}
@@ -307,7 +338,7 @@ export default function ChatList() {
                         {renderRequestTypeTag(requestType)}
                       </div>
                       <div className="mt-1 truncate text-sm text-neutral-500">
-                        요청일 {formatChatTime(request.created_at)}
+                        요청일 {formatChatRequestDate(request.created_at)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -374,10 +405,68 @@ export default function ChatList() {
                         </span>
                       </div>
                       <div className="mt-1 truncate text-sm text-neutral-500">
-                        요청일 {formatChatTime(request.created_at)}
+                        요청일 {formatChatRequestDate(request.created_at)}
                       </div>
                     </div>
                   </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
+      ) : activeTab === 'closed' ? (
+        <ul className="mt-4 flex flex-1 min-h-0 flex-col gap-1 overflow-y-auto px-4 pb-[calc(var(--app-footer-height)+16px)]">
+          {authStatus === 'guest' ? (
+            <li className="px-2.5 py-6 text-center text-sm text-neutral-500">
+              로그인이 필요합니다.
+            </li>
+          ) : isLoading ? (
+            <li className="px-2.5 py-6 text-center text-sm text-neutral-500">불러오는 중...</li>
+          ) : loadError ? (
+            <li className="px-2.5 py-6 text-center text-sm text-red-500">{loadError}</li>
+          ) : closedChats.length === 0 ? (
+            <li className="px-2.5 py-6 text-center text-sm text-neutral-500">
+              종료된 채팅이 없습니다.
+            </li>
+          ) : (
+            closedChats.map((chat) => {
+              const counterparty = getCounterparty(chat, currentUser?.id ?? null);
+              const requestType = getResolvedRequestType(chat);
+              const lastMessage = chat.last_message;
+              return (
+                <li key={`closed-${chat.chat_id}`} className="border-b border-neutral-200/70">
+                  <Link
+                    href={
+                      requestType
+                        ? `/chat/${chat.chat_id}?requestType=${requestType}`
+                        : `/chat/${chat.chat_id}`
+                    }
+                    className="flex w-full items-center gap-4 rounded-2xl px-2.5 py-4 text-left transition hover:bg-neutral-100"
+                  >
+                    <Image
+                      src={counterparty.profile_image_url ?? charIcon}
+                      alt={`${counterparty.nickname} 프로필`}
+                      width={48}
+                      height={48}
+                      unoptimized={!!counterparty.profile_image_url}
+                      className="h-12 w-12 flex-shrink-0 rounded-full object-cover bg-neutral-200"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="truncate text-base font-semibold">{counterparty.nickname}</div>
+                        {renderRequestTypeTag(requestType)}
+                        <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
+                          종료
+                        </span>
+                      </div>
+                      <div className="mt-1 truncate text-sm text-neutral-500">
+                        {lastMessage?.content ?? '종료된 채팅입니다.'}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 text-xs text-neutral-400">
+                      <span>{lastMessage ? formatChatTime(lastMessage.last_message_at) : ''}</span>
+                    </div>
+                  </Link>
                 </li>
               );
             })
@@ -432,11 +521,6 @@ export default function ChatList() {
                             {counterparty.nickname}
                           </div>
                           {renderRequestTypeTag(requestType)}
-                          {chat.status === 'CLOSED' ? (
-                            <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
-                              종료
-                            </span>
-                          ) : null}
                         </div>
                         <div className="mt-1 truncate text-sm text-neutral-500">
                           {lastMessage?.content ?? '대화를 시작해 보세요.'}
@@ -456,15 +540,17 @@ export default function ChatList() {
                   </li>
                 );
               })}
-              {loadingMore ? (
-                <li className="py-4 text-center text-sm text-neutral-400">불러오는 중...</li>
-              ) : hasMore ? (
-                <li className="py-4 text-center text-sm text-neutral-400">더 불러오는 중...</li>
-              ) : (
-                <li className="py-4 text-center text-sm text-neutral-400">
-                  더 불러올 채팅이 없습니다.
-                </li>
-              )}
+              {chats.length > 0 ? (
+                loadingMore ? (
+                  <li className="py-4 text-center text-sm text-neutral-400">불러오는 중...</li>
+                ) : hasMore ? (
+                  <li className="py-4 text-center text-sm text-neutral-400">더 불러오는 중...</li>
+                ) : (
+                  <li className="py-4 text-center text-sm text-neutral-400">
+                    더 불러올 채팅이 없습니다.
+                  </li>
+                )
+              ) : null}
             </>
           )}
         </ul>

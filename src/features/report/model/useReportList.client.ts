@@ -11,6 +11,7 @@ import {
   type ReportSummary,
 } from '@/entities/reports';
 import { useCommonApiErrorHandler } from '@/shared/api';
+import { parseKstDate } from '@/shared/lib/dateTime';
 
 export function useReportList() {
   const { status: authStatus } = useAuthStatus();
@@ -109,7 +110,8 @@ export function useReportList() {
   const sortedReports = useMemo(
     () =>
       [...reports].sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        (a, b) =>
+          (parseKstDate(b.updatedAt)?.getTime() ?? 0) - (parseKstDate(a.updatedAt)?.getTime() ?? 0),
       ),
     [reports],
   );

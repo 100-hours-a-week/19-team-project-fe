@@ -2,6 +2,7 @@
 
 export const REPORT_CREATE_ACCEPTED_EVENT = 'report-create-accepted';
 export const REPORT_CREATE_ACCEPTED_STORAGE_KEY = 'reportCreateAccepted';
+export const CHAT_FEEDBACK_SUBMITTED_STORAGE_PREFIX = 'chatFeedbackSubmitted:';
 
 export function markReportCreateAccepted() {
   if (typeof window === 'undefined') return;
@@ -15,4 +16,14 @@ export function consumeReportCreateAccepted(): boolean {
   if (!flag) return false;
   sessionStorage.removeItem(REPORT_CREATE_ACCEPTED_STORAGE_KEY);
   return true;
+}
+
+export function markChatFeedbackSubmitted(chatId: number) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(`${CHAT_FEEDBACK_SUBMITTED_STORAGE_PREFIX}${chatId}`, 'true');
+}
+
+export function hasChatFeedbackSubmitted(chatId: number): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(`${CHAT_FEEDBACK_SUBMITTED_STORAGE_PREFIX}${chatId}`) === 'true';
 }

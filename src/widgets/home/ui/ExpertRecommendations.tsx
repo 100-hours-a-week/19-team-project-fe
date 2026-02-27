@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TouchEvent } from 'react';
 
@@ -12,6 +12,39 @@ type ExpertRecommendationsProps = {
   recommendations: ExpertRecommendation[];
 };
 
+const getExpertId = (expert: ExpertRecommendation) => {
+  const raw = expert as ExpertRecommendation & {
+    userId?: unknown;
+    id?: unknown;
+    expert_id?: unknown;
+    expertId?: unknown;
+    member_id?: unknown;
+    memberId?: unknown;
+    user?: {
+      user_id?: unknown;
+      userId?: unknown;
+      id?: unknown;
+    };
+  };
+  const candidate =
+    raw.user_id ??
+    raw.userId ??
+    raw.id ??
+    raw.expert_id ??
+    raw.expertId ??
+    raw.member_id ??
+    raw.memberId ??
+    raw.user?.user_id ??
+    raw.user?.userId ??
+    raw.user?.id ??
+    null;
+  const parsed =
+    typeof candidate === 'string'
+      ? Number(candidate.replace(/[^\d-]/g, ''))
+      : candidate;
+  return typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : null;
+};
+
 type StoryViewerProps = {
   isOpen: boolean;
   recommendations: ExpertRecommendation[];
@@ -19,7 +52,6 @@ type StoryViewerProps = {
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
-  onSelectExpert: (userId: number) => void;
   durationMs: number;
 };
 
@@ -30,7 +62,6 @@ const StoryViewer = memo(function StoryViewer({
   onClose,
   onNext,
   onPrev,
-  onSelectExpert,
   durationMs,
 }: StoryViewerProps) {
   const touchStartX = useRef<number | null>(null);
@@ -59,7 +90,7 @@ const StoryViewer = memo(function StoryViewer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex h-full w-full flex-col bg-black/90"
+      className="fixed left-1/2 top-0 z-50 flex h-[100dvh] w-full max-w-[600px] -translate-x-1/2 flex-col overflow-hidden bg-black/90"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -104,11 +135,13 @@ const StoryViewer = memo(function StoryViewer({
           className="flex h-full w-full transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${activeIndex * 100}%)` }}
         >
-          {recommendations.map((expert, index) => (
-            <div
-              key={`story-${expert.user_id ?? index}`}
-              className="flex h-full w-full shrink-0 flex-col items-center justify-center px-6 pb-10 pt-6 text-white"
-            >
+          {recommendations.map((expert, index) => {
+            const expertId = getExpertId(expert);
+            return (
+              <div
+                key={`story-${expertId ?? index}`}
+                className="flex h-full w-full shrink-0 flex-col items-center justify-center px-6 pb-10 pt-6 text-white"
+              >
               <div className="flex flex-col items-center">
                 <div className="rounded-full bg-gradient-to-br from-[var(--color-primary-main)] via-[#4a6fb3] to-[var(--color-primary-sub)] p-[3px]">
                   <div className="relative h-[180px] w-[180px] overflow-hidden rounded-full bg-white p-[3px]">
@@ -136,7 +169,7 @@ const StoryViewer = memo(function StoryViewer({
               <div className="mt-6 flex flex-wrap justify-center gap-2">
                 {expert.skills?.slice(0, 4).map((skill) => (
                   <span
-                    key={`${expert.user_id}-${skill}`}
+                    key={`${expertId ?? index}-${skill}`}
                     className="rounded-full border border-white/30 px-3 py-1 text-xs text-white/90"
                   >
                     {skill}
@@ -147,31 +180,38 @@ const StoryViewer = memo(function StoryViewer({
                 {expert.introduction || '소개가 아직 없어요.'}
               </p>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (!expert.user_id) return;
-                  onClose();
-                  onSelectExpert(expert.user_id);
-                }}
-                className="mt-8 w-full max-w-[240px] rounded-full bg-white px-4 py-3 text-sm font-semibold text-[#2b4b7e]"
-              >
-                상세 보기
-              </button>
+              {expertId ? (
+                <Link
+                  href={`/experts/${String(expertId)}`}
+                  onClick={onClose}
+                  className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white px-4 py-3 text-center text-sm font-semibold text-[#2b4b7e]"
+                >
+                  상세 보기
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white/60 px-4 py-3 text-sm font-semibold text-[#2b4b7e]/60"
+                >
+                  상세 정보 없음
+                </button>
+              )}
             </div>
-          ))}
+          );
+        })}
         </div>
 
         <button
           type="button"
           onClick={onPrev}
-          className="absolute left-0 top-0 h-full w-1/3"
+          className="absolute left-0 top-0 z-10 h-[40%] w-1/4"
           aria-label="이전"
         />
         <button
           type="button"
           onClick={onNext}
-          className="absolute right-0 top-0 h-full w-1/3"
+          className="absolute right-0 top-0 z-10 h-[40%] w-1/4"
           aria-label="다음"
         />
       </div>
@@ -180,7 +220,6 @@ const StoryViewer = memo(function StoryViewer({
 });
 
 export default function ExpertRecommendations({ recommendations }: ExpertRecommendationsProps) {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const durationMs = 3000;
@@ -245,13 +284,15 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
     <div className="px-2.5 pt-3 pb-5">
       <p className="text-sm font-semibold text-neutral-900">현직자 추천</p>
       <div className="mt-3 flex items-start gap-3 overflow-x-auto pb-2 pr-2 snap-x snap-mandatory scrollbar-hide">
-        {safeRecommendations.map((expert, index) => (
-          <button
-            key={expert.user_id ?? `expert-${index}`}
-            type="button"
-            onClick={() => openStory(index)}
-            className="flex min-w-[92px] flex-col items-center gap-2 snap-start"
-          >
+        {safeRecommendations.map((expert, index) => {
+          const expertId = getExpertId(expert);
+          return (
+            <button
+              key={expertId ?? `expert-${index}`}
+              type="button"
+              onClick={() => openStory(index)}
+              className="flex min-w-[92px] flex-col items-center gap-2 snap-start"
+            >
             <span className="rounded-full bg-gradient-to-br from-[var(--color-primary-main)] via-[#4a6fb3] to-[var(--color-primary-sub)] p-[3px]">
               <span className="block rounded-full bg-white p-[2px]">
                 <span className="relative block h-[68px] w-[68px] overflow-hidden rounded-full bg-white">
@@ -287,8 +328,9 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
                 </span>
               ) : null}
             </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
 
       <StoryViewer
@@ -298,7 +340,6 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
         onClose={closeStory}
         onNext={goNext}
         onPrev={goPrev}
-        onSelectExpert={(userId) => router.push(`/experts/${String(userId)}`)}
         durationMs={durationMs}
       />
     </div>

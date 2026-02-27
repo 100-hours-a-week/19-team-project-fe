@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 
 import { useChatRoom } from '@/features/chat';
 import type { ChatRequestType } from '@/entities/chat';
+import { useReportsQuery } from '@/entities/reports';
+import { useAuthStatus } from '@/entities/auth';
 import { useToast } from '@/shared/ui/toast';
 import ChatRoomComposer from './ChatRoomComposer';
 import ChatRoomMessages from './ChatRoomMessages';
@@ -36,8 +38,25 @@ export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
     wsStatus,
     headerTitle,
     chatStatus,
+    isRequestReceiver,
+    isFeedbackSubmitted,
     sendOptimisticMessage,
   } = useChatRoom(chatId);
+  const { status: authStatus } = useAuthStatus();
+  const reportsQuery = useReportsQuery({
+    enabled:
+      authStatus === 'authed' &&
+      requestType === 'FEEDBACK' &&
+      chatStatus === 'CLOSED' &&
+      isRequestReceiver,
+  });
+  const hasReportForChat = (reportsQuery.data?.reports ?? []).some((report) => report.chatRoomId === chatId);
+  const shouldShowFeedbackButton =
+    requestType === 'FEEDBACK' &&
+    chatStatus === 'CLOSED' &&
+    isRequestReceiver &&
+    !isFeedbackSubmitted &&
+    !hasReportForChat;
   const [draft, setDraft] = useState('');
   const { loadMoreMessages } = useChatRoomEffects({
     listRef,
@@ -119,7 +138,7 @@ export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
         historyLoadingMore={historyLoadingMore}
         historyHasMore={historyHasMore}
         chatStatus={chatStatus}
-        feedbackHref={requestType === 'FEEDBACK' ? `/chat/${chatId}/feedback` : null}
+        feedbackHref={shouldShowFeedbackButton ? `/chat/${chatId}/feedback` : null}
         onScrollTopReached={loadMoreMessages}
       />
 

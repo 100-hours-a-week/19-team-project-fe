@@ -5,10 +5,20 @@ import { useRouter } from 'next/navigation';
 
 import { KakaoLoginButton } from '@/features/auth';
 import { useReportList } from '@/features/report';
+import { formatKstDateTime } from '@/shared/lib/dateTime';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import charReport from '@/shared/icons/char_report.png';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
+
+const REPORT_DATETIME_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+};
 
 export default function ReportPage() {
   const router = useRouter();
@@ -96,7 +106,8 @@ export default function ReportPage() {
                       {report.status?.toUpperCase() === 'PROCESSING' ? 'PROCESSING' : 'REPORT'}
                     </p>
                     <p className="mt-2 text-xs text-[#6b7b92]">
-                      {new Date(report.updatedAt).toLocaleDateString('ko-KR')} 업데이트
+                      {formatKstDateTime(report.updatedAt || report.createdAt, REPORT_DATETIME_OPTIONS)}{' '}
+                      업데이트
                     </p>
                   </button>
                   <div className="flex items-start gap-2">
