@@ -26,7 +26,7 @@ const getExpertId = (expert: ExpertRecommendation) => {
       id?: unknown;
     };
   };
-  const candidate =
+  const candidate: unknown =
     raw.user_id ??
     raw.userId ??
     raw.id ??
