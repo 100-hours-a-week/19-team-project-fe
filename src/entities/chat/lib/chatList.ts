@@ -3,6 +3,8 @@ import { parseServerDate } from '@/shared/lib/date';
 
 import { normalizeRequestTypeFromUnknown } from './requestType';
 
+import { normalizeRequestTypeFromUnknown } from './requestType';
+
 const getChatSortKey = (chat: ChatSummary) => {
   const lastMessageAt = chat.last_message?.last_message_at ?? null;
   const updatedAt = chat.updated_at ?? null;
