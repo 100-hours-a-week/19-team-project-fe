@@ -184,6 +184,15 @@ function shouldSuppressDuplicate(signature) {
 
 messaging.onBackgroundMessage((payload) => {
   void (async () => {
+    const hasNotificationPayload = Boolean(
+      payload?.notification?.title || payload?.notification?.body,
+    );
+    // For notification payloads, browsers/FCM can already display the push.
+    // Skip manual showNotification to prevent duplicate delivery.
+    if (hasNotificationPayload) {
+      return;
+    }
+
     const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
     const hasActiveClient = windowClients.some((client) => {
       const visibilityState = client.visibilityState;
@@ -193,8 +202,8 @@ messaging.onBackgroundMessage((payload) => {
       return;
     }
 
-    const title = sanitizeNotificationText(payload.notification?.title || '알림');
-    const body = sanitizeNotificationText(payload.notification?.body || '');
+    const title = sanitizeNotificationText(payload.data?.title || '알림');
+    const body = sanitizeNotificationText(payload.data?.body || '');
     const notificationId =
       payload.data?.notification_id ||
       payload.data?.notificationId ||

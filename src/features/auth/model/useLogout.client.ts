@@ -7,6 +7,7 @@ import { authStatusQueryKey } from '@/entities/auth';
 import { userMeQueryKey } from '@/entities/user';
 import { logout } from '@/features/auth';
 import { useCommonApiErrorHandler } from '@/shared/api';
+import { stompManager } from '@/shared/ws';
 
 export function useLogout() {
   const queryClient = useQueryClient();
@@ -20,6 +21,11 @@ export function useLogout() {
       await logout();
       queryClient.setQueryData(authStatusQueryKey, { authenticated: false });
       queryClient.removeQueries({ queryKey: userMeQueryKey });
+      await stompManager.disconnect().catch(() => null);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('kakaoLoginResult');
+        sessionStorage.removeItem('kakaoRestoreRequired');
+      }
       return true;
     } catch (error) {
       if (await handleCommonApiError(error)) {

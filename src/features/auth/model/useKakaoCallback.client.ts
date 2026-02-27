@@ -35,6 +35,11 @@ export function useKakaoCallback() {
 
     kakaoLogin(code)
       .then(async (result) => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('kakaoLoginResult');
+          sessionStorage.removeItem('kakaoRestoreRequired');
+        }
+
         if (result.status === 'SIGNUP_REQUIRED') {
           sessionStorage.setItem(
             'kakaoLoginResult',

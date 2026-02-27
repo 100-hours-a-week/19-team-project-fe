@@ -1075,7 +1075,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                     onClick={() => setSelectedJob(item)}
                     className="flex items-center justify-between py-4 text-left"
                   >
-                    <span className="text-xl font-semibold leading-relaxed text-text-body">
+                    <span className="text-sm font-medium leading-relaxed text-text-body">
                       {item.name}
                     </span>
                     <span
@@ -1105,7 +1105,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                     onClick={() => setSelectedCareer(item)}
                     className="flex items-center justify-between py-4 text-left"
                   >
-                    <span className="text-xl font-semibold leading-relaxed text-text-body">
+                    <span className="text-sm font-medium leading-relaxed text-text-body">
                       {item.level}
                     </span>
                     <span

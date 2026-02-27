@@ -73,6 +73,28 @@ const toSimpleItems = (values: string[]): SimpleItem[] => {
   return values.map((value) => ({ id: createId(), value }));
 };
 
+const toReadableText = (value: unknown): string => {
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
+
+  const record = value as Record<string, unknown>;
+  const candidate =
+    record.value ??
+    record.name ??
+    record.title ??
+    record.description ??
+    record.award ??
+    record.activity ??
+    '';
+  return typeof candidate === 'string' ? candidate.trim() : '';
+};
+
+const toTextArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.map(toReadableText).filter(Boolean);
+};
+
 const normalizeYearMonth = (value: string) => {
   const trimmed = value.trim();
   if (!trimmed) return '';
@@ -94,6 +116,7 @@ export function useResumeEditForm() {
     { id: createId(), title: '', period: '', description: '' },
   ]);
   const [education, setEducation] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
+  const [educationDetails, setEducationDetails] = useState<string[]>([]);
   const [awards, setAwards] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
   const [certificates, setCertificates] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
   const [activities, setActivities] = useState<SimpleItem[]>([{ id: createId(), value: '' }]);
@@ -124,13 +147,27 @@ export function useResumeEditForm() {
             description: project.description,
           };
         }),
-        education: education.map((item) => item.value).filter(Boolean),
+        education:
+          educationDetails.length > 0
+            ? educationDetails
+            : education.map((item) => item.value).filter(Boolean),
         awards: awards.map((item) => item.value).filter(Boolean),
         certificates: certificates.map((item) => item.value).filter(Boolean),
         activities: activities.map((item) => item.value).filter(Boolean),
       },
     }),
-    [title, isFresher, fileUrl, careers, projects, education, awards, certificates, activities],
+    [
+      title,
+      isFresher,
+      fileUrl,
+      careers,
+      projects,
+      education,
+      educationDetails,
+      awards,
+      certificates,
+      activities,
+    ],
   );
 
   const formatDateToken = useCallback((value: string) => {
@@ -210,18 +247,10 @@ export function useResumeEditForm() {
             description: project.description ?? '',
           }))
         : [];
-      const educationValue = Array.isArray((content as { education?: string[] }).education)
-        ? ((content as { education?: string[] }).education ?? [])
-        : [];
-      const awardsValue = Array.isArray((content as { awards?: string[] }).awards)
-        ? ((content as { awards?: string[] }).awards ?? [])
-        : [];
-      const certificatesValue = Array.isArray((content as { certificates?: string[] }).certificates)
-        ? ((content as { certificates?: string[] }).certificates ?? [])
-        : [];
-      const activitiesValue = Array.isArray((content as { activities?: string[] }).activities)
-        ? ((content as { activities?: string[] }).activities ?? [])
-        : [];
+      const educationValue = toTextArray((content as { education?: unknown }).education);
+      const awardsValue = toTextArray((content as { awards?: unknown }).awards);
+      const certificatesValue = toTextArray((content as { certificates?: unknown }).certificates);
+      const activitiesValue = toTextArray((content as { activities?: unknown }).activities);
 
       setCareers(normalizeCareerItems(careersValue));
       setProjects(
@@ -229,6 +258,7 @@ export function useResumeEditForm() {
           ? projectsValue
           : [{ id: createId(), title: '', period: '', description: '' }],
       );
+      setEducationDetails(educationValue);
       const resolvedEducation =
         mapEducationLevel(data.educationLevel ?? '', educationValue, educationOptions) ??
         educationValue[0] ??
@@ -266,6 +296,7 @@ export function useResumeEditForm() {
         // V2 비동기 파싱은 초기 응답에서 result가 비어있을 수 있어 필수 입력값만 기본 채움.
         setIsFresher(false);
         setEducation([{ id: education[0]?.id ?? createId(), value: educationOptions[0] }]);
+        setEducationDetails([]);
         setCareers([{ id: createId(), company: '', period: '', role: '', title: '' }]);
         setProjects([{ id: createId(), title: '', period: '', description: '' }]);
         setAwards([{ id: createId(), value: '' }]);
@@ -277,12 +308,10 @@ export function useResumeEditForm() {
       const contentJson = (result.content_json ?? {}) as ResumeParseContentJson;
       const careersValue = Array.isArray(contentJson.careers) ? contentJson.careers : [];
       const projectsValue = Array.isArray(contentJson.projects) ? contentJson.projects : [];
-      const educationValue = Array.isArray(contentJson.education) ? contentJson.education : [];
-      const awardsValue = Array.isArray(contentJson.awards) ? contentJson.awards : [];
-      const certificatesValue = Array.isArray(contentJson.certificates)
-        ? contentJson.certificates
-        : [];
-      const activitiesValue = Array.isArray(contentJson.activities) ? contentJson.activities : [];
+      const educationValue = toTextArray(contentJson.education);
+      const awardsValue = toTextArray(contentJson.awards);
+      const certificatesValue = toTextArray(contentJson.certificates);
+      const activitiesValue = toTextArray(contentJson.activities);
 
       if (typeof result.is_fresher === 'boolean') {
         setIsFresher(result.is_fresher);
@@ -297,6 +326,7 @@ export function useResumeEditForm() {
       } else {
         setEducation([{ id: education[0]?.id ?? createId(), value: educationOptions[0] }]);
       }
+      setEducationDetails(educationValue);
 
       setCareers(normalizeCareerItems(careersValue));
 
