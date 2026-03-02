@@ -27,8 +27,8 @@ export default function ResumeStack({ children }: { children: ReactNode }) {
           direction === 'none'
             ? ''
             : direction === 'forward'
-            ? 'onboarding-stack__screen--forward'
-            : 'onboarding-stack__screen--back'
+              ? 'onboarding-stack__screen--forward'
+              : 'onboarding-stack__screen--back'
         }`}
       >
         {children}

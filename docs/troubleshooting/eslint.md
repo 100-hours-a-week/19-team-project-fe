@@ -1691,3 +1691,21 @@ React Compiler has skipped optimizing this component because the existing manual
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-03-02 Raw Log
+
+- Logged at: 2026-03-02 13:26:23Z
+
+```
+> re-fit@2.2.0 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/splash-screen/ui/SplashScreen.tsx
+  4:1  error  '@/shared/ui/blur-text/BlurText' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 1 problem (1 error, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
