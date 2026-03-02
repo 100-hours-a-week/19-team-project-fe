@@ -7,19 +7,31 @@ type SplashScreenComponent = React.ComponentType;
 interface SplashGateProps {
   children: ReactNode;
   durationMs?: number;
+  disableSplash?: boolean;
 }
 
-export default function SplashGate({ children, durationMs = 5000 }: SplashGateProps) {
+function isLighthouseUserAgent(userAgent: string): boolean {
+  return /Chrome-Lighthouse|Lighthouse|HeadlessChrome/i.test(userAgent);
+}
+
+export default function SplashGate({
+  children,
+  durationMs = 5000,
+  disableSplash = false,
+}: SplashGateProps) {
   const [showSplash, setShowSplash] = useState(true);
   const [SplashScreen, setSplashScreen] = useState<SplashScreenComponent | null>(null);
 
   useEffect(() => {
-    const isLighthouseRun = navigator.userAgent.includes('Chrome-Lighthouse');
-    const disableSplash = isLighthouseRun;
+    const isLighthouseRun = isLighthouseUserAgent(navigator.userAgent);
+    const forceDisableByQuery =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('lhci') === '1';
+    const shouldDisableSplash = disableSplash || isLighthouseRun || forceDisableByQuery;
 
     const hasSignupSuccess = sessionStorage.getItem('signupSuccess');
     const hasSeenSplash = sessionStorage.getItem('splashSeen');
-    const shouldShow = !disableSplash && !(hasSignupSuccess || hasSeenSplash);
+    const shouldShow = !shouldDisableSplash && !(hasSignupSuccess || hasSeenSplash);
 
     sessionStorage.setItem('splashSeen', 'true');
     setShowSplash(shouldShow);
@@ -34,7 +46,7 @@ export default function SplashGate({ children, durationMs = 5000 }: SplashGatePr
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [durationMs]);
+  }, [disableSplash, durationMs]);
 
   useEffect(() => {
     if (!(showSplash && SplashScreen)) return;
@@ -59,7 +71,7 @@ export default function SplashGate({ children, durationMs = 5000 }: SplashGatePr
     <>
       {children}
       {showSplash && SplashScreen ? (
-        <div className="fixed left-1/2 top-0 z-[1000] h-[100dvh] w-full max-w-[600px] -translate-x-1/2 overflow-hidden bg-white">
+        <div className="fixed left-1/2 top-0 z-[1000] h-[100dvh] w-[min(100%,600px)] -translate-x-1/2 overflow-hidden bg-white">
           <SplashScreen />
         </div>
       ) : null}

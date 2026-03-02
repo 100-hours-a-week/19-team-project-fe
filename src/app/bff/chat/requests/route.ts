@@ -42,7 +42,6 @@ export async function GET(req: Request) {
       cursor,
       size,
       accessToken,
-      allowRefresh: false,
     });
     const response: ApiResponse<typeof data> = {
       code: 'OK',
@@ -98,7 +97,7 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
-    const data = await createChatRequest(payload, accessToken, false);
+    const data = await createChatRequest(payload, accessToken);
     const response: ApiResponse<typeof data> = {
       code: 'CREATED',
       message: 'created',

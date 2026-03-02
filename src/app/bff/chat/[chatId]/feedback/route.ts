@@ -53,10 +53,10 @@ export async function POST(req: Request, context: { params: Params }) {
     const cookieToken = cookieStore.get('access_token')?.value;
     const accessToken = getAccessToken(req, cookieToken);
 
-    const data = await createChatFeedback({ chatId, payload, accessToken, allowRefresh: false });
+    const data = await createChatFeedback({ chatId, payload, accessToken });
     after(async () => {
       try {
-        await requestReportCreate({ chatId, accessToken, allowRefresh: false });
+        await requestReportCreate({ chatId, accessToken });
       } catch (backgroundError) {
         console.error('[Report Create Async Error]', {
           chatId,

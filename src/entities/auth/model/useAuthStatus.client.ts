@@ -11,7 +11,8 @@ export function useAuthStatus() {
   const query = useQuery({
     queryKey: authStatusQueryKey,
     queryFn: getAuthStatus,
-    staleTime: 0,
+    staleTime: 15_000,
+    refetchOnWindowFocus: true,
     retry: false,
   });
 

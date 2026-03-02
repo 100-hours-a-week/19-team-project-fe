@@ -68,7 +68,11 @@ export async function apiFetchWithRefresh<T>(
     if (!refreshed) {
       throw error;
     }
-    token = refreshed.accessToken;
+    // Always read the latest token from cookies after refresh.
+    token = cookieStore.get('access_token')?.value ?? refreshed.accessToken;
+    if (!token) {
+      throw error;
+    }
 
     return apiFetch<T>(input, {
       ...init,
