@@ -21,6 +21,7 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
   const [isRequestReceiver, setIsRequestReceiver] = useState(false);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const [hasReportCreated, setHasReportCreated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const handleInvalidAccess = useCallback(
@@ -58,13 +59,18 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
           chatFeedbackId?: unknown;
           report_id?: unknown;
           reportId?: unknown;
+          has_report?: unknown;
+          hasReport?: unknown;
         };
+        const hasReport = Boolean(
+          raw.has_report ?? raw.hasReport ?? raw.report_id ?? raw.reportId ?? false,
+        );
+        setHasReportCreated(hasReport);
         setIsFeedbackSubmitted(
           Boolean(
             raw.chat_feedback_id ??
             raw.chatFeedbackId ??
-            raw.report_id ??
-            raw.reportId ??
+            hasReport ??
             hasChatFeedbackSubmitted(chatId),
           ),
         );
@@ -99,5 +105,12 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
     };
   }, [chatId, currentUserId, handleCommonApiError, handleInvalidAccess]);
 
-  return { headerTitle, chatStatus, isRequestReceiver, isFeedbackSubmitted, isLoading };
+  return {
+    headerTitle,
+    chatStatus,
+    isRequestReceiver,
+    isFeedbackSubmitted,
+    hasReportCreated,
+    isLoading,
+  };
 }

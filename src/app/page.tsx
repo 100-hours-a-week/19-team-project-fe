@@ -7,7 +7,6 @@ import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
 import { SearchBar } from '@/widgets/home';
 import { SplashGate } from '@/widgets/splash-screen';
-import { PageTransition } from '@/shared/ui/page-transition';
 import {
   ExpertRecommendationsServer,
   ExpertRecommendationsSkeleton,
@@ -38,53 +37,51 @@ export default async function Home() {
 
   return (
     <>
-      <PageTransition>
-        <SplashGate>
-          <HomeDeferredEffects />
-          <div className="flex min-h-full flex-col bg-[#D2DEEA]">
-            <div className="flex flex-col">
-              <Header />
-              <main>
-                <div className="px-2.5 pt-[calc(3rem+1.5rem)] text-text-body">
-                  <div className="flex items-center">
-                    <Image src={iconMarkB} alt="RE:FIT 로고 아이콘" width={22} height={22} />
-                    <p className="text-2xl font-bold">RE:FIT에 오신 걸 환영합니다.</p>
-                  </div>
+      <SplashGate>
+        <HomeDeferredEffects />
+        <div className="flex min-h-full flex-col bg-[#D2DEEA]">
+          <div className="flex flex-col">
+            <Header />
+            <main>
+              <div className="px-2.5 pt-[calc(3rem+1.5rem)] text-text-body">
+                <div className="flex items-center">
+                  <Image src={iconMarkB} alt="RE:FIT 로고 아이콘" width={22} height={22} />
+                  <p className="text-2xl font-bold">RE:FIT에 오신 걸 환영합니다.</p>
                 </div>
+              </div>
 
-                <div className="relative z-20">
-                  <SearchBar />
-                </div>
+              <div className="relative z-20">
+                <SearchBar />
+              </div>
 
-                <section className="mt-2 px-2.5" aria-labelledby="recommended-experts">
-                  <h2 id="recommended-experts" className="sr-only">
-                    현직자 추천
-                  </h2>
-                  {isLighthouseRun ? (
-                    <ExpertRecommendationsSkeleton />
-                  ) : (
-                    <Suspense fallback={<ExpertRecommendationsSkeleton />}>
-                      <ExpertRecommendationsServer />
-                    </Suspense>
-                  )}
-                </section>
+              <section className="mt-2 px-2.5" aria-labelledby="recommended-experts">
+                <h2 id="recommended-experts" className="sr-only">
+                  현직자 추천
+                </h2>
+                {isLighthouseRun ? (
+                  <ExpertRecommendationsSkeleton />
+                ) : (
+                  <Suspense fallback={<ExpertRecommendationsSkeleton />}>
+                    <ExpertRecommendationsServer />
+                  </Suspense>
+                )}
+              </section>
 
-                <div className="flex flex-col">
-                  <div className="relative mt-1 w-full rounded-t-3xl bg-white px-2.5 pt-8 pb-[calc(var(--app-footer-height)+16px)] shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
-                    <div className="flex flex-col gap-0">
-                      <div className="-mt-3">
-                        <TechBlogBanner />
-                      </div>
-                      <HomeDeferredSections />
+              <div className="flex flex-col">
+                <div className="relative mt-1 w-full rounded-t-3xl bg-white px-2.5 pt-8 pb-[calc(var(--app-footer-height)+16px)] shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
+                  <div className="flex flex-col gap-0">
+                    <div className="-mt-3">
+                      <TechBlogBanner />
                     </div>
+                    <HomeDeferredSections />
                   </div>
                 </div>
-              </main>
-            </div>
-            <Footer />
+              </div>
+            </main>
           </div>
-        </SplashGate>
-      </PageTransition>
+          <Footer />
+        </div>
+      </SplashGate>
     </>
   );
 }

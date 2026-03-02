@@ -49,6 +49,22 @@ const COMMON_ERROR_CODES = new Set<CommonErrorCode>([
   'INTERNAL_SERVER_ERROR',
 ]);
 
+const TOAST_DEDUP_WINDOW_MS = 1200;
+const lastToastAtByKey = new Map<string, number>();
+
+function pushToastWithDedup(
+  pushToast: (message: string) => void,
+  key: string,
+  message: string,
+  dedupWindowMs: number = TOAST_DEDUP_WINDOW_MS,
+) {
+  const now = Date.now();
+  const lastAt = lastToastAtByKey.get(key) ?? 0;
+  if (now - lastAt < dedupWindowMs) return;
+  lastToastAtByKey.set(key, now);
+  pushToast(message);
+}
+
 function isCommonErrorCode(code: string): code is CommonErrorCode {
   return COMMON_ERROR_CODES.has(code as CommonErrorCode);
 }
@@ -92,13 +108,17 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
   return useCallback(
     async (error: unknown): Promise<boolean> => {
       if (isNetworkError(error)) {
-        pushToast('네트워크 오류가 발생했어요. 다시 시도해 주세요.');
+        pushToastWithDedup(
+          pushToast,
+          'NETWORK_ERROR',
+          '네트워크 오류가 발생했어요. 다시 시도해 주세요.',
+        );
         return true;
       }
       if (error instanceof BusinessError && isCommonErrorCode(error.code)) {
         if (error.code === 'AUTH_UNAUTHORIZED') {
           markAsGuest();
-          pushToast(COMMON_ERROR_MESSAGES[error.code]);
+          pushToastWithDedup(pushToast, 'AUTH_UNAUTHORIZED', COMMON_ERROR_MESSAGES[error.code]);
           if (redirectTo) {
             router.replace(redirectTo);
           }
@@ -110,7 +130,7 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
             : await refreshAuthTokens().catch(() => false);
           if (!handled) {
             markAsGuest();
-            pushToast(COMMON_ERROR_MESSAGES[error.code]);
+            pushToastWithDedup(pushToast, error.code, COMMON_ERROR_MESSAGES[error.code]);
             if (redirectTo) {
               router.replace(redirectTo);
             }
@@ -123,13 +143,13 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
           error.code === 'AUTH_FORBIDDEN'
         ) {
           markAsGuest();
-          pushToast(COMMON_ERROR_MESSAGES[error.code]);
+          pushToastWithDedup(pushToast, error.code, COMMON_ERROR_MESSAGES[error.code]);
           if (redirectTo) {
             router.replace(redirectTo);
           }
           return true;
         }
-        pushToast(COMMON_ERROR_MESSAGES[error.code]);
+        pushToastWithDedup(pushToast, error.code, COMMON_ERROR_MESSAGES[error.code]);
         return true;
       }
 
@@ -148,7 +168,7 @@ export function useCommonApiErrorHandler(options: CommonErrorHandlerOptions = {}
           if (mappedCode === 'AUTH_UNAUTHORIZED') {
             markAsGuest();
           }
-          pushToast(COMMON_ERROR_MESSAGES[mappedCode]);
+          pushToastWithDedup(pushToast, mappedCode, COMMON_ERROR_MESSAGES[mappedCode]);
           if (mappedCode === 'AUTH_UNAUTHORIZED' && redirectTo) {
             router.replace(redirectTo);
           }

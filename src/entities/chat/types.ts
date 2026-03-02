@@ -150,6 +150,8 @@ export interface ChatDetailData {
   status: 'ACTIVE' | 'CLOSED';
   created_at: string;
   closed_at: string | null;
+  has_report?: boolean;
+  hasReport?: boolean;
 }
 
 export interface ChatMessageListData {
