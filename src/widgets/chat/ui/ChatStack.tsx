@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 export default function ChatStack({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [direction, setDirection] = useState<'forward' | 'back'>('forward');
+  const [direction, setDirection] = useState<'forward' | 'back' | 'none'>('none');
   const previousDepth = useRef<number | null>(null);
 
   useEffect(() => {
@@ -24,7 +24,9 @@ export default function ChatStack({ children }: { children: ReactNode }) {
       <div
         key={pathname}
         className={`onboarding-stack__screen h-full ${
-          direction === 'forward'
+          direction === 'none'
+            ? ''
+            : direction === 'forward'
             ? 'onboarding-stack__screen--forward'
             : 'onboarding-stack__screen--back'
         }`}

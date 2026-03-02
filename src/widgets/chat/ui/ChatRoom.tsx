@@ -7,8 +7,6 @@ import { useRouter } from 'next/navigation';
 
 import { useChatRoom } from '@/features/chat';
 import type { ChatRequestType } from '@/entities/chat';
-import { useReportsQuery } from '@/entities/reports';
-import { useAuthStatus } from '@/entities/auth';
 import { useToast } from '@/shared/ui/toast';
 import ChatRoomComposer from './ChatRoomComposer';
 import ChatRoomMessages from './ChatRoomMessages';
@@ -40,25 +38,15 @@ export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
     chatStatus,
     isRequestReceiver,
     isFeedbackSubmitted,
+    hasReportCreated,
     sendOptimisticMessage,
   } = useChatRoom(chatId);
-  const { status: authStatus } = useAuthStatus();
-  const reportsQuery = useReportsQuery({
-    enabled:
-      authStatus === 'authed' &&
-      requestType === 'FEEDBACK' &&
-      chatStatus === 'CLOSED' &&
-      isRequestReceiver,
-  });
-  const hasReportForChat = (reportsQuery.data?.reports ?? []).some(
-    (report) => report.chatRoomId === chatId,
-  );
   const shouldShowFeedbackButton =
     requestType === 'FEEDBACK' &&
     chatStatus === 'CLOSED' &&
     isRequestReceiver &&
     !isFeedbackSubmitted &&
-    !hasReportForChat;
+    !hasReportCreated;
   const [draft, setDraft] = useState('');
   const { loadMoreMessages } = useChatRoomEffects({
     listRef,
