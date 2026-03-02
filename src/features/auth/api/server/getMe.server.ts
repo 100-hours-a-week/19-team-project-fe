@@ -19,7 +19,11 @@ export async function getMe(): Promise<AuthStatus | GuestStatus> {
   }
 
   try {
-    await apiFetchWithRefresh<unknown>(buildApiUrl('/api/v1/users/me'), { method: 'GET' }, accessToken);
+    await apiFetchWithRefresh<unknown>(
+      buildApiUrl('/api/v1/users/me'),
+      { method: 'GET' },
+      accessToken,
+    );
     return { authenticated: true };
   } catch (error) {
     const isAuthError =
