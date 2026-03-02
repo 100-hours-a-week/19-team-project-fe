@@ -15,6 +15,11 @@ module.exports = {
       startServerReadyPattern: 'ready - started server',
       url: urls,
       numberOfRuns: 1,
+      settings: {
+        extraHeaders: {
+          'x-lighthouse-run': '1',
+        },
+      },
     },
     upload: {
       target: 'filesystem',

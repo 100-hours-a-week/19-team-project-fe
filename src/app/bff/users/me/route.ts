@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
-import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
+import { BusinessError, HttpError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { apiFetchWithRefresh } from '@/shared/api/server';
 
 const USER_ME_PATH = '/api/v1/users/me';
 const cookieDomain = process.env.NODE_ENV === 'production' ? '.re-fit.kr' : undefined;
@@ -29,6 +29,59 @@ function clearAuthCookies(response: NextResponse) {
   return response;
 }
 
+function isAuthError(error: unknown): boolean {
+  return (
+    (error instanceof BusinessError &&
+      ['AUTH_UNAUTHORIZED', 'AUTH_INVALID_TOKEN', 'AUTH_TOKEN_EXPIRED', 'UNAUTHORIZED'].includes(
+        error.code,
+      )) ||
+    (error instanceof HttpError && (error.status === 401 || error.status === 403)) ||
+    (error instanceof Error && error.message === 'UNAUTHORIZED')
+  );
+}
+
+function toErrorResponse(error: unknown, fallbackCode: string): NextResponse {
+  if (error instanceof BusinessError) {
+    const status = isAuthError(error) ? 401 : 400;
+    const response: ApiResponse<unknown> = {
+      code: error.code,
+      message: error.message,
+      data: error.data ?? null,
+    };
+    const json = NextResponse.json(response, { status });
+    return status === 401 ? clearAuthCookies(json) : json;
+  }
+
+  if (error instanceof HttpError) {
+    const status = error.status;
+    const mappedCode = status === 401 || status === 403 ? 'AUTH_UNAUTHORIZED' : fallbackCode;
+    const response: ApiResponse<null> = {
+      code: mappedCode,
+      message: mappedCode,
+      data: null,
+    };
+    const json = NextResponse.json(response, { status });
+    return mappedCode === 'AUTH_UNAUTHORIZED' ? clearAuthCookies(json) : json;
+  }
+
+  if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+    const response: ApiResponse<null> = {
+      code: 'AUTH_UNAUTHORIZED',
+      message: 'unauthorized',
+      data: null,
+    };
+    return clearAuthCookies(NextResponse.json(response, { status: 401 }));
+  }
+
+  console.error('[User Me Error]', error);
+  const response: ApiResponse<null> = {
+    code: fallbackCode,
+    message: fallbackCode,
+    data: null,
+  };
+  return NextResponse.json(response, { status: 500 });
+}
+
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
@@ -45,48 +98,15 @@ export async function GET(req: Request) {
       return NextResponse.json(response, { status: 401 });
     }
 
-    const res = await fetchBffUpstream(buildApiUrl(USER_ME_PATH), {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const data = await apiFetchWithRefresh<unknown>(
+      buildApiUrl(USER_ME_PATH),
+      { method: 'GET' },
+      accessToken,
+    );
 
-    const body = await res.json().catch(() => null);
-    if (!res.ok) {
-      if (body && typeof body.code === 'string') {
-        const response: ApiResponse<unknown> = {
-          code: body.code,
-          message: body.message ?? 'error',
-          data: body.data ?? null,
-        };
-        return NextResponse.json(response, { status: res.status });
-      }
-      const response: ApiResponse<null> = {
-        code: 'USER_ME_FAILED',
-        message: 'USER_ME_FAILED',
-        data: null,
-      };
-      return NextResponse.json(response, { status: res.status });
-    }
-
-    return NextResponse.json(body ?? { code: 'OK', message: 'success', data: null });
+    return NextResponse.json({ code: 'OK', message: 'success', data });
   } catch (error) {
-    if (error instanceof BusinessError) {
-      const response: ApiResponse<unknown> = {
-        code: error.code,
-        message: error.message,
-        data: error.data ?? null,
-      };
-      return NextResponse.json(response);
-    }
-
-    console.error('[User Me Error]', error);
-    const response: ApiResponse<null> = {
-      code: 'USER_ME_FAILED',
-      message: 'USER_ME_FAILED',
-      data: null,
-    };
-    return NextResponse.json(response, { status: 500 });
+    return toErrorResponse(error, 'USER_ME_FAILED');
   }
 }
 
@@ -114,51 +134,19 @@ export async function PATCH(req: Request) {
       return NextResponse.json(response, { status: 400 });
     }
 
-    const res = await fetchBffUpstream(buildApiUrl(USER_ME_PATH), {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+    const data = await apiFetchWithRefresh<unknown>(
+      buildApiUrl(USER_ME_PATH),
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       },
-      body: JSON.stringify(payload),
-    });
+      accessToken,
+    );
 
-    const body = await res.json().catch(() => null);
-    if (!res.ok) {
-      if (body && typeof body.code === 'string') {
-        const response: ApiResponse<unknown> = {
-          code: body.code,
-          message: body.message ?? 'error',
-          data: body.data ?? null,
-        };
-        return NextResponse.json(response, { status: res.status });
-      }
-      const response: ApiResponse<null> = {
-        code: 'USER_UPDATE_FAILED',
-        message: 'USER_UPDATE_FAILED',
-        data: null,
-      };
-      return NextResponse.json(response, { status: res.status });
-    }
-
-    return NextResponse.json(body ?? { code: 'OK', message: 'success', data: null });
+    return NextResponse.json({ code: 'OK', message: 'success', data });
   } catch (error) {
-    if (error instanceof BusinessError) {
-      const response: ApiResponse<unknown> = {
-        code: error.code,
-        message: error.message,
-        data: error.data ?? null,
-      };
-      return NextResponse.json(response);
-    }
-
-    console.error('[User Update Error]', error);
-    const response: ApiResponse<null> = {
-      code: 'USER_UPDATE_FAILED',
-      message: 'USER_UPDATE_FAILED',
-      data: null,
-    };
-    return NextResponse.json(response, { status: 500 });
+    return toErrorResponse(error, 'USER_UPDATE_FAILED');
   }
 }
 
@@ -176,50 +164,15 @@ export async function DELETE(req: Request) {
       return clearAuthCookies(NextResponse.json(response, { status: 401 }));
     }
 
-    const res = await fetchBffUpstream(buildApiUrl(USER_ME_PATH), {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    const body = await res.json().catch(() => null);
-    if (!res.ok) {
-      if (body && typeof body.code === 'string') {
-        const response: ApiResponse<unknown> = {
-          code: body.code,
-          message: body.message ?? 'error',
-          data: body.data ?? null,
-        };
-        return clearAuthCookies(NextResponse.json(response, { status: res.status }));
-      }
-      const response: ApiResponse<null> = {
-        code: 'USER_DELETE_FAILED',
-        message: 'USER_DELETE_FAILED',
-        data: null,
-      };
-      return clearAuthCookies(NextResponse.json(response, { status: res.status }));
-    }
-
-    return clearAuthCookies(
-      NextResponse.json(body ?? { code: 'OK', message: 'success', data: {} }),
+    const data = await apiFetchWithRefresh<unknown>(
+      buildApiUrl(USER_ME_PATH),
+      { method: 'DELETE' },
+      accessToken,
     );
-  } catch (error) {
-    if (error instanceof BusinessError) {
-      const response: ApiResponse<unknown> = {
-        code: error.code,
-        message: error.message,
-        data: error.data ?? null,
-      };
-      return clearAuthCookies(NextResponse.json(response));
-    }
 
-    console.error('[User Delete Error]', error);
-    const response: ApiResponse<null> = {
-      code: 'USER_DELETE_FAILED',
-      message: 'USER_DELETE_FAILED',
-      data: null,
-    };
-    return clearAuthCookies(NextResponse.json(response, { status: 500 }));
+    return clearAuthCookies(NextResponse.json({ code: 'OK', message: 'success', data }));
+  } catch (error) {
+    const response = toErrorResponse(error, 'USER_DELETE_FAILED');
+    return clearAuthCookies(response);
   }
 }

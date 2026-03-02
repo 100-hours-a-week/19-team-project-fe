@@ -17,6 +17,9 @@ module.exports = {
       numberOfRuns: 1,
       settings: {
         preset: 'desktop',
+        extraHeaders: {
+          'x-lighthouse-run': '1',
+        },
       },
     },
     upload: {

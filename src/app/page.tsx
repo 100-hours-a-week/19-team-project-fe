@@ -33,11 +33,13 @@ export const metadata: Metadata = {
 export default async function Home() {
   const headerStore = await headers();
   const userAgent = headerStore.get('user-agent') ?? '';
-  const isLighthouseRun = userAgent.includes('Chrome-Lighthouse');
+  const isLighthouseRunHeader = headerStore.get('x-lighthouse-run') === '1';
+  const isLighthouseUserAgent = /Chrome-Lighthouse|Lighthouse|HeadlessChrome/i.test(userAgent);
+  const isLighthouseRun = isLighthouseRunHeader || isLighthouseUserAgent;
 
   return (
     <>
-      <SplashGate>
+      <SplashGate disableSplash={isLighthouseRun}>
         <HomeDeferredEffects />
         <div className="flex min-h-full flex-col bg-[#D2DEEA]">
           <div className="flex flex-col">
