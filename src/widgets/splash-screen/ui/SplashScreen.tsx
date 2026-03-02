@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import BlurText from '@/shared/ui/blur-text/BlurText';
+import { BlurText } from '@/shared/ui/blur-text';
 
 const Lanyard = dynamic(() => import('./Lanyard'), { ssr: false });
 
