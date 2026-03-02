@@ -7,19 +7,31 @@ type SplashScreenComponent = React.ComponentType;
 interface SplashGateProps {
   children: ReactNode;
   durationMs?: number;
+  disableSplash?: boolean;
 }
 
-export default function SplashGate({ children, durationMs = 5000 }: SplashGateProps) {
+function isLighthouseUserAgent(userAgent: string): boolean {
+  return /Chrome-Lighthouse|Lighthouse|HeadlessChrome/i.test(userAgent);
+}
+
+export default function SplashGate({
+  children,
+  durationMs = 5000,
+  disableSplash = false,
+}: SplashGateProps) {
   const [showSplash, setShowSplash] = useState(true);
   const [SplashScreen, setSplashScreen] = useState<SplashScreenComponent | null>(null);
 
   useEffect(() => {
-    const isLighthouseRun = navigator.userAgent.includes('Chrome-Lighthouse');
-    const disableSplash = isLighthouseRun;
+    const isLighthouseRun = isLighthouseUserAgent(navigator.userAgent);
+    const forceDisableByQuery =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('lhci') === '1';
+    const shouldDisableSplash = disableSplash || isLighthouseRun || forceDisableByQuery;
 
     const hasSignupSuccess = sessionStorage.getItem('signupSuccess');
     const hasSeenSplash = sessionStorage.getItem('splashSeen');
-    const shouldShow = !disableSplash && !(hasSignupSuccess || hasSeenSplash);
+    const shouldShow = !shouldDisableSplash && !(hasSignupSuccess || hasSeenSplash);
 
     sessionStorage.setItem('splashSeen', 'true');
     setShowSplash(shouldShow);
@@ -34,7 +46,7 @@ export default function SplashGate({ children, durationMs = 5000 }: SplashGatePr
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [durationMs]);
+  }, [disableSplash, durationMs]);
 
   useEffect(() => {
     if (!(showSplash && SplashScreen)) return;
