@@ -59,7 +59,7 @@ export default function SplashGate({ children, durationMs = 5000 }: SplashGatePr
     <>
       {children}
       {showSplash && SplashScreen ? (
-        <div className="fixed left-1/2 top-0 z-[1000] h-[100dvh] w-full max-w-[600px] -translate-x-1/2 overflow-hidden bg-white">
+        <div className="fixed left-1/2 top-0 z-[1000] h-[100dvh] w-[min(100%,600px)] -translate-x-1/2 overflow-hidden bg-white">
           <SplashScreen />
         </div>
       ) : null}
