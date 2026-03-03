@@ -7,7 +7,7 @@ export const API_PATH_SUFFIX_TARGETS = (process.env.NEXT_PUBLIC_API_PATH_SUFFIX_
 
 const NO_SUFFIX_PATH_PREFIXES = [
   '/api/v1/auth/oauth/kakao/authorize',
-  '/api/v1/auth/oauth/kakao/login',
+  '/api/v1/auth/oauth/kakao/login/local',
   '/api/v1/auth/signup',
 ];
 

@@ -8,6 +8,7 @@ export * from './api/getChatMessages';
 export * from './api/closeChat';
 export * from './api/createChat';
 export * from './api/createChatRequest';
+export * from './api/validateJobPostCrawl';
 export * from './api/markChatRead';
 export * from './api/updateChatLastRead';
 export * from './api/createChatFeedback';

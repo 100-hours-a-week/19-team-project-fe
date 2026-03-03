@@ -142,7 +142,12 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
               </p>
 
               <div className="mt-4">
-                <p className="text-sm font-semibold text-gray-700">공고 링크</p>
+                <p className="text-sm font-semibold text-gray-700">
+                  공고 링크
+                  <span className="ml-1 text-xs font-medium text-text-caption">
+                    (파싱 실패 시 탐색형 채팅 요청이 불가해요)
+                  </span>
+                </p>
                 <input
                   type="url"
                   placeholder="https://example.com/job/123"
