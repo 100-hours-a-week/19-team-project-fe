@@ -114,6 +114,8 @@ export default function MyPage() {
                     width={112}
                     height={112}
                     priority
+                    fetchPriority="high"
+                    loading="eager"
                     sizes="96px"
                     className="h-24 w-24 rounded-full object-cover"
                   />
