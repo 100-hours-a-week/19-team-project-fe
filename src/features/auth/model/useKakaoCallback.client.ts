@@ -74,7 +74,7 @@ export function useKakaoCallback() {
           if (!wsUrl) {
             console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
           } else {
-            await ensureWsConnected({ accessToken: result.accessToken });
+            await ensureWsConnected();
           }
         } catch (err) {
           console.warn('[WS] connect after login failed', err);

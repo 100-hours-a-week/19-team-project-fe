@@ -120,7 +120,7 @@ export function useSocialLoginFlow() {
         if (!wsUrl) {
           console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
         } else {
-          await ensureWsConnected({ accessToken: result.access_token });
+          await ensureWsConnected();
         }
       } catch (err) {
         console.warn('[WS] connect after restore failed', err);
