@@ -7,6 +7,16 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig = {
   reactStrictMode: false,
   output: 'standalone',
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'refit-storage-prod.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
+    ],
+    formats: ['image/avif', 'image/webp'],
+  },
   turbopack: {
     resolveAlias: {
       '@': './src',
