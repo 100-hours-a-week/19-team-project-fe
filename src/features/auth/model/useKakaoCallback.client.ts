@@ -7,8 +7,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { kakaoLogin } from '@/features/auth';
 import { authStatusQueryKey } from '@/entities/auth';
 import { userMeQueryKey } from '@/entities/user';
-import { readAccessToken, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
-import { stompManager } from '@/shared/ws';
+import { setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
+import { ensureWsConnected } from '@/shared/ws';
 
 export function useKakaoCallback() {
   const router = useRouter();
@@ -74,11 +74,7 @@ export function useKakaoCallback() {
           if (!wsUrl) {
             console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
           } else {
-            const accessToken = readAccessToken();
-            const connectHeaders = accessToken
-              ? { Authorization: `Bearer ${accessToken}` }
-              : undefined;
-            await stompManager.connect(wsUrl, { connectHeaders });
+            await ensureWsConnected();
           }
         } catch (err) {
           console.warn('[WS] connect after login failed', err);

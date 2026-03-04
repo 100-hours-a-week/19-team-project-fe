@@ -43,7 +43,15 @@ export const stompManager = {
     return !!st.client?.connected;
   },
 
-  async connect(url: string, options?: { connectHeaders?: Record<string, string> }): Promise<void> {
+  async connect(
+    url: string,
+    options?: {
+      connectHeaders?: Record<string, string>;
+      getConnectHeaders?:
+        | (() => Promise<Record<string, string> | undefined>)
+        | (() => Record<string, string> | undefined);
+    },
+  ): Promise<void> {
     const st = getState();
 
     if (st.client?.connected) return;
@@ -57,6 +65,7 @@ export const stompManager = {
         const client = createStompClient({
           url,
           connectHeaders: options?.connectHeaders,
+          getConnectHeaders: options?.getConnectHeaders,
         });
         st.client = client;
 

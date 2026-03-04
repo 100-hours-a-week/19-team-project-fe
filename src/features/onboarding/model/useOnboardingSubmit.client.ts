@@ -9,7 +9,7 @@ import type { CareerLevel, Job, Skill, UserType } from '@/entities/onboarding';
 import { userMeQueryKey } from '@/entities/user';
 import { signup } from '@/features/onboarding';
 import { BusinessError, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
-import { stompManager } from '@/shared/ws';
+import { ensureWsConnected } from '@/shared/ws';
 
 const signupErrorMessages: Record<string, string> = {
   SIGNUP_OAUTH_PROVIDER_INVALID: '소셜 로그인 제공자가 올바르지 않습니다.',
@@ -133,9 +133,7 @@ export function useOnboardingSubmit({
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
       if (wsUrl && response.accessToken) {
         try {
-          await stompManager.connect(wsUrl, {
-            connectHeaders: { Authorization: `Bearer ${response.accessToken}` },
-          });
+          await ensureWsConnected();
         } catch {
           // ignore
         }

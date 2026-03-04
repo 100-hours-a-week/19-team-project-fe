@@ -6,6 +6,9 @@ export interface CreateStompClientOptions {
   heartbeatIncomingMs?: number;
   heartbeatOutgoingMs?: number;
   connectHeaders?: Record<string, string>;
+  getConnectHeaders?:
+    | (() => Promise<Record<string, string> | undefined>)
+    | (() => Record<string, string> | undefined);
 
   debug?: boolean;
 }
@@ -16,6 +19,7 @@ export function createStompClient({
   heartbeatIncomingMs = 4000,
   heartbeatOutgoingMs = 4000,
   connectHeaders,
+  getConnectHeaders,
   debug = false,
 }: CreateStompClientOptions): Client {
   if (!url) {
@@ -29,6 +33,12 @@ export function createStompClient({
     heartbeatOutgoing: heartbeatOutgoingMs,
     connectHeaders,
   });
+
+  if (getConnectHeaders) {
+    client.beforeConnect = async () => {
+      client.connectHeaders = (await getConnectHeaders()) ?? {};
+    };
+  }
 
   // 로그는 개발 중에만
   client.debug = debug ? (msg) => console.log('[stomp]', msg) : () => {};
