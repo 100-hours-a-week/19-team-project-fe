@@ -12,6 +12,7 @@ permissions:
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 10
+  LHCI_TARGET_URL: https://re-fit.kr
   TEST_ENV_FILE: ${{ secrets.TEST_ENV_FILE }}
   LHCI_GOOGLE_CLIENT_EMAIL: ${{ secrets.LHCI_GOOGLE_CLIENT_EMAIL }}
   LHCI_GOOGLE_PRIVATE_KEY: ${{ secrets.LHCI_GOOGLE_PRIVATE_KEY }}
@@ -90,6 +91,15 @@ jobs:
               const displayValue = metric?.displayValue ?? 'N/A';
               return `${getColor(score)}${displayValue}`;
             };
+            const normalizePathname = (value) => {
+              if (!value) return '/';
+              try {
+                const pathname = new URL(value).pathname || '/';
+                return pathname !== '/' && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+              } catch {
+                return value;
+              }
+            };
 
             const formatResult = (res) => Math.round(res * 100);
             const monitoringTime = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
@@ -109,7 +119,7 @@ jobs:
                 const reportPath = path.isAbsolute(jsonPath) ? jsonPath : path.resolve(jsonPath);
                 const { audits } = readJson(reportPath);
 
-                const pageUrl = url.replace('http://localhost:3000', '');
+                const pageUrl = normalizePathname(url);
                 const pageName = getLhciPageNameFromUrl(pageUrl) || pageUrl;
 
                 Object.keys(summary).forEach((key) => (summary[key] = formatResult(summary[key])));
