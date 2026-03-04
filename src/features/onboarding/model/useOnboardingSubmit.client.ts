@@ -133,7 +133,7 @@ export function useOnboardingSubmit({
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
       if (wsUrl && response.accessToken) {
         try {
-          await ensureWsConnected();
+          await ensureWsConnected({ accessToken: response.accessToken });
         } catch {
           // ignore
         }

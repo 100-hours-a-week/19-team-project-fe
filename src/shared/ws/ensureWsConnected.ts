@@ -16,7 +16,11 @@ async function resolveAccessToken(): Promise<string | null> {
   return readAccessToken();
 }
 
-export async function ensureWsConnected(): Promise<void> {
+type EnsureWsConnectedOptions = {
+  accessToken?: string;
+};
+
+export async function ensureWsConnected(options?: EnsureWsConnectedOptions): Promise<void> {
   if (stompManager.isConnected()) return;
 
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
@@ -24,14 +28,14 @@ export async function ensureWsConnected(): Promise<void> {
     throw new Error('NEXT_PUBLIC_WS_URL is missing');
   }
 
-  const initialToken = await resolveAccessToken();
+  const initialToken = (await resolveAccessToken()) ?? options?.accessToken ?? null;
   if (!initialToken) {
     throw new Error('WS auth token is missing');
   }
 
   await stompManager.connect(wsUrl, {
     getConnectHeaders: async () => {
-      const token = await resolveAccessToken();
+      const token = (await resolveAccessToken()) ?? options?.accessToken ?? null;
       if (!token) {
         throw new Error('WS auth token is missing');
       }
