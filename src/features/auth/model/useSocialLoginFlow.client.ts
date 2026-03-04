@@ -7,9 +7,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { restoreAccount } from '@/features/auth';
 import { authStatusQueryKey } from '@/entities/auth';
 import { userMeQueryKey } from '@/entities/user';
-import { readAccessToken, setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
+import { setAuthCookies, useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
-import { stompManager } from '@/shared/ws';
+import { ensureWsConnected } from '@/shared/ws';
 
 type RestorePayload = {
   oauth_provider: 'KAKAO';
@@ -120,11 +120,7 @@ export function useSocialLoginFlow() {
         if (!wsUrl) {
           console.warn('[WS] NEXT_PUBLIC_WS_URL is missing');
         } else {
-          const accessToken = readAccessToken();
-          const connectHeaders = accessToken
-            ? { Authorization: `Bearer ${accessToken}` }
-            : undefined;
-          await stompManager.connect(wsUrl, { connectHeaders });
+          await ensureWsConnected();
         }
       } catch (err) {
         console.warn('[WS] connect after restore failed', err);
