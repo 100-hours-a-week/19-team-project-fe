@@ -2,6 +2,14 @@
   "name": "re-fit",
   "version": "2.3.3",
   "private": true,
+  "browserslist": {
+    "production": [
+      "chrome >= 90",
+      "edge >= 90",
+      "firefox >= 90",
+      "safari >= 14"
+    ]
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

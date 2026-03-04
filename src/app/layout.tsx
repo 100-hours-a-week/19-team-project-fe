@@ -72,6 +72,11 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        <link rel="preconnect" href="https://refit-storage-prod.s3.ap-northeast-2.amazonaws.com" />
+        <link
+          rel="dns-prefetch"
+          href="https://refit-storage-prod.s3.ap-northeast-2.amazonaws.com"
+        />
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-8YM02T7012"

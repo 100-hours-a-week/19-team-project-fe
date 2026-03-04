@@ -100,7 +100,8 @@ export default function MyPageEdit() {
                   alt="프로필 이미지"
                   width={80}
                   height={80}
-                  unoptimized={!!profileImagePreview || !!profileImageUrl}
+                  unoptimized={!!profileImagePreview}
+                  sizes="80px"
                   className="h-20 w-20 object-cover"
                 />
               </div>
