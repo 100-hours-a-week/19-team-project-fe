@@ -113,7 +113,8 @@ export default function MyPage() {
                     alt="프로필"
                     width={112}
                     height={112}
-                    unoptimized={!!user.profile_image_url}
+                    priority
+                    sizes="96px"
                     className="h-24 w-24 rounded-full object-cover"
                   />
                 </div>
