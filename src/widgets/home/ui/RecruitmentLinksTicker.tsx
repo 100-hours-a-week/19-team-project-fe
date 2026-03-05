@@ -52,7 +52,7 @@ export default function RecruitmentLinksTicker() {
           className="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2 text-sm font-semibold text-neutral-900"
         >
           <span className="flex items-center gap-2">
-            <Image src={current.icon} alt="" width={20} height={20} />
+            <Image src={current.icon} alt={`${current.label} 로고`} width={20} height={20} />
             {current.label}
           </span>
           <svg
