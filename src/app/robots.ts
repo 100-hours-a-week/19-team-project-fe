@@ -1,8 +1,16 @@
 import type { MetadataRoute } from 'next';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://dev.re-fit.kr';
+import { IS_NOINDEX_ENV, SITE_URL } from '@/shared/config/site';
 
 export default function robots(): MetadataRoute.Robots {
+  if (IS_NOINDEX_ENV) {
+    return {
+      rules: {
+        userAgent: '*',
+        disallow: '/',
+      },
+    };
+  }
+
   return {
     rules: [
       {

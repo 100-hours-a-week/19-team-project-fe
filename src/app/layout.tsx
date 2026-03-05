@@ -7,13 +7,13 @@ import { ToastProvider } from '@/shared/ui/toast';
 import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
 import { GaPageView } from '@/shared/metrics/GaPageView';
 import { ServiceWorkerRegistrar } from '@/shared/lib/pwa';
+import { CANONICAL_SITE_URL, IS_NOINDEX_ENV } from '@/shared/config/site';
 import './globals.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://dev.re-fit.kr';
 const DEFAULT_OG_IMAGE = '/icons/refit-og-home.png';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(CANONICAL_SITE_URL),
   title: {
     default: 'RE:FIT',
     template: '%s | RE:FIT',
@@ -43,8 +43,8 @@ export const metadata: Metadata = {
     images: [DEFAULT_OG_IMAGE],
   },
   robots: {
-    index: true,
-    follow: true,
+    index: !IS_NOINDEX_ENV,
+    follow: !IS_NOINDEX_ENV,
   },
   appleWebApp: {
     capable: true,

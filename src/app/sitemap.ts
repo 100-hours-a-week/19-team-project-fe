@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://dev.re-fit.kr';
+import { SITE_URL } from '@/shared/config/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
