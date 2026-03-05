@@ -9,6 +9,11 @@ type ExpertDetailRouteProps = {
   }>;
 };
 
+function truncateForMeta(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
 export async function generateMetadata({ params }: ExpertDetailRouteProps): Promise<Metadata> {
   const { id } = await params;
   const userId = Number.parseInt(id, 10);
@@ -26,16 +31,20 @@ export async function generateMetadata({ params }: ExpertDetailRouteProps): Prom
     const primaryJob = expert.jobs[0]?.name ?? '현직자';
     const skills = expert.skills.slice(0, 3).map((skill) => skill.name);
     const skillsText = skills.length > 0 ? ` · ${skills.join(', ')}` : '';
-    const description = `${expert.nickname} ${primaryJob}${skillsText} 전문가 프로필을 확인하고 RE:FIT에서 커피챗 및 피드백을 요청해보세요.`;
+    const rawDescription = `${expert.nickname} ${primaryJob}${skillsText} 전문가 프로필을 확인하고 RE:FIT에서 커피챗·피드백을 요청해보세요.`;
+    const description = truncateForMeta(rawDescription, 140);
 
     return {
-      title: `${expert.nickname} 전문가 프로필`,
+      title: `${expert.nickname} ${primaryJob} 전문가`,
       description,
       alternates: {
         canonical: `/experts/${userId}`,
       },
       openGraph: {
-        title: `${expert.nickname} 전문가 프로필 | RE:FIT`,
+        type: 'website',
+        locale: 'ko_KR',
+        siteName: 'RE:FIT',
+        title: `${expert.nickname} ${primaryJob} 전문가 | RE:FIT`,
         description,
         images: expert.profile_image_url
           ? [

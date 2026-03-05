@@ -13,8 +13,9 @@ function resolveSiteUrl(): string {
 }
 
 export const SITE_URL = resolveSiteUrl();
-export const CANONICAL_SITE_URL = normalizeUrl(process.env.NEXT_PUBLIC_CANONICAL_URL ?? PROD_SITE_URL);
+export const CANONICAL_SITE_URL = normalizeUrl(
+  process.env.NEXT_PUBLIC_CANONICAL_URL ?? PROD_SITE_URL,
+);
 
 const siteHost = new URL(SITE_URL).hostname;
 export const IS_NOINDEX_ENV = siteHost === 'localhost' || siteHost.startsWith('dev.');
-

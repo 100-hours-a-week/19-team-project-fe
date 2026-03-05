@@ -19,14 +19,14 @@ import iconMarkB from '@/shared/icons/icon-mark_B.png';
 export const metadata: Metadata = {
   title: 'RE-FIT: 현직자 피드백으로 커리어를 개선하는 플랫폼',
   description:
-    'RE:FIT은 현직자 검색, 커피챗, 이력서 기반 피드백을 통해 취업 준비와 이직 과정에서 필요한 실전 조언을 연결하는 커리어 성장 플랫폼입니다. 직무별 전문가에게 맞춤 인사이트를 받아 지원 전략을 더 빠르게 개선해보세요.',
+    '현직자와 커피챗·피드백을 진행하고, 이력서와 지원 전략을 빠르게 개선하는 커리어 성장 플랫폼 RE:FIT.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: '현직자 피드백으로 커리어를 개선하는 플랫폼 | RE:FIT',
     description:
-      '현직자 검색부터 커피챗, 맞춤 피드백까지. RE:FIT에서 취업 준비와 이직 과정에 필요한 실전 인사이트를 확인하고 직무별 전문가의 조언으로 지원 전략을 구체적으로 개선해보세요.',
+      '현직자 검색부터 커피챗, 맞춤 피드백까지. RE:FIT에서 취업·이직 전략을 구체적으로 개선해보세요.',
   },
 };
 
