@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { IS_NOINDEX_ENV, SITE_URL } from '@/shared/config/site';
+import { CANONICAL_SITE_URL, IS_NOINDEX_ENV, SITE_URL } from '@/shared/config/site';
 
 export default function robots(): MetadataRoute.Robots {
   if (IS_NOINDEX_ENV) {
@@ -10,6 +10,8 @@ export default function robots(): MetadataRoute.Robots {
       },
     };
   }
+
+  const indexableSiteUrl = CANONICAL_SITE_URL || SITE_URL;
 
   return {
     rules: [
@@ -30,6 +32,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: indexableSiteUrl,
+    sitemap: `${indexableSiteUrl}/sitemap.xml`,
   };
 }
