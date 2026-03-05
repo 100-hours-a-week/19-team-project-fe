@@ -48,7 +48,7 @@ export default async function Home() {
               <div className="px-2.5 pt-[calc(3rem+1.5rem)] text-text-body">
                 <div className="flex items-center">
                   <Image src={iconMarkB} alt="RE:FIT 로고 아이콘" width={22} height={22} />
-                  <p className="text-2xl font-bold">RE:FIT에 오신 걸 환영합니다.</p>
+                  <h1 className="text-2xl font-bold">RE:FIT에 오신 걸 환영합니다.</h1>
                 </div>
               </div>
 
@@ -57,7 +57,7 @@ export default async function Home() {
               </div>
 
               <section className="mt-2 px-2.5" aria-labelledby="recommended-experts">
-                <h2 id="recommended-experts" className="sr-only">
+                <h2 id="recommended-experts" className="text-base font-semibold text-text-body">
                   현직자 추천
                 </h2>
                 {isLighthouseRun ? (
@@ -69,8 +69,11 @@ export default async function Home() {
                 )}
               </section>
 
-              <div className="flex flex-col">
+              <section className="flex flex-col" aria-labelledby="career-resources">
                 <div className="relative mt-1 w-full rounded-t-3xl bg-white px-2.5 pt-8 pb-[calc(var(--app-footer-height)+16px)] shadow-[0_-16px_36px_rgba(59,91,204,0.25)]">
+                  <h2 id="career-resources" className="sr-only">
+                    커리어 준비 리소스
+                  </h2>
                   <div className="flex flex-col gap-0">
                     <div className="-mt-3">
                       <TechBlogBanner />
@@ -78,7 +81,7 @@ export default async function Home() {
                     <HomeDeferredSections />
                   </div>
                 </div>
-              </div>
+              </section>
             </main>
           </div>
           <Footer />

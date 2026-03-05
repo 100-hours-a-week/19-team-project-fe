@@ -18,7 +18,8 @@ export const metadata: Metadata = {
     default: 'RE-FIT: 현직자 피드백 커리어 플랫폼',
     template: '%s | RE:FIT',
   },
-  description: '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
+  description:
+    '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
   applicationName: 'RE:FIT',
   manifest: '/manifest.webmanifest',
   openGraph: {
@@ -26,7 +27,8 @@ export const metadata: Metadata = {
     locale: 'ko_KR',
     siteName: 'RE:FIT',
     title: 'RE-FIT: 현직자 피드백 커리어 플랫폼',
-    description: '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
+    description:
+      '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
     images: [
       {
         url: DEFAULT_OG_IMAGE,
@@ -39,7 +41,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'RE-FIT: 현직자 피드백 커리어 플랫폼',
-    description: '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
+    description:
+      '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
     images: [DEFAULT_OG_IMAGE],
   },
   robots: {
