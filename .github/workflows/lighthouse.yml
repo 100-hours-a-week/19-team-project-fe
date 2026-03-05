@@ -12,7 +12,6 @@ permissions:
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 10
-  LHCI_TARGET_URL: https://re-fit.kr
   TEST_ENV_FILE: ${{ secrets.TEST_ENV_FILE }}
   LHCI_GOOGLE_CLIENT_EMAIL: ${{ secrets.LHCI_GOOGLE_CLIENT_EMAIL }}
   LHCI_GOOGLE_PRIVATE_KEY: ${{ secrets.LHCI_GOOGLE_PRIVATE_KEY }}

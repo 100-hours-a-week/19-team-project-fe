@@ -19,7 +19,7 @@ export default function SplashScreen() {
         />
         <div className="absolute left-6 top-8 flex flex-col gap-1 text-black md:left-10 md:top-10">
           <p className="text-2xl font-medium tracking-[0.3em] uppercase text-black">Re:Fit</p>
-          <h1 className="text-3xl font-bold leading-tight md:text-4xl">
+          <p className="text-3xl font-bold leading-tight md:text-4xl">
             <BlurText as="span" inline text="대화 한 번으로," animateBy="words" direction="top" />
             <br />
             <BlurText
@@ -29,7 +29,7 @@ export default function SplashScreen() {
               animateBy="words"
               direction="top"
             />
-          </h1>
+          </p>
         </div>
       </div>
     </section>

@@ -1,8 +1,18 @@
 import type { MetadataRoute } from 'next';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://dev.re-fit.kr';
+import { CANONICAL_SITE_URL, IS_NOINDEX_ENV, SITE_URL } from '@/shared/config/site';
 
 export default function robots(): MetadataRoute.Robots {
+  if (IS_NOINDEX_ENV) {
+    return {
+      rules: {
+        userAgent: '*',
+        disallow: '/',
+      },
+    };
+  }
+
+  const indexableSiteUrl = CANONICAL_SITE_URL || SITE_URL;
+
   return {
     rules: [
       {
@@ -22,6 +32,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: indexableSiteUrl,
+    sitemap: `${indexableSiteUrl}/sitemap.xml`,
   };
 }
