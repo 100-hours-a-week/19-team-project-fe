@@ -1,32 +1,33 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { pretendard } from '../shared/config/font';
-import { FcmBootstrap } from '@/features/notification-fcm';
 import { QueryProvider } from '@/shared/lib/react-query';
 import { ToastProvider } from '@/shared/ui/toast';
-import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
-import { GaPageView } from '@/shared/metrics/GaPageView';
-import { ServiceWorkerRegistrar } from '@/shared/lib/pwa';
+import { CANONICAL_SITE_URL, IS_NOINDEX_ENV } from '@/shared/config/site';
+import AppClientBootstraps from './AppClientBootstraps';
 import './globals.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://dev.re-fit.kr';
 const DEFAULT_OG_IMAGE = '/icons/refit-og-home.png';
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? 'G-8YM02T7012';
+const ENABLE_ANALYTICS = process.env.NODE_ENV === 'production' && !IS_NOINDEX_ENV;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(CANONICAL_SITE_URL),
   title: {
-    default: 'RE:FIT',
+    default: 'RE-FIT: 현직자 피드백 커리어 플랫폼',
     template: '%s | RE:FIT',
   },
-  description: '현직자와 연결되어 커리어 피드백을 받고, 이력서와 지원 전략을 개선하는 RE:FIT',
+  description:
+    '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
   applicationName: 'RE:FIT',
   manifest: '/manifest.webmanifest',
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
     siteName: 'RE:FIT',
-    title: 'RE:FIT',
-    description: '현직자와 연결되어 커리어 피드백을 받고, 이력서와 지원 전략을 개선하는 RE:FIT',
+    title: 'RE-FIT: 현직자 피드백 커리어 플랫폼',
+    description:
+      '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
     images: [
       {
         url: DEFAULT_OG_IMAGE,
@@ -38,13 +39,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RE:FIT',
-    description: '현직자와 연결되어 커리어 피드백을 받고, 이력서와 지원 전략을 개선하는 RE:FIT',
+    title: 'RE-FIT: 현직자 피드백 커리어 플랫폼',
+    description:
+      '현직자와 커피챗·피드백을 진행하고 이력서와 지원 전략을 개선하는 커리어 플랫폼 RE:FIT.',
     images: [DEFAULT_OG_IMAGE],
   },
   robots: {
-    index: true,
-    follow: true,
+    index: !IS_NOINDEX_ENV,
+    follow: !IS_NOINDEX_ENV,
   },
   appleWebApp: {
     capable: true,
@@ -77,13 +79,15 @@ export default function RootLayout({
           rel="dns-prefetch"
           href="https://refit-storage-prod.s3.ap-northeast-2.amazonaws.com"
         />
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-8YM02T7012"
-          strategy="afterInteractive"
-        />
-        <Script id="gtag-init" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || [];
+        {ENABLE_ANALYTICS ? (
+          <>
+            <Script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="lazyOnload"
+            />
+            <Script id="gtag-init" strategy="lazyOnload">
+              {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 // Track recent page_view to prevent accidental double sends.
 window.__gaLastPageView = null;
@@ -103,16 +107,15 @@ dataLayer.push = function() {
   return _dlPush.apply(this, arguments);
 };
 gtag('js', new Date());
-gtag('config', 'G-8YM02T7012', { send_page_view: false });`}
-        </Script>
+gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`}
+            </Script>
+          </>
+        ) : null}
       </head>
       <body className={`${pretendard.variable} app-shell antialiased`}>
-        <ServiceWorkerRegistrar />
-        <MetricsInitializer />
-        <GaPageView />
         <QueryProvider>
           <ToastProvider>
-            <FcmBootstrap />
+            <AppClientBootstraps />
             <div className="app-frame">{children}</div>
           </ToastProvider>
         </QueryProvider>

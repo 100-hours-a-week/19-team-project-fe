@@ -7,6 +7,17 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig = {
   reactStrictMode: false,
   output: 'standalone',
+  poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.re-fit.kr' }],
+        destination: 'https://re-fit.kr/:path*',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

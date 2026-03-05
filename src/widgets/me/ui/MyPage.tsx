@@ -247,7 +247,13 @@ export default function MyPage() {
         onClose={() => setSettingsOpen(false)}
       >
         <div className="flex flex-col items-center">
-          <Image src={charLogout} alt="" width={200} height={200} className="mb-4" />
+          <Image
+            src={charLogout}
+            alt="설정 안내 캐릭터 일러스트"
+            width={200}
+            height={200}
+            className="mb-4"
+          />
           <div className="w-full space-y-3">
             <button
               type="button"

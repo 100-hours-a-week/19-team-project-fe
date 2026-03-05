@@ -1,10 +1,20 @@
-const TARGET_URL = process.env.LHCI_TARGET_URL || 'https://re-fit.kr';
+const {
+  LHCI_MONITORING_PAGE_NAMES,
+  getLhciUrlFromPageName,
+} = require('./src/shared/config/lighthouse/Lighthouse.js');
+
+const BASE_URL = 'http://localhost:3000';
+const urls = LHCI_MONITORING_PAGE_NAMES.map(
+  (name) => `${BASE_URL}${getLhciUrlFromPageName(name)}`
+);
 
 module.exports = {
   ci: {
     collect: {
-      url: [TARGET_URL],
-      numberOfRuns: 3,
+      startServerCommand: 'pnpm start',
+      startServerReadyPattern: 'ready - started server',
+      url: urls,
+      numberOfRuns: 1,
       settings: {
         extraHeaders: {
           'x-lighthouse-run': '1',

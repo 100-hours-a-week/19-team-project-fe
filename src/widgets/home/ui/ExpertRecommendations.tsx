@@ -269,8 +269,10 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
 
   if (safeRecommendations.length === 0) {
     return (
-      <div className="px-2.5 pt-3 pb-5">
-        <p className="text-sm font-semibold text-neutral-900">현직자 추천</p>
+      <div className="pt-1 pb-5">
+        <p className="text-sm font-semibold text-neutral-900">
+          지금은 추천 가능한 현직자를 준비 중이에요
+        </p>
         <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-text-caption">
           추천 현직자가 아직 없어요.
         </div>
@@ -279,8 +281,10 @@ export default function ExpertRecommendations({ recommendations }: ExpertRecomme
   }
 
   return (
-    <div className="px-2.5 pt-3 pb-5">
-      <p className="text-sm font-semibold text-neutral-900">현직자 추천</p>
+    <div className="pt-1 pb-5">
+      <p className="text-sm font-semibold text-neutral-900">
+        관심 직무의 현직자를 눌러 커피챗 또는 피드백을 요청해보세요
+      </p>
       <div className="mt-3 flex items-start gap-3 overflow-x-auto pb-2 pr-2 snap-x snap-mandatory scrollbar-hide">
         {safeRecommendations.map((expert, index) => {
           const expertId = getExpertId(expert);
