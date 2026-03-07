@@ -2,11 +2,13 @@ import { cookies } from 'next/headers';
 
 import type { ExpertRecommendationsResponse } from '@/entities/experts';
 import { apiFetch, buildApiUrl } from '@/shared/api';
+import { cacheTags } from '@/shared/lib/cache/tags';
 
 import ExpertRecommendations from './ExpertRecommendations';
 
 const RECOMMENDATIONS_CACHE_TTL_MS = 30_000;
 const RECOMMENDATIONS_STALE_IF_ERROR_MS = 5 * 60_000;
+const GUEST_RECOMMENDATIONS_REVALIDATE_SECONDS = 60;
 const MAX_CACHE_ENTRIES = 500;
 
 const FALLBACK_DATA: ExpertRecommendationsResponse = {
@@ -77,11 +79,22 @@ export default async function ExpertRecommendationsServer() {
 
   try {
     const upstreamStartMs = nowMs();
-    data = await apiFetch<ExpertRecommendationsResponse>(url, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
-    });
+    data = await apiFetch<ExpertRecommendationsResponse>(
+      url,
+      accessToken
+        ? {
+            method: 'GET',
+            cache: 'no-store',
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        : {
+            method: 'GET',
+            next: {
+              revalidate: GUEST_RECOMMENDATIONS_REVALIDATE_SECONDS,
+              tags: [cacheTags.homeGuestRecommendations],
+            },
+          },
+    );
     setCachedRecommendation(cacheKey, data);
     console.info('[SSR_EXPERT_RECOMMENDATIONS]', {
       event: 'ssr_expert_recommendations',

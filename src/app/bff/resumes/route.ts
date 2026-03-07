@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { invalidateResumeListCache } from '@/shared/lib/cache/invalidation.server';
 import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 export async function GET(req: Request) {
@@ -119,6 +120,7 @@ export async function POST(req: Request) {
     }
 
     const body = await res.json();
+    invalidateResumeListCache();
     return NextResponse.json(body, { status: res.status });
   } catch (error) {
     if (error instanceof BusinessError) {

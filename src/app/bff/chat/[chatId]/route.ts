@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse } from '@/shared/api';
+import { invalidateChatCache } from '@/shared/lib/cache/invalidation.server';
 import { closeChat, getChatDetail } from '@/features/chat.server';
 
 type Params = {
@@ -98,6 +99,7 @@ export async function PATCH(req: Request, context: { params: Params }) {
       data,
     };
 
+    invalidateChatCache(chatId);
     return NextResponse.json(response);
   } catch (error) {
     if (error instanceof BusinessError) {
