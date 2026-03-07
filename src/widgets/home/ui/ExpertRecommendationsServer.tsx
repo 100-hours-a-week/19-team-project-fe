@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 
 import type { ExpertRecommendationsResponse } from '@/entities/experts';
 import { apiFetch, buildApiUrl } from '@/shared/api';
-import { cacheTags } from '@/shared/lib/cache/tags';
+import { cacheTags } from '@/shared/lib/cache';
 
 import ExpertRecommendations from './ExpertRecommendations';
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse } from '@/shared/api';
-import { invalidateChatCache } from '@/shared/lib/cache/invalidation.server';
+import { invalidateChatCache } from '@/shared/lib/cache';
 import { closeChat, getChatDetail } from '@/features/chat.server';
 
 type Params = {

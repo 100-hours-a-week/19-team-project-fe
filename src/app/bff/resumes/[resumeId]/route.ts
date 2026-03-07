@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
-import { invalidateResumeCache } from '@/shared/lib/cache/invalidation.server';
+import { invalidateResumeCache } from '@/shared/lib/cache';
 import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 export async function GET(req: Request, { params }: { params: Promise<{ resumeId: string }> }) {

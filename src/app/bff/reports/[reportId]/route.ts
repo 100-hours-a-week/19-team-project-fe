@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { type ApiResponse, buildApiUrl } from '@/shared/api';
-import { invalidateReportCache } from '@/shared/lib/cache/invalidation.server';
+import { invalidateReportCache } from '@/shared/lib/cache';
 import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 function getAccessToken(req: Request, cookieToken?: string) {

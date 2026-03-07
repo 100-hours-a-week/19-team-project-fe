@@ -7,7 +7,7 @@ import { BusinessError, type ApiResponse } from '@/shared/api';
 import {
   invalidateChatCache,
   invalidateReportListCache,
-} from '@/shared/lib/cache/invalidation.server';
+} from '@/shared/lib/cache';
 import type { ChatFeedbackRequest } from '@/entities/chat';
 
 const CHAT_FEEDBACK_BFF_TIMEOUT_MS = 30000;
