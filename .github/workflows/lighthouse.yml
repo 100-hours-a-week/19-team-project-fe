@@ -41,12 +41,12 @@ jobs:
 
       - name: Run Lighthouse CI for Desktop
         run: |
-          pnpm dlx @lhci/cli collect --config=lighthouserc-desktop.js
+          pnpm dlx @lhci/cli collect --config=lighthouserc-desktop.js --verbose
           pnpm dlx @lhci/cli upload --config=lighthouserc-desktop.js
 
       - name: Run Lighthouse CI for Mobile
         run: |
-          pnpm dlx @lhci/cli collect --config=lighthouserc-mobile.js
+          pnpm dlx @lhci/cli collect --config=lighthouserc-mobile.js --verbose
           pnpm dlx @lhci/cli upload --config=lighthouserc-mobile.js
 
       - name: Format lighthouse score

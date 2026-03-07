@@ -13,10 +13,13 @@ module.exports = {
     collect: {
       startServerCommand: 'pnpm start',
       startServerReadyPattern: 'Local:',
+      startServerReadyTimeout: 120000,
       url: urls,
       numberOfRuns: 1,
       settings: {
         preset: 'desktop',
+        maxWaitForLoad: 90000,
+        chromeFlags: '--no-sandbox --disable-dev-shm-usage',
         extraHeaders: {
           'x-lighthouse-run': '1',
         },
