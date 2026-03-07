@@ -4,9 +4,13 @@ const {
 } = require('./src/shared/config/lighthouse/Lighthouse.js');
 
 const BASE_URL = 'http://localhost:3000';
-const urls = LHCI_MONITORING_PAGE_NAMES.map(
-  (name) => `${BASE_URL}${getLhciUrlFromPageName(name)}`
-);
+const urls = LHCI_MONITORING_PAGE_NAMES.map((name) => {
+  const path = getLhciUrlFromPageName(name);
+  if (typeof path !== 'string') {
+    throw new Error(`Missing LHCI URL mapping for page: ${name}`);
+  }
+  return `${BASE_URL}${path}`;
+});
 
 module.exports = {
   ci: {
@@ -14,7 +18,7 @@ module.exports = {
       startServerCommand: 'pnpm start',
       startServerReadyPattern: 'Local:',
       startServerReadyTimeout: 120000,
-      chromeFlags: '--headless=new --no-sandbox --disable-dev-shm-usage',
+      chromeFlags: '--headless --no-sandbox --disable-dev-shm-usage --disable-gpu',
       url: urls,
       numberOfRuns: 1,
       settings: {
