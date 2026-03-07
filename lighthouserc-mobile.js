@@ -9,7 +9,8 @@ const urls = LHCI_MONITORING_PAGE_NAMES.map((name) => {
   if (typeof path !== 'string') {
     throw new Error(`Missing LHCI URL mapping for page: ${name}`);
   }
-  return `${BASE_URL}${path}`;
+  const sep = path.includes('?') ? '&' : '?';
+  return `${BASE_URL}${path}${sep}lhci=1`;
 });
 
 module.exports = {
@@ -24,9 +25,6 @@ module.exports = {
       settings: {
         maxWaitForLoad: 90000,
         throttlingMethod: 'provided',
-        extraHeaders: {
-          'x-lighthouse-run': '1',
-        },
       },
     },
     upload: {
