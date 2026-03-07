@@ -14,11 +14,12 @@ module.exports = {
       startServerCommand: 'pnpm start',
       startServerReadyPattern: 'Local:',
       startServerReadyTimeout: 120000,
+      chromeFlags: '--headless=new --no-sandbox --disable-dev-shm-usage',
       url: urls,
       numberOfRuns: 1,
       settings: {
         maxWaitForLoad: 90000,
-        chromeFlags: '--no-sandbox --disable-dev-shm-usage',
+        throttlingMethod: 'provided',
         extraHeaders: {
           'x-lighthouse-run': '1',
         },
