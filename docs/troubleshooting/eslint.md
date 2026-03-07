@@ -1709,3 +1709,39 @@ React Compiler has skipped optimizing this component because the existing manual
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-03-07 Raw Log
+
+- Logged at: 2026-03-07 10:37:18Z
+
+```
+> re-fit@2.3.7 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/src/app/bff/chat/[chatId]/feedback/route.ts
+  7:1  error  '@/shared/lib/cache/invalidation.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/app/bff/chat/[chatId]/route.ts
+  5:1  error  '@/shared/lib/cache/invalidation.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/app/bff/reports/[reportId]/route.ts
+  5:1  error  '@/shared/lib/cache/invalidation.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/app/bff/resumes/[resumeId]/route.ts
+  5:1  error  '@/shared/lib/cache/invalidation.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/app/bff/resumes/[resumeId]/title/route.ts
+  5:1  error  '@/shared/lib/cache/invalidation.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/app/bff/resumes/route.ts
+  5:1  error  '@/shared/lib/cache/invalidation.server' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+/Users/junseopark/Desktop/19-team-project-fe/src/widgets/home/ui/ExpertRecommendationsServer.tsx
+  5:1  error  '@/shared/lib/cache/tags' import is restricted from being used by a pattern. FSD 규칙: 레이어 내부 직접 경로 대신 public index.ts를 통해 import 해야 합니다  no-restricted-imports
+
+✖ 7 problems (7 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

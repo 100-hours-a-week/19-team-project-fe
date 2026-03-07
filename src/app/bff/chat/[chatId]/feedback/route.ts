@@ -4,7 +4,10 @@ import { cookies } from 'next/headers';
 
 import { createChatFeedback, requestReportCreate } from '@/features/chat.server';
 import { BusinessError, type ApiResponse } from '@/shared/api';
-import { invalidateChatCache, invalidateReportListCache } from '@/shared/lib/cache/invalidation.server';
+import {
+  invalidateChatCache,
+  invalidateReportListCache,
+} from '@/shared/lib/cache/invalidation.server';
 import type { ChatFeedbackRequest } from '@/entities/chat';
 
 const CHAT_FEEDBACK_BFF_TIMEOUT_MS = 30000;
