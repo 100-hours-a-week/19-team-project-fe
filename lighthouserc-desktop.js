@@ -12,7 +12,7 @@ module.exports = {
   ci: {
     collect: {
       startServerCommand: 'pnpm start',
-      startServerReadyPattern: 'ready - started server',
+      startServerReadyPattern: 'Local:',
       url: urls,
       numberOfRuns: 1,
       settings: {

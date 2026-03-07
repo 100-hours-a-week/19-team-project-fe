@@ -41,13 +41,13 @@ jobs:
 
       - name: Run Lighthouse CI for Desktop
         run: |
-          pnpm dlx @lhci/cli collect --config=lighthouserc-desktop.js || echo 'Fail to Run Lighthouse CI (desktop)'
-          pnpm dlx @lhci/cli upload --config=lighthouserc-desktop.js || echo 'Fail to Run Lighthouse CI (desktop)'
+          pnpm dlx @lhci/cli collect --config=lighthouserc-desktop.js
+          pnpm dlx @lhci/cli upload --config=lighthouserc-desktop.js
 
       - name: Run Lighthouse CI for Mobile
         run: |
-          pnpm dlx @lhci/cli collect --config=lighthouserc-mobile.js || echo 'Fail to Run Lighthouse CI (mobile)'
-          pnpm dlx @lhci/cli upload --config=lighthouserc-mobile.js || echo 'Fail to Run Lighthouse CI (mobile)'
+          pnpm dlx @lhci/cli collect --config=lighthouserc-mobile.js
+          pnpm dlx @lhci/cli upload --config=lighthouserc-mobile.js
 
       - name: Format lighthouse score
         id: format_lighthouse_score
@@ -77,6 +77,12 @@ jobs:
 
             const desktopResults = readJson(desktopManifestPath);
             const mobileResults = readJson(mobileManifestPath);
+            if (!Array.isArray(desktopResults) || desktopResults.length === 0) {
+              throw new Error('Desktop Lighthouse results are empty');
+            }
+            if (!Array.isArray(mobileResults) || mobileResults.length === 0) {
+              throw new Error('Mobile Lighthouse results are empty');
+            }
 
             const getColor = (score) => {
               if (score >= LHCI_GREEN_MIN_SCORE) return '🟢';
