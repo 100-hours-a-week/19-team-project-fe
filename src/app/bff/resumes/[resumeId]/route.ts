@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { BusinessError, type ApiResponse, buildApiUrl } from '@/shared/api';
+import { invalidateResumeCache } from '@/shared/lib/cache';
 import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 export async function GET(req: Request, { params }: { params: Promise<{ resumeId: string }> }) {
@@ -138,6 +139,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ resum
     }
 
     const body = await res.json().catch(() => ({}));
+    invalidateResumeCache(normalizedId);
     return NextResponse.json(body);
   } catch (error) {
     if (error instanceof BusinessError) {
@@ -219,6 +221,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ resume
     }
 
     const body = await res.json().catch(() => ({}));
+    invalidateResumeCache(normalizedId);
     return NextResponse.json(body);
   } catch (error) {
     if (error instanceof BusinessError) {

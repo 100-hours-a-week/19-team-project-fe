@@ -3,24 +3,14 @@ importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-com
 
 const STATIC_CACHE = 'refit-static-v1';
 const PAGE_CACHE = 'refit-pages-v1';
-const PUBLIC_API_CACHE = 'refit-public-api-v1';
 const OFFLINE_URL = '/offline.html';
 const SW_VERSION = '2026-02-27';
 const NOTIFICATION_DEDUP_WINDOW_MS = 8000;
 const recentlyShownNotifications = new Map();
 
 const STATIC_PATH_PREFIXES = ['/_next/static/', '/icons/', '/assets/', '/lottie/'];
-const PERSONALIZED_API_PREFIXES = [
-  '/bff/users/me',
-  '/bff/reports',
-  '/bff/resumes',
-  '/bff/notifications',
-  '/bff/auth',
-  '/bff/uploads',
-  '/bff/chat',
-  '/bff/email-verifications',
-];
-const PUBLIC_CACHEABLE_API_PREFIXES = ['/bff/experts'];
+const NAVIGATION_CACHE_EXACT_PATHS = new Set(['/', '/login']);
+const NAVIGATION_CACHE_PREFIXES = ['/onboarding', '/experts'];
 
 function isSameOrigin(url) {
   return url.origin === self.location.origin;
@@ -32,12 +22,13 @@ function isStaticAsset(pathname) {
   return /\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2)$/i.test(pathname);
 }
 
-function isPersonalizedApi(pathname) {
-  return PERSONALIZED_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+function isBffApi(pathname) {
+  return pathname.startsWith('/bff/');
 }
 
-function isPublicCacheableApi(pathname) {
-  return PUBLIC_CACHEABLE_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+function isNavigationCacheAllowed(pathname) {
+  if (NAVIGATION_CACHE_EXACT_PATHS.has(pathname)) return true;
+  return NAVIGATION_CACHE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 async function networkFirstPage(request) {
@@ -69,28 +60,14 @@ async function cacheFirstStatic(request) {
   return response;
 }
 
-async function staleWhileRevalidatePublicApi(request) {
-  const cache = await caches.open(PUBLIC_API_CACHE);
-  const cached = await cache.match(request);
-
-  const networkPromise = fetch(request)
-    .then((response) => {
-      if (response && response.ok) {
-        cache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => null);
-
-  if (cached) return cached;
-
-  const networkResponse = await networkPromise;
-  if (networkResponse) return networkResponse;
-
-  return new Response(JSON.stringify({ code: 'OFFLINE', message: 'OFFLINE', data: null }), {
-    status: 503,
-    headers: { 'Content-Type': 'application/json' },
-  });
+async function networkOnlyPage(request) {
+  try {
+    return await fetch(request);
+  } catch (_error) {
+    const offline = await caches.match(OFFLINE_URL);
+    if (offline) return offline;
+    return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+  }
 }
 
 self.addEventListener('install', (event) => {
@@ -105,7 +82,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      const keep = [STATIC_CACHE, PAGE_CACHE, PUBLIC_API_CACHE];
+      const keep = [STATIC_CACHE, PAGE_CACHE];
       const keys = await caches.keys();
       await Promise.all(keys.filter((key) => !keep.includes(key)).map((key) => caches.delete(key)));
       await self.clients.claim();
@@ -122,17 +99,17 @@ self.addEventListener('fetch', (event) => {
   if (!isSameOrigin(url)) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirstPage(request));
+    if (isNavigationCacheAllowed(url.pathname)) {
+      event.respondWith(networkFirstPage(request));
+      return;
+    }
+
+    event.respondWith(networkOnlyPage(request));
     return;
   }
 
-  if (isPersonalizedApi(url.pathname)) {
+  if (isBffApi(url.pathname)) {
     event.respondWith(fetch(request));
-    return;
-  }
-
-  if (isPublicCacheableApi(url.pathname)) {
-    event.respondWith(staleWhileRevalidatePublicApi(request));
     return;
   }
 

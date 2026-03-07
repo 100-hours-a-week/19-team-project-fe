@@ -26,6 +26,13 @@ export type ExpertDetail = {
   last_active_at: string;
 };
 
+const EXPERT_DETAIL_REVALIDATE_SECONDS = 600;
+
 export async function getExpertDetail(userId: number): Promise<ExpertDetail> {
-  return apiFetch<ExpertDetail>(buildApiUrl(`/api/v1/experts/${userId}`));
+  const requestInit =
+    typeof window === 'undefined'
+      ? { next: { revalidate: EXPERT_DETAIL_REVALIDATE_SECONDS } }
+      : undefined;
+
+  return apiFetch<ExpertDetail>(buildApiUrl(`/api/v1/experts/${userId}`), requestInit);
 }
