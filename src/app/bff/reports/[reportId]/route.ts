@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 import { type ApiResponse, buildApiUrl } from '@/shared/api';
+import { invalidateReportCache } from '@/shared/lib/cache';
 import { fetchBffUpstream } from '@/app/bff/_lib/fetchUpstream';
 
 function getAccessToken(req: Request, cookieToken?: string) {
@@ -118,6 +119,7 @@ export async function DELETE(req: Request, context: { params: Promise<{ reportId
       return NextResponse.json(response, { status: upstreamRes.status || 500 });
     }
 
+    invalidateReportCache(reportId);
     return NextResponse.json(body, { status: upstreamRes.status });
   } catch (error) {
     console.error('[Report Delete Error]', error);

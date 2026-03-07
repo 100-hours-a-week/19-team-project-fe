@@ -1,13 +1,18 @@
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { ExpertDetailPage } from '@/widgets/expert';
 import { getExpertDetail } from '@/entities/experts';
 import { PageTransition } from '@/shared/ui/page-transition';
+
+export const revalidate = 600;
 
 type ExpertDetailRouteProps = {
   params: Promise<{
     id: string;
   }>;
 };
+
+const getCachedExpertDetail = cache(async (userId: number) => getExpertDetail(userId));
 
 function truncateForMeta(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
@@ -27,7 +32,7 @@ export async function generateMetadata({ params }: ExpertDetailRouteProps): Prom
   }
 
   try {
-    const expert = await getExpertDetail(userId);
+    const expert = await getCachedExpertDetail(userId);
     const primaryJob = expert.jobs[0]?.name ?? '현직자';
     const skills = expert.skills.slice(0, 3).map((skill) => skill.name);
     const skillsText = skills.length > 0 ? ` · ${skills.join(', ')}` : '';

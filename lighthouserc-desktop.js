@@ -4,22 +4,28 @@ const {
 } = require('./src/shared/config/lighthouse/Lighthouse.js');
 
 const BASE_URL = 'http://localhost:3000';
-const urls = LHCI_MONITORING_PAGE_NAMES.map(
-  (name) => `${BASE_URL}${getLhciUrlFromPageName(name)}`
-);
+const urls = LHCI_MONITORING_PAGE_NAMES.map((name) => {
+  const path = getLhciUrlFromPageName(name);
+  if (typeof path !== 'string') {
+    throw new Error(`Missing LHCI URL mapping for page: ${name}`);
+  }
+  const sep = path.includes('?') ? '&' : '?';
+  return `${BASE_URL}${path}${sep}lhci=1`;
+});
 
 module.exports = {
   ci: {
     collect: {
       startServerCommand: 'pnpm start',
-      startServerReadyPattern: 'ready - started server',
+      startServerReadyPattern: 'Local:',
+      startServerReadyTimeout: 120000,
+      chromeFlags: '--headless --no-sandbox --disable-dev-shm-usage --disable-gpu',
       url: urls,
       numberOfRuns: 1,
       settings: {
         preset: 'desktop',
-        extraHeaders: {
-          'x-lighthouse-run': '1',
-        },
+        maxWaitForLoad: 90000,
+        throttlingMethod: 'provided',
       },
     },
     upload: {

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 
 import { createChatFeedback, requestReportCreate } from '@/features/chat.server';
 import { BusinessError, type ApiResponse } from '@/shared/api';
+import { invalidateChatCache, invalidateReportListCache } from '@/shared/lib/cache';
 import type { ChatFeedbackRequest } from '@/entities/chat';
 
 const CHAT_FEEDBACK_BFF_TIMEOUT_MS = 30000;
@@ -54,9 +55,11 @@ export async function POST(req: Request, context: { params: Params }) {
     const accessToken = getAccessToken(req, cookieToken);
 
     const data = await createChatFeedback({ chatId, payload, accessToken });
+    invalidateChatCache(chatId);
     after(async () => {
       try {
         await requestReportCreate({ chatId, accessToken });
+        invalidateReportListCache();
       } catch (backgroundError) {
         console.error('[Report Create Async Error]', {
           chatId,
