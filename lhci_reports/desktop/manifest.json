@@ -1,0 +1,158 @@
+[
+  {
+    "url": "http://localhost:3000/?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/-2026_03_07_11_07_52-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/-2026_03_07_11_07_52-report.json",
+    "summary": {
+      "performance": 0.91,
+      "accessibility": 0.89,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://localhost:3000/login?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/login-2026_03_07_11_08_14-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/login-2026_03_07_11_08_14-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.93,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/onboarding?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/onboarding-2026_03_07_11_08_34-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/onboarding-2026_03_07_11_08_34-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.88,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/onboarding/profile?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/onboarding_profile-2026_03_07_11_08_53-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/onboarding_profile-2026_03_07_11_08_53-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.83,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/experts?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/experts-2026_03_07_11_09_13-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/experts-2026_03_07_11_09_13-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.84,
+      "best-practices": 1,
+      "seo": 1
+    }
+  },
+  {
+    "url": "http://localhost:3000/report?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/report-2026_03_07_11_09_33-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/report-2026_03_07_11_09_33-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.89,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/chat?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/chat-2026_03_07_11_09_53-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/chat-2026_03_07_11_09_53-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.89,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/me?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/me-2026_03_07_11_10_12-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/me-2026_03_07_11_10_12-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.89,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/me/edit?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/me_edit-2026_03_07_11_10_32-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/me_edit-2026_03_07_11_10_32-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.89,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/me/verify?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/me_verify-2026_03_07_11_10_52-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/me_verify-2026_03_07_11_10_52-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.89,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/resume?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/resume-2026_03_07_11_11_11-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/resume-2026_03_07_11_11_11-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.89,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/resume/edit?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/resume_edit-2026_03_07_11_11_31-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/resume_edit-2026_03_07_11_11_31-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.89,
+      "best-practices": 1,
+      "seo": 0.66
+    }
+  },
+  {
+    "url": "http://localhost:3000/oauth/kakao/callback?lhci=1",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/oauth_kakao_callback-2026_03_07_11_11_50-report.html",
+    "jsonPath": "/Users/junseopark/Desktop/19-team-project-fe/lhci_reports/desktop/oauth_kakao_callback-2026_03_07_11_11_50-report.json",
+    "summary": {
+      "performance": 1,
+      "accessibility": 0.93,
+      "best-practices": 0.96,
+      "seo": 0.66
+    }
+  }
+]

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { LazyMotion, domAnimation, m } from 'motion/react';
 import type { ElementType, ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -115,33 +115,35 @@ export default function BlurText({
   const Component = (as ?? 'p') as ElementType<{ children?: ReactNode }>;
 
   return (
-    <Component
-      ref={ref as React.Ref<HTMLElement>}
-      className={className}
-      style={{ display: inline ? 'inline-flex' : 'flex', flexWrap: 'wrap' }}
-    >
-      {elements.map((segment, index) => {
-        const spanTransition = {
-          duration: totalDuration,
-          times,
-          delay: (index * delay) / 1000,
-          ease: easing,
-        };
+    <LazyMotion features={domAnimation}>
+      <Component
+        ref={ref as React.Ref<HTMLElement>}
+        className={className}
+        style={{ display: inline ? 'inline-flex' : 'flex', flexWrap: 'wrap' }}
+      >
+        {elements.map((segment, index) => {
+          const spanTransition = {
+            duration: totalDuration,
+            times,
+            delay: (index * delay) / 1000,
+            ease: easing,
+          };
 
-        return (
-          <motion.span
-            className="inline-block will-change-[transform,filter,opacity]"
-            key={index}
-            initial={fromSnapshot}
-            animate={inView ? animateKeyframes : fromSnapshot}
-            transition={spanTransition}
-            onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
-          >
-            {segment === ' ' ? '\u00A0' : segment}
-            {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
-          </motion.span>
-        );
-      })}
-    </Component>
+          return (
+            <m.span
+              className="inline-block will-change-[transform,filter,opacity]"
+              key={index}
+              initial={fromSnapshot}
+              animate={inView ? animateKeyframes : fromSnapshot}
+              transition={spanTransition}
+              onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
+            >
+              {segment === ' ' ? '\u00A0' : segment}
+              {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
+            </m.span>
+          );
+        })}
+      </Component>
+    </LazyMotion>
   );
 }

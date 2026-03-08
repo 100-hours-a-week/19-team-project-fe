@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, extend, useFrame } from '@react-three/fiber';
-import { Environment, Lightformer, useGLTF, useTexture } from '@react-three/drei';
+import { Canvas, extend, useFrame, useGraph, useLoader } from '@react-three/fiber';
 import {
   BallCollider,
   CuboidCollider,
@@ -13,10 +12,11 @@ import {
   RigidBodyProps,
 } from '@react-three/rapier';
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
-import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { CatmullRomCurve3, Color, RepeatWrapping, TextureLoader, Vector3, type Mesh } from 'three';
 
-const cardGLB = '/assets/lanyard/card.glb';
-const lanyard = '/assets/lanyard/lanyard.png';
+const cardGLB = '/assets/lanyard/card.safe-compat.glb';
+const lanyard = '/assets/lanyard/lanyard.webp';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -49,42 +49,14 @@ export default function Lanyard({
         camera={{ position, fov }}
         dpr={[1, isMobile ? 1.5 : 2]}
         gl={{ alpha: transparent }}
-        onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
+        onCreated={({ gl }) => gl.setClearColor(new Color(0x000000), transparent ? 0 : 1)}
       >
-        <ambientLight intensity={Math.PI} />
+        <ambientLight intensity={1.2} />
+        <directionalLight intensity={1.8} position={[0, 2, 4]} />
+        <directionalLight intensity={1.2} position={[-2, -1, 2]} />
         <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
           <Band isMobile={isMobile} />
         </Physics>
-        <Environment blur={0.75}>
-          <Lightformer
-            intensity={2}
-            color="white"
-            position={[0, -1, 5]}
-            rotation={[0, 0, Math.PI / 3]}
-            scale={[100, 0.1, 1]}
-          />
-          <Lightformer
-            intensity={3}
-            color="white"
-            position={[-1, -1, 1]}
-            rotation={[0, 0, Math.PI / 3]}
-            scale={[100, 0.1, 1]}
-          />
-          <Lightformer
-            intensity={3}
-            color="white"
-            position={[1, 1, 1]}
-            rotation={[0, 0, Math.PI / 3]}
-            scale={[100, 0.1, 1]}
-          />
-          <Lightformer
-            intensity={10}
-            color="white"
-            position={[-10, 0, 14]}
-            rotation={[0, Math.PI / 2, Math.PI / 3]}
-            scale={[100, 10, 1]}
-          />
-        </Environment>
       </Canvas>
     </div>
   );
@@ -104,10 +76,10 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
   const j3 = useRef<any>(null);
   const card = useRef<any>(null);
 
-  const vec = new THREE.Vector3();
-  const ang = new THREE.Vector3();
-  const rot = new THREE.Vector3();
-  const dir = new THREE.Vector3();
+  const vec = new Vector3();
+  const ang = new Vector3();
+  const rot = new Vector3();
+  const dir = new Vector3();
 
   const segmentProps: any = {
     type: 'dynamic' as RigidBodyProps['type'],
@@ -117,26 +89,33 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
     linearDamping: 1.4,
   };
 
-  const { nodes, materials } = useGLTF(cardGLB) as any;
-  const texture = useTexture(lanyard);
+  const gltf = useLoader(GLTFLoader, cardGLB);
+  const { nodes, materials } = useGraph((gltf as any).scene) as unknown as {
+    nodes: Record<string, Mesh>;
+    materials: Record<string, any>;
+  };
+  const texture = useLoader(TextureLoader, lanyard);
+
   const lanyardTexture = useMemo(() => {
     const cloned = texture.clone();
-    cloned.wrapS = THREE.RepeatWrapping;
-    cloned.wrapT = THREE.RepeatWrapping;
+    cloned.wrapS = RepeatWrapping;
+    cloned.wrapT = RepeatWrapping;
     cloned.needsUpdate = true;
     return cloned;
   }, [texture]);
+
   const curve = useMemo(() => {
-    const nextCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(),
-      new THREE.Vector3(),
-      new THREE.Vector3(),
-      new THREE.Vector3(),
+    const nextCurve = new CatmullRomCurve3([
+      new Vector3(),
+      new Vector3(),
+      new Vector3(),
+      new Vector3(),
     ]);
     nextCurve.curveType = 'chordal';
     return nextCurve;
   }, []);
-  const [dragged, drag] = useState<false | THREE.Vector3>(false);
+
+  const [dragged, drag] = useState<false | Vector3>(false);
   const [hovered, hover] = useState(false);
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1]);
@@ -168,19 +147,22 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
         z: vec.z - dragged.z,
       });
     }
+
     if (fixed.current) {
       [j1, j2].forEach((ref) => {
-        if (!ref.current.lerped)
-          ref.current.lerped = new THREE.Vector3().copy(ref.current.translation());
+        if (!ref.current.lerped) ref.current.lerped = new Vector3().copy(ref.current.translation());
+
         const clampedDistance = Math.max(
           0.1,
           Math.min(1, ref.current.lerped.distanceTo(ref.current.translation())),
         );
+
         ref.current.lerped.lerp(
           ref.current.translation(),
           delta * (minSpeed + clampedDistance * (maxSpeed - minSpeed)),
         );
       });
+
       curve.points[0].copy(j3.current.translation());
       curve.points[1].copy(j2.current.lerped);
       curve.points[2].copy(j1.current.lerped);
@@ -242,7 +224,7 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
             }}
             onPointerDown={(event: any) => {
               event.target.setPointerCapture(event.pointerId);
-              drag(new THREE.Vector3().copy(event.point).sub(vec.copy(card.current.translation())));
+              drag(new Vector3().copy(event.point).sub(vec.copy(card.current.translation())));
             }}
           >
             <mesh geometry={nodes.card.geometry}>
