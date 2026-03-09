@@ -100,7 +100,7 @@ export default function ExpertSearchPage() {
                 <div className="w-full shrink-0 space-y-4">
                   <div className="rounded-2xl border border-[#e5e7eb] bg-white/80 p-4 shadow-[0_10px_24px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf4ff] text-[11px] font-semibold text-[#2b4b7e]">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-soft text-2xs font-semibold text-brand-primary">
                         1
                       </span>
                       <p className="text-[13px] font-semibold text-text-title">현직자 검색</p>
@@ -112,8 +112,8 @@ export default function ExpertSearchPage() {
                       <div>
                         <p className="font-semibold">현직자 이름 검색</p>
                         <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <span className="text-[11px] text-text-caption">예:</span>
-                          <span className="rounded-full border border-[#2b4b7e] bg-[#edf4ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
+                          <span className="text-2xs text-text-caption">예:</span>
+                          <span className="rounded-full border border-brand-primary bg-brand-soft px-2.5 py-0.5 text-2xs font-semibold text-brand-primary">
                             홍길동
                           </span>
                         </div>
@@ -121,11 +121,11 @@ export default function ExpertSearchPage() {
                       <div>
                         <p className="font-semibold">기술 스택 검색</p>
                         <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <span className="text-[11px] text-text-caption">예:</span>
-                          <span className="rounded-full border border-[#2b4b7e] bg-[#edf4ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
+                          <span className="text-2xs text-text-caption">예:</span>
+                          <span className="rounded-full border border-brand-primary bg-brand-soft px-2.5 py-0.5 text-2xs font-semibold text-brand-primary">
                             Java
                           </span>
-                          <span className="rounded-full border border-[#2b4b7e] bg-[#edf4ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
+                          <span className="rounded-full border border-brand-primary bg-brand-soft px-2.5 py-0.5 text-2xs font-semibold text-brand-primary">
                             JavaScript
                           </span>
                         </div>
@@ -133,16 +133,16 @@ export default function ExpertSearchPage() {
                       <div>
                         <p className="font-semibold">직무 검색</p>
                         <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <span className="text-[11px] text-text-caption">예:</span>
-                          <span className="rounded-full border border-[#2b4b7e] bg-[#edf4ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
+                          <span className="text-2xs text-text-caption">예:</span>
+                          <span className="rounded-full border border-brand-primary bg-brand-soft px-2.5 py-0.5 text-2xs font-semibold text-brand-primary">
                             백엔드
                           </span>
-                          <span className="rounded-full border border-[#2b4b7e] bg-[#edf4ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
+                          <span className="rounded-full border border-brand-primary bg-brand-soft px-2.5 py-0.5 text-2xs font-semibold text-brand-primary">
                             프론트엔드
                           </span>
                         </div>
                       </div>
-                      <p className="text-[11px] text-text-caption">※ 복수 조건 동시 검색 가능</p>
+                      <p className="text-2xs text-text-caption">※ 복수 조건 동시 검색 가능</p>
                     </div>
                   </div>
                 </div>
@@ -151,7 +151,7 @@ export default function ExpertSearchPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf4ff] text-[11px] font-semibold text-[#2b4b7e]">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-soft text-2xs font-semibold text-brand-primary">
                           2
                         </span>
                         <p className="text-[13px] font-semibold text-text-title">검색 실행</p>
@@ -164,7 +164,7 @@ export default function ExpertSearchPage() {
 
                     <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf4ff] text-[11px] font-semibold text-[#2b4b7e]">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-soft text-2xs font-semibold text-brand-primary">
                           3
                         </span>
                         <p className="text-[13px] font-semibold text-text-title">
@@ -180,7 +180,7 @@ export default function ExpertSearchPage() {
 
                   <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf4ff] text-[11px] font-semibold text-[#2b4b7e]">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-soft text-2xs font-semibold text-brand-primary">
                         4
                       </span>
                       <p className="text-[13px] font-semibold text-text-title">현직자 상세 보기</p>
@@ -195,7 +195,7 @@ export default function ExpertSearchPage() {
                 <div className="w-full shrink-0 space-y-3">
                   <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf4ff] text-[11px] font-semibold text-[#2b4b7e]">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-soft text-2xs font-semibold text-brand-primary">
                         5
                       </span>
                       <p className="text-[13px] font-semibold text-text-title">자료 첨부 (선택)</p>
@@ -204,22 +204,22 @@ export default function ExpertSearchPage() {
                       채팅 요청 전, 필요 시 아래 자료를 첨부할 수 있습니다.
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] text-text-caption">예:</span>
-                      <span className="rounded-full border border-[#2b4b7e] bg-[#edf4ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
+                      <span className="text-2xs text-text-caption">예:</span>
+                      <span className="rounded-full border border-brand-primary bg-brand-soft px-2.5 py-0.5 text-2xs font-semibold text-brand-primary">
                         이력서
                       </span>
-                      <span className="rounded-full border border-[#2b4b7e] bg-[#edf4ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2b4b7e]">
+                      <span className="rounded-full border border-brand-primary bg-brand-soft px-2.5 py-0.5 text-2xs font-semibold text-brand-primary">
                         지원 공고 링크
                       </span>
                     </div>
-                    <p className="mt-1 text-[11px] text-text-caption">
+                    <p className="mt-1 text-2xs text-text-caption">
                       ※ 첨부 자료는 보다 구체적인 피드백을 위해 활용됩니다.
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf4ff] text-[11px] font-semibold text-[#2b4b7e]">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-soft text-2xs font-semibold text-brand-primary">
                         6
                       </span>
                       <p className="text-[13px] font-semibold text-text-title">채팅 요청</p>
@@ -236,7 +236,7 @@ export default function ExpertSearchPage() {
               </div>
             </div>
 
-            <div className="mt-3 flex items-center justify-between text-[11px] text-text-caption">
+            <div className="mt-3 flex items-center justify-between text-2xs text-text-caption">
               <button
                 type="button"
                 onClick={() => setFlowSlide((prev) => Math.max(prev - 1, 0))}
@@ -294,7 +294,7 @@ export default function ExpertSearchPage() {
                         {expert.nickname}
                       </span>
                       {expert.verified ? (
-                        <span className="rounded-full bg-[#edf4ff] px-2 py-0.5 text-[10px] font-semibold text-[#2b4b7e]">
+                        <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand-primary">
                           인증됨
                         </span>
                       ) : (
@@ -342,7 +342,7 @@ export default function ExpertSearchPage() {
                             {expert.nickname}
                           </span>
                           {expert.verified ? (
-                            <span className="w-fit rounded-full bg-[#edf4ff] px-2 py-0.5 text-[10px] font-semibold text-[#2b4b7e]">
+                            <span className="w-fit rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand-primary">
                               인증됨
                             </span>
                           ) : (

@@ -64,7 +64,7 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
           </div>
         ) : report ? (
           <div className="mt-6 flex flex-col gap-4">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card-soft">
               <p className="text-lg font-semibold text-text-title">{report.title}</p>
               <div className="mt-2 flex items-center gap-2">
                 <span className="text-xs text-text-caption">상태:</span>
@@ -96,7 +96,7 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
             </div>
 
             {result?.basic_info ? (
-              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card-soft">
                 <p className="text-sm font-semibold text-text-title">기본 정보</p>
                 <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-neutral-800">
                   <p>리포트 날짜: {result.basic_info.report_date ?? '-'}</p>
@@ -107,7 +107,7 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
             ) : null}
 
             {result?.overall_evaluation ? (
-              <section className="rounded-2xl border border-[var(--color-primary-active)] bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <section className="rounded-2xl border border-[var(--color-primary-active)] bg-white p-5 shadow-card-soft">
                 <p className="text-sm font-semibold text-text-title">종합 평가</p>
                 <div className="mt-3 flex gap-2 text-sm">
                   <span className="rounded-full bg-[var(--color-primary-active)] px-3 py-1 font-semibold text-[var(--color-primary-main)]">
@@ -121,7 +121,7 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
             ) : null}
 
             {result?.capability_matching?.matches?.length ? (
-              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card-soft">
                 <p className="text-sm font-semibold text-text-title">핵심 요구사항 매칭</p>
                 <div className="mt-3 flex flex-col gap-3">
                   {result.capability_matching.matches.map((match, index) => (
@@ -149,7 +149,7 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
             ) : null}
 
             {result?.strengths_analysis || result?.improvements_analysis ? (
-              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card-soft">
                 <p className="text-sm font-semibold text-text-title">강점 / 보완점</p>
                 <div className="mt-3 grid grid-cols-1 gap-3">
                   {result.strengths_analysis ? (
@@ -191,7 +191,7 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
             ) : null}
 
             {result?.action_plan ? (
-              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card-soft">
                 <p className="text-sm font-semibold text-text-title">2주 액션 플랜</p>
                 <ListBlock title="AI 추천 액션" items={result.action_plan.ai_actions} />
                 <ListBlock title="멘토 추천 액션" items={result.action_plan.mentor_actions} />
@@ -199,7 +199,7 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
             ) : null}
 
             {result?.reliability ? (
-              <section className="rounded-2xl border border-[var(--color-primary-active)] bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <section className="rounded-2xl border border-[var(--color-primary-active)] bg-white p-5 shadow-card-soft">
                 <p className="text-sm font-semibold text-text-title">신뢰도</p>
                 <ConfidenceMeter score={result.reliability.confidence_score ?? 0} />
                 <p className="mt-1 text-sm text-neutral-700">
@@ -210,7 +210,7 @@ export default function ReportDetailPage({ reportId }: { reportId: number }) {
             ) : null}
 
             {result?.final_comment ? (
-              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card-soft">
                 <p className="text-sm font-semibold text-text-title">최종 코멘트</p>
                 <p className="mt-2 text-sm text-neutral-800">
                   AI: {result.final_comment.ai_comment ?? '-'}
@@ -258,7 +258,7 @@ function ConfidenceMeter({ score }: { score: number }) {
           style={{ width: `${normalized}%` }}
         />
       </div>
-      <div className="mt-1 flex justify-between text-[11px] text-neutral-500">
+      <div className="mt-1 flex justify-between text-2xs text-neutral-500">
         <span>0</span>
         <span>100</span>
       </div>

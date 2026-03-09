@@ -1,0 +1,25 @@
+.forward {
+  animation: page-enter-from-right 260ms ease-out;
+}
+
+.back {
+  animation: page-enter-from-left 260ms ease-out;
+}
+
+@keyframes page-enter-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes page-enter-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}

@@ -98,7 +98,7 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
                 <div className="mt-3 flex items-center gap-2">
                   <p className="text-lg font-semibold text-[#3b5bcc]">{expert.nickname}</p>
                   {expert.verified ? (
-                    <span className="rounded-full bg-[#edf4ff] px-2 py-0.5 text-xs font-semibold text-[#2b4b7e]">
+                    <span className="rounded-full bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand-primary">
                       인증됨
                     </span>
                   ) : null}
@@ -107,20 +107,20 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
                   {expert.company_name} · {expert.jobs[0]?.name ?? '직무 정보 없음'}
                 </p>
                 <div className="mt-3 flex flex-wrap justify-center gap-2">
-                  <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                  <span className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary">
                     {expert.career_level.level}
                   </span>
                   {expert.skills.length > 0 ? (
                     expert.skills.map((skill) => (
                       <span
                         key={skill.id}
-                        className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]"
+                        className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary"
                       >
                         {skill.name}
                       </span>
                     ))
                   ) : (
-                    <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                    <span className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary">
                       기술 스택 없음
                     </span>
                   )}

@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import styles from './ChatStack.module.css';
 
 export default function ChatStack({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -20,15 +21,11 @@ export default function ChatStack({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="onboarding-stack h-full w-full">
+    <div className={`${styles.stack} h-full w-full`}>
       <div
         key={pathname}
-        className={`onboarding-stack__screen h-full ${
-          direction === 'none'
-            ? ''
-            : direction === 'forward'
-              ? 'onboarding-stack__screen--forward'
-              : 'onboarding-stack__screen--back'
+        className={`${styles.screen} h-full ${
+          direction === 'none' ? '' : direction === 'forward' ? styles.forward : styles.back
         }`}
       >
         {children}

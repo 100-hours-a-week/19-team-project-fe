@@ -2,6 +2,7 @@
 
 import type { PropsWithChildren } from 'react';
 import { useEffect, useState } from 'react';
+import styles from './PageTransition.module.css';
 
 type Direction = 'forward' | 'back';
 
@@ -19,11 +20,7 @@ export default function PageTransition({ children }: PropsWithChildren) {
   }, []);
 
   const className =
-    direction === 'forward'
-      ? 'page-enter-from-right'
-      : direction === 'back'
-        ? 'page-enter-from-left'
-        : '';
+    direction === 'forward' ? styles.forward : direction === 'back' ? styles.back : '';
 
   return <div className={className}>{children}</div>;
 }

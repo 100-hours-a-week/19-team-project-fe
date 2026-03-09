@@ -91,7 +91,7 @@ export default function MyPageEdit() {
         </div>
 
         <div className="mt-8 flex flex-col gap-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
             <div className="text-base font-semibold text-black">프로필 이미지</div>
             <div className="mt-3 flex items-center gap-4">
               <div className="relative h-20 w-20 overflow-hidden rounded-full bg-neutral-100">
@@ -140,7 +140,7 @@ export default function MyPageEdit() {
               onChange={handleProfileImageChange}
             />
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
             <div className="text-base font-semibold text-black">닉네임</div>
             <Input.Root className="mt-2">
               <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ export default function MyPageEdit() {
             <button
               type="button"
               onClick={() => setActiveSheet('job')}
-              className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+              className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft"
             >
               <div className="flex items-center gap-3">
                 <Image src={iconJob} alt="직무" width={40} height={40} />
@@ -209,7 +209,7 @@ export default function MyPageEdit() {
               </div>
               <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
                 {selectedJob ? (
-                  <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                  <span className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary">
                     {selectedJob.name}
                   </span>
                 ) : null}
@@ -220,7 +220,7 @@ export default function MyPageEdit() {
             <button
               type="button"
               onClick={() => setActiveSheet('career')}
-              className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+              className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft"
             >
               <div className="flex items-center gap-3">
                 <Image src={iconCareer} alt="경력" width={40} height={40} />
@@ -233,7 +233,7 @@ export default function MyPageEdit() {
               </div>
               <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
                 {selectedCareer ? (
-                  <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+                  <span className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary">
                     {selectedCareer.level}
                   </span>
                 ) : null}
@@ -244,7 +244,7 @@ export default function MyPageEdit() {
             <button
               type="button"
               onClick={() => setActiveSheet('tech')}
-              className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+              className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft"
             >
               <div className="flex items-center gap-3">
                 <Image src={iconTech} alt="기술스택" width={40} height={40} />
@@ -257,7 +257,7 @@ export default function MyPageEdit() {
                 {selectedTech.map((tech) => (
                   <span
                     key={tech.id}
-                    className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]"
+                    className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary"
                   >
                     {tech.name}
                   </span>

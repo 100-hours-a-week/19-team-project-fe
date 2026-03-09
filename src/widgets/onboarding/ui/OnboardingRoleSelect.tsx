@@ -15,7 +15,7 @@ const ROLE_COPY = {
   seeker: {
     title: '구직자',
     tagline: '이력서와 공고를 업데이트하고, 커리어 챗으로 맞춤 리포트를 받아보세요.',
-    accent: 'text-[#2b4b7e]',
+    accent: 'text-brand-primary',
     bg: 'from-[#b0d8e4] via-[#b0d8e4] to-[#b0d8e4]',
     imageBg: 'bg-white/60',
     image: onboardingSeeker,
