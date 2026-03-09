@@ -251,7 +251,9 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
                 material-roughness={0.3}
               />
             ) : null}
-            {clampMesh?.geometry ? <mesh geometry={clampMesh.geometry} material={metalMaterial} /> : null}
+            {clampMesh?.geometry ? (
+              <mesh geometry={clampMesh.geometry} material={metalMaterial} />
+            ) : null}
           </group>
         </RigidBody>
       </group>
