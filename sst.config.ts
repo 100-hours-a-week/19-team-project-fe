@@ -44,7 +44,6 @@ export default $config({
         dns: false,
       },
       warm: 3,
-      streaming: true,
       server: {
         memory: '1769 MB',
         timeout: '30 seconds',
