@@ -9,6 +9,10 @@ const meta = {
   parameters: {
     layout: 'fullscreen',
   },
+  args: {
+    open: false,
+    onCancel: fn(),
+  },
 } satisfies Meta<typeof Modal>;
 
 export default meta;

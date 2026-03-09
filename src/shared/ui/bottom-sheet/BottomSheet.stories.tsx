@@ -9,6 +9,11 @@ const meta = {
   parameters: {
     layout: 'fullscreen',
   },
+  args: {
+    open: false,
+    onClose: fn(),
+    children: null,
+  },
 } satisfies Meta<typeof BottomSheet>;
 
 export default meta;
