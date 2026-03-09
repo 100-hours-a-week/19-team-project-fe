@@ -117,6 +117,11 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
 
   const [dragged, drag] = useState<false | Vector3>(false);
   const [hovered, hover] = useState(false);
+  const cardMesh = nodes.card;
+  const clipMesh = nodes.clip;
+  const clampMesh = nodes.clamp;
+  const baseMaterial = materials.base;
+  const metalMaterial = materials.metal;
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1]);
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1]);
@@ -167,7 +172,7 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
       curve.points[1].copy(j2.current.lerped);
       curve.points[2].copy(j1.current.lerped);
       curve.points[3].copy(fixed.current.translation());
-      band.current.geometry.setPoints(curve.getPoints(isMobile ? 16 : 32));
+      band.current?.geometry?.setPoints(curve.getPoints(isMobile ? 16 : 32));
       ang.copy(card.current.angvel());
       rot.copy(card.current.rotation());
       card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z });
@@ -227,22 +232,26 @@ function Band({ maxSpeed = 80, minSpeed = 5, isMobile = false }: BandProps) {
               drag(new Vector3().copy(event.point).sub(vec.copy(card.current.translation())));
             }}
           >
-            <mesh geometry={nodes.card.geometry}>
-              <meshPhysicalMaterial
-                map={materials.base.map}
-                map-anisotropy={16}
-                clearcoat={isMobile ? 0 : 1}
-                clearcoatRoughness={0.15}
-                roughness={0.9}
-                metalness={0.8}
+            {cardMesh?.geometry ? (
+              <mesh geometry={cardMesh.geometry}>
+                <meshPhysicalMaterial
+                  map={baseMaterial?.map}
+                  map-anisotropy={16}
+                  clearcoat={isMobile ? 0 : 1}
+                  clearcoatRoughness={0.15}
+                  roughness={0.9}
+                  metalness={0.8}
+                />
+              </mesh>
+            ) : null}
+            {clipMesh?.geometry ? (
+              <mesh
+                geometry={clipMesh.geometry}
+                material={metalMaterial}
+                material-roughness={0.3}
               />
-            </mesh>
-            <mesh
-              geometry={nodes.clip.geometry}
-              material={materials.metal}
-              material-roughness={0.3}
-            />
-            <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
+            ) : null}
+            {clampMesh?.geometry ? <mesh geometry={clampMesh.geometry} material={metalMaterial} /> : null}
           </group>
         </RigidBody>
       </group>
