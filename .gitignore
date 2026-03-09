@@ -58,3 +58,5 @@ next-env.d.ts
 # sst
 .sst
 .open-next
+*storybook.log
+storybook-static
