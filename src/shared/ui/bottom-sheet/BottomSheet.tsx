@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import {
   Content as DialogContent,
+  Description as DialogDescription,
   Overlay as DialogOverlay,
   Portal as DialogPortal,
   Root as DialogRoot,
@@ -13,6 +14,7 @@ import styles from './BottomSheet.module.css';
 type BottomSheetProps = {
   open: boolean;
   title?: string;
+  description?: string;
   actionLabel?: string;
   onAction?: () => void;
   actionDisabled?: boolean;
@@ -23,6 +25,7 @@ type BottomSheetProps = {
 export default function BottomSheet({
   open,
   title,
+  description,
   actionLabel,
   onAction,
   actionDisabled = false,
@@ -65,6 +68,7 @@ export default function BottomSheet({
                 ) : null}
               </div>
             </div>
+            {description ? <DialogDescription className="sr-only">{description}</DialogDescription> : null}
             <div className="mt-4 h-px w-full bg-gray-200" aria-hidden="true" />
           </div>
           <div className="mt-6 h-[72vh] overflow-y-auto px-3">{children}</div>

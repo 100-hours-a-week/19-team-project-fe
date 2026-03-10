@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { Modal } from '@/shared/ui/modal';
 
 const meta = {
@@ -61,9 +61,12 @@ export const OpenCloseInteraction: Story = {
   render: () => <ModalDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
     await userEvent.click(canvas.getByRole('button', { name: '모달 열기' }));
-    await expect(canvas.getByRole('dialog')).toBeInTheDocument();
-    await userEvent.click(canvas.getByRole('button', { name: '취소' }));
-    await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
+    await expect(await body.findByRole('dialog')).toBeInTheDocument();
+    await userEvent.click(body.getByRole('button', { name: '취소' }));
+    await waitFor(() => {
+      expect(body.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   },
 };

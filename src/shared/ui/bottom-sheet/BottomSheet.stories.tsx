@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { useState } from 'react';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 
 const meta = {
@@ -42,6 +42,7 @@ function BottomSheetDemo({
         open={open}
         onClose={() => setOpen(false)}
         title="직무 선택"
+        description="원하는 직무를 선택한 뒤 적용할 수 있습니다."
         actionLabel={showAction ? '적용' : undefined}
         onAction={showAction ? fn() : undefined}
       >
@@ -88,10 +89,11 @@ export const OpenInteraction: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
     const trigger = canvas.getByRole('button', { name: '바텀시트 열기' });
     await userEvent.click(trigger);
-    await expect(canvas.getByRole('dialog')).toBeInTheDocument();
-    await expect(canvas.getByText('직무 선택')).toBeInTheDocument();
+    await expect(await body.findByRole('dialog')).toBeInTheDocument();
+    await expect(body.getByText('직무 선택')).toBeInTheDocument();
   },
 };
 
@@ -108,7 +110,12 @@ export const CloseByEscapeInteraction: Story = {
         >
           바텀시트 열기
         </button>
-        <BottomSheet open={open} onClose={() => setOpen(false)} title="직무 선택">
+        <BottomSheet
+          open={open}
+          onClose={() => setOpen(false)}
+          title="직무 선택"
+          description="원하는 직무를 선택한 뒤 적용할 수 있습니다."
+        >
           <div className="space-y-2">
             <button
               type="button"
@@ -129,10 +136,13 @@ export const CloseByEscapeInteraction: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
     const trigger = canvas.getByRole('button', { name: '바텀시트 열기' });
     await userEvent.click(trigger);
-    await expect(canvas.getByRole('dialog')).toBeInTheDocument();
+    await expect(await body.findByRole('dialog')).toBeInTheDocument();
     await userEvent.keyboard('{Escape}');
-    await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(body.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   },
 };
