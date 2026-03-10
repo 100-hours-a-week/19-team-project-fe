@@ -6,11 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { createResume, resumesQueryKey, updateResume } from '@/entities/resumes';
 import { useCommonApiErrorHandler } from '@/shared/api';
-import {
-  buildResumeContentJson,
-  splitPeriod,
-  useResumeEditStore,
-} from './resumeEditStore.client';
+import { buildResumeContentJson, splitPeriod, useResumeEditStore } from './resumeEditStore.client';
 
 type UseResumeSubmitParams = {
   authStatus: 'checking' | 'authed' | 'guest';

@@ -312,11 +312,11 @@ export const useResumeEditStore = create<ResumeEditStore>((set, get) => ({
     set((state) => ({ certificates: updateSimpleList(state.certificates, id, value) })),
   removeCertificate: (id) =>
     set((state) => ({ certificates: removeSimpleItem(state.certificates, id) })),
-  addActivity: () => set((state) => ({ activities: [...state.activities, createEmptySimpleItem()] })),
+  addActivity: () =>
+    set((state) => ({ activities: [...state.activities, createEmptySimpleItem()] })),
   updateActivity: (id, value) =>
     set((state) => ({ activities: updateSimpleList(state.activities, id, value) })),
-  removeActivity: (id) =>
-    set((state) => ({ activities: removeSimpleItem(state.activities, id) })),
+  removeActivity: (id) => set((state) => ({ activities: removeSimpleItem(state.activities, id) })),
   applyResumeDetail: (data) =>
     set(() => {
       const content = (data.contentJson ?? {}) as ResumeParseContentJson;
@@ -394,18 +394,22 @@ export const useResumeEditStore = create<ResumeEditStore>((set, get) => ({
   },
 }));
 
-export const buildResumeContentJson = (state: Pick<
-  ResumeEditStore,
-  | 'careers'
-  | 'projects'
-  | 'education'
-  | 'educationDetails'
-  | 'awards'
-  | 'certificates'
-  | 'activities'
->) => ({
+export const buildResumeContentJson = (
+  state: Pick<
+    ResumeEditStore,
+    | 'careers'
+    | 'projects'
+    | 'education'
+    | 'educationDetails'
+    | 'awards'
+    | 'certificates'
+    | 'activities'
+  >,
+) => ({
   careers: state.careers
-    .map((career) => [career.company, career.period, career.role, career.title].filter(Boolean).join(' | '))
+    .map((career) =>
+      [career.company, career.period, career.role, career.title].filter(Boolean).join(' | '),
+    )
     .filter(Boolean),
   projects: state.projects.map((project) => {
     const [startDate, endDate] = project.period.split('-').map((item) => item.trim());
