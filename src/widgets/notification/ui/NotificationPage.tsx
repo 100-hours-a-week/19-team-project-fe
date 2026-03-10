@@ -207,7 +207,7 @@ export default function NotificationPage() {
               type="button"
               onClick={() => readAllMutation.mutate()}
               disabled={readAllMutation.isPending}
-              className="rounded-full border border-[#bcd1f5] bg-[#edf4ff] px-3 py-1 text-xs font-semibold text-[#2b4b7e] disabled:opacity-50"
+              className="rounded-full border border-brand-border bg-brand-soft px-3 py-1 text-xs font-semibold text-brand-primary disabled:opacity-50"
             >
               전체 읽음
             </button>

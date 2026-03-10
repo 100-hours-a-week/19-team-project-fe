@@ -22,7 +22,12 @@ export default function AuthGateSheet({
   children,
 }: AuthGateSheetProps) {
   return (
-    <BottomSheet open={open} title={title} onClose={onClose}>
+    <BottomSheet
+      open={open}
+      title={title}
+      description={description ?? '로그인 후 현직자 피드백을 Report로 받아보세요'}
+      onClose={onClose}
+    >
       <div className="flex h-full flex-col gap-2">
         <div className="pt-10 text-center">
           <p className="text-base font-semibold text-black">

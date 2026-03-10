@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import styles from './layout.module.css';
 
 type OnboardingLayoutProps = {
   children: ReactNode;
@@ -28,11 +29,11 @@ function OnboardingLayoutInner({ children }: OnboardingLayoutProps) {
   const key = `${pathname}?${searchParams?.toString() ?? ''}`;
 
   return (
-    <div className="onboarding-stack">
+    <div className={styles.stack}>
       <div
         key={key}
-        className={`onboarding-stack__screen ${
-          direction === 'none' ? '' : `onboarding-stack__screen--${direction}`
+        className={`${styles.screen} ${
+          direction === 'none' ? '' : direction === 'forward' ? styles.forward : styles.back
         }`}
       >
         {children}
@@ -45,8 +46,8 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
   return (
     <Suspense
       fallback={
-        <div className="onboarding-stack">
-          <div className="onboarding-stack__screen">{children}</div>
+        <div className={styles.stack}>
+          <div className={styles.screen}>{children}</div>
         </div>
       }
     >

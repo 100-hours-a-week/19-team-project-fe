@@ -413,10 +413,10 @@ export default function SocialLoginPage() {
       >
         <div className="rounded-2xl border border-[#e6ebf2] bg-gradient-to-b from-white to-[#f4f7ff] p-4 text-text-body">
           <div className="flex items-center justify-between">
-            <span className="rounded-full bg-[#e9efff] px-3 py-1 text-[11px] font-semibold text-[#3b5bcc]">
+            <span className="rounded-full bg-[#e9efff] px-3 py-1 text-2xs font-semibold text-[#3b5bcc]">
               ACCOUNT
             </span>
-            <span className="text-[11px] font-semibold text-[#7a8aa5]">RESTORE</span>
+            <span className="text-2xs font-semibold text-[#7a8aa5]">RESTORE</span>
           </div>
 
           <div className="mt-3 space-y-2">
@@ -430,7 +430,7 @@ export default function SocialLoginPage() {
             <div className="flex items-center justify-between text-xs text-text-caption">
               <span>계정 정보</span>
               {restoreData?.email_conflict || restoreData?.nickname_conflict ? (
-                <span className="rounded-full bg-[#fff3f3] px-2 py-0.5 text-[11px] font-semibold text-[#d14d4d]">
+                <span className="rounded-full bg-[#fff3f3] px-2 py-0.5 text-2xs font-semibold text-[#d14d4d]">
                   중복 확인 필요
                 </span>
               ) : null}
@@ -440,7 +440,7 @@ export default function SocialLoginPage() {
               <p className="text-text-caption">{restoreData?.nickname ?? '-'}</p>
             </div>
             {(restoreData?.email_conflict || restoreData?.nickname_conflict) && (
-              <p className="mt-2 text-[11px] text-[#d14d4d]">
+              <p className="mt-2 text-2xs text-[#d14d4d]">
                 이메일 또는 닉네임이 이미 사용 중일 수 있습니다.
               </p>
             )}

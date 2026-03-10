@@ -106,7 +106,7 @@ const StoryViewer = memo(function StoryViewer({
               <div key={`progress-${index}`} className="h-1 flex-1 rounded-full bg-white/25">
                 <div
                   key={`progress-active-${activeIndex}`}
-                  className="story-progress-bar h-full w-full rounded-full bg-white"
+                  className="h-full w-full origin-left animate-story-progress rounded-full bg-white"
                   style={{ animationDuration: `${durationMs}ms` }}
                   onAnimationEnd={onNext}
                 />
@@ -182,7 +182,7 @@ const StoryViewer = memo(function StoryViewer({
                   <Link
                     href={`/experts/${String(expertId)}`}
                     onClick={onClose}
-                    className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white px-4 py-3 text-center text-sm font-semibold text-[#2b4b7e]"
+                    className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white px-4 py-3 text-center text-sm font-semibold text-brand-primary"
                   >
                     상세 보기
                   </Link>
@@ -190,7 +190,7 @@ const StoryViewer = memo(function StoryViewer({
                   <button
                     type="button"
                     disabled
-                    className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white/60 px-4 py-3 text-sm font-semibold text-[#2b4b7e]/60"
+                    className="relative z-20 mt-8 w-full max-w-[240px] rounded-full bg-white/60 px-4 py-3 text-sm font-semibold text-brand-primary/60"
                   >
                     상세 정보 없음
                   </button>

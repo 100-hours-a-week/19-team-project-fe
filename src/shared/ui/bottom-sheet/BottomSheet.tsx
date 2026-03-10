@@ -3,15 +3,18 @@
 import type { ReactNode } from 'react';
 import {
   Content as DialogContent,
+  Description as DialogDescription,
   Overlay as DialogOverlay,
   Portal as DialogPortal,
   Root as DialogRoot,
   Title as DialogTitle,
 } from '@radix-ui/react-dialog';
+import styles from './BottomSheet.module.css';
 
 type BottomSheetProps = {
   open: boolean;
   title?: string;
+  description?: string;
   actionLabel?: string;
   onAction?: () => void;
   actionDisabled?: boolean;
@@ -22,6 +25,7 @@ type BottomSheetProps = {
 export default function BottomSheet({
   open,
   title,
+  description,
   actionLabel,
   onAction,
   actionDisabled = false,
@@ -35,9 +39,9 @@ export default function BottomSheet({
   return (
     <DialogRoot open={open} onOpenChange={handleOpenChange}>
       <DialogPortal>
-        <DialogOverlay className="re-fit-bottom-sheet-overlay fixed inset-0 z-40 bg-black/40" />
+        <DialogOverlay className={`${styles.overlay} fixed inset-0 z-40 bg-black/40`} />
         <DialogContent
-          className="re-fit-bottom-sheet-content fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[600px] rounded-t-3xl bg-white px-2.5 pb-8 pt-4 shadow-[0_-20px_60px_rgba(0,0,0,0.1)]"
+          className={`${styles.content} fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[600px] rounded-t-3xl bg-white px-2.5 pb-8 pt-4 shadow-[0_-20px_60px_rgba(0,0,0,0.1)]`}
           role="dialog"
           aria-modal="true"
         >
@@ -57,13 +61,16 @@ export default function BottomSheet({
                     type="button"
                     onClick={onAction}
                     disabled={actionDisabled}
-                    className="rounded-full border border-[#bcd1f5] bg-[#edf4ff] px-4 py-1.5 text-sm font-semibold text-[#2b4b7e] disabled:opacity-40"
+                    className="rounded-full border border-brand-border bg-brand-soft px-4 py-1.5 text-sm font-semibold text-brand-primary disabled:opacity-40"
                   >
                     {actionLabel}
                   </button>
                 ) : null}
               </div>
             </div>
+            {description ? (
+              <DialogDescription className="sr-only">{description}</DialogDescription>
+            ) : null}
             <div className="mt-4 h-px w-full bg-gray-200" aria-hidden="true" />
           </div>
           <div className="mt-6 h-[72vh] overflow-y-auto px-3">{children}</div>

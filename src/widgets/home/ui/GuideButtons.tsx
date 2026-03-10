@@ -103,13 +103,13 @@ function GuideCard({
   return (
     <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
       <div className="flex items-center gap-2">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#edf4ff] text-[11px] font-semibold text-[#2b4b7e]">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-soft text-2xs font-semibold text-brand-primary">
           {index}
         </span>
         <p className="text-[13px] font-semibold text-text-body">{title}</p>
       </div>
       <p className="mt-2 text-[12px] text-text-body">{body}</p>
-      {note ? <p className="mt-1 text-[11px] text-text-body">※ {note}</p> : null}
+      {note ? <p className="mt-1 text-2xs text-text-body">※ {note}</p> : null}
     </div>
   );
 }
@@ -126,7 +126,7 @@ export default function GuideButtons({
   const [activeGuide, setActiveGuide] = useState<GuideId>(null);
   const containerClass = containerClassName ?? 'mt-2 grid grid-cols-2 gap-3';
   const baseButtonClass =
-    'flex items-center gap-2 rounded-full border border-[#2b4b7e] bg-[var(--color-primary-active)] px-3 py-2';
+    'flex items-center gap-2 rounded-full border border-brand-primary bg-[var(--color-primary-active)] px-3 py-2';
   const mergedButtonClass = buttonClassName
     ? `${baseButtonClass} ${buttonClassName}`
     : baseButtonClass;

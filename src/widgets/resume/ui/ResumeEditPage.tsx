@@ -123,11 +123,11 @@ export default function ResumeEditPage() {
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 flex flex-1 flex-col gap-6">
             {autoFillError ? (
-              <div className="rounded-2xl border border-red-100 bg-white px-2.5 py-3 text-sm text-red-500 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <div className="rounded-2xl border border-red-100 bg-white px-2.5 py-3 text-sm text-red-500 shadow-card-soft">
                 {autoFillError}
               </div>
             ) : null}
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
               <Input.Root>
                 <Input.Label>
                   이력서 제목 <span className="text-red-500">*</span>
@@ -142,7 +142,7 @@ export default function ResumeEditPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-black">구직자 정보</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
                 <p className="text-sm font-semibold text-gray-700">
                   학력 <span className="text-red-500">*</span>
                 </p>
@@ -156,7 +156,7 @@ export default function ResumeEditPage() {
                         onClick={() =>
                           setEducation([{ id: education[0]?.id ?? createId(), value: level }])
                         }
-                        className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+                        className={`rounded-full border px-3 py-1 text-2xs font-semibold transition ${
                           selected
                             ? 'border-primary-main bg-primary-main/10 text-primary-main'
                             : 'border-gray-200 text-gray-600'
@@ -288,7 +288,7 @@ export default function ResumeEditPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-black">주요 프로젝트</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
                 {projects.map((project, index) => (
                   <div
                     key={project.id}
@@ -362,7 +362,7 @@ export default function ResumeEditPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-black">수상 내역</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
                 {awards.map((item, index) => (
                   <div
                     key={item.id}
@@ -405,7 +405,7 @@ export default function ResumeEditPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-black">자격증</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
                 {certificates.map((item, index) => (
                   <div
                     key={item.id}
@@ -450,7 +450,7 @@ export default function ResumeEditPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-black">대외 활동 / 기타</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
                 {activities.map((item, index) => (
                   <div
                     key={item.id}

@@ -100,7 +100,7 @@ export default function MyPageVerify() {
               </button>
             </div>
             {sendVerificationMessage ? (
-              <p className="mt-2 text-xs text-[#2b4b7e]">{sendVerificationMessage}</p>
+              <p className="mt-2 text-xs text-brand-primary">{sendVerificationMessage}</p>
             ) : null}
             {sendVerificationError ? (
               <p className="mt-2 text-xs text-red-500">{sendVerificationError}</p>
@@ -127,7 +127,7 @@ export default function MyPageVerify() {
                 {isVerifying ? (
                   <p className="mt-2 text-xs text-text-caption">인증 확인 중...</p>
                 ) : null}
-                {isVerified ? <p className="mt-2 text-xs text-[#2b4b7e]">인증 완료</p> : null}
+                {isVerified ? <p className="mt-2 text-xs text-brand-primary">인증 완료</p> : null}
                 {verificationError ? (
                   <p className="mt-2 text-xs text-red-500">{verificationError}</p>
                 ) : null}
@@ -139,15 +139,15 @@ export default function MyPageVerify() {
                         key={`code-dot-${index}`}
                         className={`h-3 w-3 rounded-full border ${
                           isFilled
-                            ? 'border-[#2b4b7e] bg-[#2b4b7e]'
-                            : 'border-[#bcd1f5] bg-[#edf4ff]'
+                            ? 'border-brand-primary bg-[#2b4b7e]'
+                            : 'border-brand-border bg-brand-soft'
                         }`}
                       />
                     );
                   })}
                 </div>
               </div>
-              <div className="mt-10 grid grid-cols-3 gap-6 px-2.5 text-center text-2xl font-semibold text-[#2b4b7e]">
+              <div className="mt-10 grid grid-cols-3 gap-6 px-2.5 text-center text-2xl font-semibold text-brand-primary">
                 {['3', '7', '0', '6', '8', '2', '4', '1', '5', 'biometric', '9', 'backspace'].map(
                   (item) => {
                     if (item === 'biometric') {
@@ -182,7 +182,7 @@ export default function MyPageVerify() {
                           key="backspace"
                           type="button"
                           onClick={() => handleKeypadPress('backspace')}
-                          className="flex h-16 items-center justify-center text-[#2b4b7e]"
+                          className="flex h-16 items-center justify-center text-brand-primary"
                         >
                           <svg
                             viewBox="0 0 24 24"

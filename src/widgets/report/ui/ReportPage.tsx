@@ -102,7 +102,7 @@ export default function ReportPage() {
                     <p className="truncate text-[15px] font-semibold text-[#1f2f46]">
                       {report.title}
                     </p>
-                    <p className="mt-2 inline-flex rounded-full bg-[#edf4ff] px-2.5 py-1 text-[11px] font-semibold text-[#35558b]">
+                    <p className="mt-2 inline-flex rounded-full bg-brand-soft px-2.5 py-1 text-2xs font-semibold text-[#35558b]">
                       {report.status?.toUpperCase() === 'PROCESSING' ? 'PROCESSING' : 'REPORT'}
                     </p>
                     <p className="mt-2 text-xs text-[#6b7b92]">

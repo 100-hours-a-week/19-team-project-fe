@@ -133,7 +133,7 @@ export default function ChatList() {
 
     return (
       <span
-        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none ${theme.wrap}`}
+        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-2xs font-semibold leading-none ${theme.wrap}`}
       >
         {formatRequestType(type)}
       </span>
@@ -409,7 +409,7 @@ export default function ChatList() {
                           {counterpart.nickname}
                         </div>
                         {renderRequestTypeTag(requestType)}
-                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-2xs font-semibold text-neutral-600">
                           요청 중
                         </span>
                       </div>
@@ -466,7 +466,7 @@ export default function ChatList() {
                           {counterparty.nickname}
                         </div>
                         {renderRequestTypeTag(requestType)}
-                        <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-600">
+                        <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-2xs font-semibold text-neutral-600">
                           종료
                         </span>
                       </div>

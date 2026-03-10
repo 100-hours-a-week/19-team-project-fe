@@ -1,0 +1,39 @@
+:global(.onboarding-form-stagger__item) {
+  opacity: 0;
+  animation: onboarding-item-in 260ms ease-out forwards;
+}
+
+:global(.onboarding-form-stagger__item):nth-child(1) {
+  animation-delay: 20ms;
+}
+
+:global(.onboarding-form-stagger__item):nth-child(2) {
+  animation-delay: 120ms;
+}
+
+:global(.onboarding-form-stagger__item):nth-child(3) {
+  animation-delay: 220ms;
+}
+
+:global(.onboarding-form-stagger__item):nth-child(4) {
+  animation-delay: 320ms;
+}
+
+:global(.onboarding-form-stagger__item):nth-child(5) {
+  animation-delay: 420ms;
+}
+
+:global(.onboarding-form-stagger__item):nth-child(6) {
+  animation-delay: 520ms;
+}
+
+@keyframes onboarding-item-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

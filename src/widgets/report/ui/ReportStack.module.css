@@ -1,0 +1,38 @@
+.stack {
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  position: relative;
+  transform: translateX(0);
+  will-change: transform;
+  animation-duration: 240ms;
+  animation-timing-function: ease-out;
+}
+
+.forward {
+  animation-name: stack-slide-in-left;
+}
+
+.back {
+  animation-name: stack-slide-in-right;
+}
+
+@keyframes stack-slide-in-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes stack-slide-in-right {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
