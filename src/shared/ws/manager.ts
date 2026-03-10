@@ -2,6 +2,24 @@
 import type { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import { createStompClient } from './client';
 
+export class StompConnectError extends Error {
+  kind: 'stomp' | 'websocket';
+  headers?: Record<string, string>;
+  body?: string;
+
+  constructor(
+    kind: 'stomp' | 'websocket',
+    message: string,
+    options?: { headers?: Record<string, string>; body?: string },
+  ) {
+    super(message);
+    this.name = 'StompConnectError';
+    this.kind = kind;
+    this.headers = options?.headers;
+    this.body = options?.body;
+  }
+}
+
 export type StompStatus =
   | 'idle'
   | 'connecting'
@@ -81,13 +99,21 @@ export const stompManager = {
           console.error('body:', frame.body);
           st.status = 'error';
           st.connectingPromise = null;
-          reject(new Error('STOMP error'));
+          const details = [frame.headers.message, frame.headers.code, frame.body]
+            .filter((part) => typeof part === 'string' && part.length > 0)
+            .join(' | ');
+          reject(
+            new StompConnectError('stomp', details || 'STOMP error', {
+              headers: frame.headers,
+              body: frame.body,
+            }),
+          );
         };
 
         client.onWebSocketError = () => {
           st.status = 'error';
           st.connectingPromise = null;
-          reject(new Error('WebSocket error'));
+          reject(new StompConnectError('websocket', 'WebSocket error'));
         };
 
         client.onWebSocketClose = () => {
