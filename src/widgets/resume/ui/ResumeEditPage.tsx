@@ -1,50 +1,68 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useShallow } from 'zustand/react/shallow';
 
 import { KakaoLoginButton } from '@/features/auth';
-import { useResumeEdit } from '@/features/resume';
+import { useResumeEdit, useResumeEditStore } from '@/features/resume';
 import { AuthGateSheet } from '@/shared/ui/auth-gate';
 import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
 import { Footer } from '@/widgets/footer';
 import { Header } from '@/widgets/header';
-
-const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-const inlineFieldClass =
-  'w-full rounded-md border border-gray-200 px-2.5 py-3 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20 disabled:bg-gray-100 disabled:text-gray-400';
+import {
+  ActivitySection,
+  AwardSection,
+  BasicInfoSection,
+  CareerSection,
+  CertificateSection,
+  ProjectSection,
+  useRenderMetric,
+} from './resume-edit-sections';
 
 export default function ResumeEditPage() {
+  useRenderMetric('ResumeEdit.Page');
+
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const {
     authStatus,
     isEditMode,
-    title,
-    setTitle,
-    isFresher,
-    setIsFresher,
     submitError,
     autoFillError,
     isSubmitting,
     isAutoFilling,
-    careers,
-    setCareers,
-    projects,
-    setProjects,
-    education,
-    setEducation,
-    awards,
-    setAwards,
-    certificates,
-    setCertificates,
-    activities,
-    setActivities,
     isLoadingResume,
     educationOptions,
     handleAutoUpload,
     handleSubmit,
   } = useResumeEdit(searchParams.get('resumeId'));
+
+  const { title, educationValue } = useResumeEditStore(
+    useShallow((state) => ({
+      title: state.title,
+      educationValue: state.education[0]?.value ?? '',
+    })),
+  );
+
+  const validation = useMemo(() => {
+    const hasTitle = title.trim().length > 0;
+    const hasEducation = educationValue.trim().length > 0;
+    return {
+      hasTitle,
+      hasEducation,
+      isFormValid: hasTitle && hasEducation,
+    };
+  }, [title, educationValue]);
+
+  const isSubmitDisabled =
+    isSubmitting ||
+    authStatus !== 'authed' ||
+    isLoadingResume ||
+    isAutoFilling ||
+    !validation.isFormValid;
+
   const handleAuthSheetClose = () => {
     router.replace('/resume');
   };
@@ -104,6 +122,7 @@ export default function ResumeEditPage() {
             {isAutoFilling ? '자동 등록 중...' : '자동 등록'}
           </button>
         </div>
+
         <div className="mt-2 text-right text-xs font-semibold text-primary-main">
           5MB 이하 PDF 파일만 업로드 가능합니다.
         </div>
@@ -127,373 +146,23 @@ export default function ResumeEditPage() {
                 {autoFillError}
               </div>
             ) : null}
-            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
-              <Input.Root>
-                <Input.Label>
-                  이력서 제목 <span className="text-red-500">*</span>
-                </Input.Label>
-                <Input.Field
-                  placeholder="텍스트를 입력해 주세요."
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                />
-              </Input.Root>
-            </div>
 
-            <section>
-              <h2 className="text-lg font-semibold text-black">구직자 정보</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
-                <p className="text-sm font-semibold text-gray-700">
-                  학력 <span className="text-red-500">*</span>
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {educationOptions.map((level) => {
-                    const selected = (education[0]?.value ?? '') === level;
-                    return (
-                      <button
-                        key={level}
-                        type="button"
-                        onClick={() =>
-                          setEducation([{ id: education[0]?.id ?? createId(), value: level }])
-                        }
-                        className={`rounded-full border px-3 py-1 text-2xs font-semibold transition ${
-                          selected
-                            ? 'border-primary-main bg-primary-main/10 text-primary-main'
-                            : 'border-gray-200 text-gray-600'
-                        }`}
-                      >
-                        {level}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mt-4 text-sm font-semibold text-gray-700">
-                  신입/경력 <span className="text-red-500">*</span>
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsFresher(true)}
-                    className={`rounded-xl border px-2.5 py-3 text-sm font-semibold transition ${
-                      isFresher
-                        ? 'border-primary-main bg-primary-main/10 text-primary-main'
-                        : 'border-gray-200 text-gray-600'
-                    }`}
-                  >
-                    신입
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsFresher(false)}
-                    className={`rounded-xl border px-2.5 py-3 text-sm font-semibold transition ${
-                      !isFresher
-                        ? 'border-primary-main bg-primary-main/10 text-primary-main'
-                        : 'border-gray-200 text-gray-600'
-                    }`}
-                  >
-                    경력
-                  </button>
-                </div>
+            <BasicInfoSection educationOptions={educationOptions} />
+            <CareerSection />
+            <ProjectSection />
+            <AwardSection />
+            <CertificateSection />
+            <ActivitySection />
 
-                {!isFresher ? (
-                  <>
-                    {careers.map((career, index) => (
-                      <div key={career.id} className="mt-3 rounded-xl border border-gray-200 p-3">
-                        <div className="flex items-center gap-2">
-                          <input
-                            placeholder="회사명"
-                            value={career.company}
-                            onChange={(event) => {
-                              const next = [...careers];
-                              next[index] = { ...career, company: event.target.value };
-                              setCareers(next);
-                            }}
-                            className={`${inlineFieldClass} flex-1`}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const next = careers.filter((item) => item.id !== career.id);
-                              setCareers(
-                                next.length
-                                  ? next
-                                  : [
-                                      {
-                                        id: createId(),
-                                        company: '',
-                                        period: '',
-                                        role: '',
-                                        title: '',
-                                      },
-                                    ],
-                              );
-                            }}
-                            className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-xl text-gray-500"
-                            aria-label="경력 삭제"
-                          >
-                            -
-                          </button>
-                        </div>
-                        <input
-                          placeholder="YYYY.MM - YYYY.MM (0년 0개월)"
-                          value={career.period}
-                          onChange={(event) => {
-                            const next = [...careers];
-                            next[index] = { ...career, period: event.target.value };
-                            setCareers(next);
-                          }}
-                          className={`${inlineFieldClass} mt-2`}
-                        />
-                        <input
-                          placeholder="직무"
-                          value={career.role}
-                          onChange={(event) => {
-                            const next = [...careers];
-                            next[index] = { ...career, role: event.target.value };
-                            setCareers(next);
-                          }}
-                          className={`${inlineFieldClass} mt-2`}
-                        />
-                        <input
-                          placeholder="직책"
-                          value={career.title}
-                          onChange={(event) => {
-                            const next = [...careers];
-                            next[index] = { ...career, title: event.target.value };
-                            setCareers(next);
-                          }}
-                          className={`${inlineFieldClass} mt-2`}
-                        />
-                      </div>
-                    ))}
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCareers((prev) => [
-                          ...prev,
-                          { id: createId(), company: '', period: '', role: '', title: '' },
-                        ])
-                      }
-                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-gray-200 py-2 text-sm text-gray-600"
-                    >
-                      + 주요 경력 추가
-                    </button>
-                  </>
-                ) : null}
-
-                <p className="mt-2 text-xs text-red-500" aria-hidden="true" />
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold text-black">주요 프로젝트</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
-                {projects.map((project, index) => (
-                  <div
-                    key={project.id}
-                    className={`rounded-xl border border-gray-200 p-3 ${index > 0 ? 'mt-3' : ''}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        placeholder="프로젝트 이름"
-                        value={project.title}
-                        onChange={(event) => {
-                          const next = [...projects];
-                          next[index] = { ...project, title: event.target.value };
-                          setProjects(next);
-                        }}
-                        className={`${inlineFieldClass} flex-1`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const next = projects.filter((item) => item.id !== project.id);
-                          setProjects(
-                            next.length
-                              ? next
-                              : [{ id: createId(), title: '', period: '', description: '' }],
-                          );
-                        }}
-                        className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-xl text-gray-500"
-                        aria-label="프로젝트 삭제"
-                      >
-                        -
-                      </button>
-                    </div>
-                    <input
-                      placeholder="YYYY.MM - YYYY.MM (0년 0개월)"
-                      value={project.period}
-                      onChange={(event) => {
-                        const next = [...projects];
-                        next[index] = { ...project, period: event.target.value };
-                        setProjects(next);
-                      }}
-                      className={`${inlineFieldClass} mt-2`}
-                    />
-                    <textarea
-                      value={project.description}
-                      onChange={(event) => {
-                        const next = [...projects];
-                        next[index] = { ...project, description: event.target.value };
-                        setProjects(next);
-                      }}
-                      className="mt-2 w-full rounded-md border border-gray-200 px-2.5 py-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-main focus:outline-none focus:ring-2 focus:ring-primary-main/20"
-                      rows={3}
-                      placeholder="프로젝트 설명"
-                    />
-                  </div>
-                ))}
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setProjects((prev) => [
-                      ...prev,
-                      { id: createId(), title: '', period: '', description: '' },
-                    ])
-                  }
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-gray-200 py-2 text-sm text-gray-600"
-                >
-                  + 주요 프로젝트 추가
-                </button>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold text-black">수상 내역</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
-                {awards.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}
-                  >
-                    <input
-                      placeholder="텍스트를 입력해 주세요."
-                      value={item.value}
-                      onChange={(event) => {
-                        setAwards((prev) =>
-                          prev.map((entry) =>
-                            entry.id === item.id ? { ...entry, value: event.target.value } : entry,
-                          ),
-                        );
-                      }}
-                      className={`${inlineFieldClass} flex-1`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = awards.filter((entry) => entry.id !== item.id);
-                        setAwards(next.length ? next : [{ id: createId(), value: '' }]);
-                      }}
-                      className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-xl text-gray-500"
-                      aria-label="수상 삭제"
-                    >
-                      -
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setAwards((prev) => [...prev, { id: createId(), value: '' }])}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-gray-200 py-2 text-sm text-gray-600"
-                >
-                  + 수상 내역 추가
-                </button>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold text-black">자격증</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
-                {certificates.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}
-                  >
-                    <input
-                      placeholder="텍스트를 입력해 주세요."
-                      value={item.value}
-                      onChange={(event) => {
-                        setCertificates((prev) =>
-                          prev.map((entry) =>
-                            entry.id === item.id ? { ...entry, value: event.target.value } : entry,
-                          ),
-                        );
-                      }}
-                      className={`${inlineFieldClass} flex-1`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = certificates.filter((entry) => entry.id !== item.id);
-                        setCertificates(next.length ? next : [{ id: createId(), value: '' }]);
-                      }}
-                      className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-xl text-gray-500"
-                      aria-label="자격증 삭제"
-                    >
-                      -
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCertificates((prev) => [...prev, { id: createId(), value: '' }])
-                  }
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-gray-200 py-2 text-sm text-gray-600"
-                >
-                  + 자격증 추가
-                </button>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold text-black">대외 활동 / 기타</h2>
-              <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
-                {activities.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={`flex items-center gap-2 ${index > 0 ? 'mt-3' : ''}`}
-                  >
-                    <input
-                      placeholder="텍스트를 입력해 주세요."
-                      value={item.value}
-                      onChange={(event) => {
-                        setActivities((prev) =>
-                          prev.map((entry) =>
-                            entry.id === item.id ? { ...entry, value: event.target.value } : entry,
-                          ),
-                        );
-                      }}
-                      className={`${inlineFieldClass} flex-1`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = activities.filter((entry) => entry.id !== item.id);
-                        setActivities(next.length ? next : [{ id: createId(), value: '' }]);
-                      }}
-                      className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-xl text-gray-500"
-                      aria-label="활동 삭제"
-                    >
-                      -
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setActivities((prev) => [...prev, { id: createId(), value: '' }])}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-gray-200 py-2 text-sm text-gray-600"
-                >
-                  + 활동 추가
-                </button>
-                <p className="mt-2 text-xs text-red-500" aria-hidden="true" />
-              </div>
-            </section>
-
+            {!validation.hasTitle ? (
+              <p className="mb-0 text-sm text-red-500">이력서 제목을 입력해 주세요.</p>
+            ) : null}
+            {!validation.hasEducation ? (
+              <p className="mb-0 text-sm text-red-500">학력 정보를 입력해 주세요.</p>
+            ) : null}
             {submitError ? <p className="mb-0 text-sm text-red-500">{submitError}</p> : null}
-            <Button type="submit" disabled={isSubmitting}>
+
+            <Button type="submit" disabled={isSubmitDisabled}>
               {isSubmitting
                 ? isEditMode
                   ? '이력서 수정 중...'
