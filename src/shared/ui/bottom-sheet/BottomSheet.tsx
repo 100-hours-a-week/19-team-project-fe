@@ -68,7 +68,9 @@ export default function BottomSheet({
                 ) : null}
               </div>
             </div>
-            {description ? <DialogDescription className="sr-only">{description}</DialogDescription> : null}
+            {description ? (
+              <DialogDescription className="sr-only">{description}</DialogDescription>
+            ) : null}
             <div className="mt-4 h-px w-full bg-gray-200" aria-hidden="true" />
           </div>
           <div className="mt-6 h-[72vh] overflow-y-auto px-3">{children}</div>
