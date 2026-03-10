@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { markChatFeedbackSubmitted, markReportCreateAccepted } from '../lib/reportCreate.client';
 import type { ChatFeedbackRequest } from '@/entities/chat';
-import { readAccessToken } from '@/shared/api';
+import { readAccessToken, refreshAuthTokens } from '@/shared/api';
 
 export type FeedbackAnswerKind = 'multi' | 'radio' | 'text';
 
@@ -371,9 +371,6 @@ export function useChatFeedbackForm(chatId: number) {
     });
 
     sendFeedbackInBackground(chatId, payload, retryPayload);
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('reportCreateSuccess', 'true');
-    }
     setIsSubmitting(false);
     router.replace('/chat');
   };
@@ -402,17 +399,14 @@ export function useChatFeedbackForm(chatId: number) {
 
 async function closeChatInBackground(chatId: number): Promise<boolean> {
   const url = `/bff/chat/${chatId}`;
-  const accessToken = readAccessToken();
-  const headers: HeadersInit = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithAuthRefresh(url, {
       method: 'PATCH',
       credentials: 'include',
       keepalive: true,
-      headers,
     });
-    if (!response.ok) return false;
+    if (!response?.ok) return false;
     const body = (await response.json().catch(() => null)) as { code?: string } | null;
     return body?.code === 'OK' || body?.code === 'UPDATED';
   } catch {
@@ -427,19 +421,16 @@ function sendFeedbackInBackground(
 ) {
   const url = `/bff/chat/${chatId}/feedback`;
 
-  const accessToken = readAccessToken();
-  const headers: HeadersInit = accessToken
-    ? { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' };
-
   const postFeedback = async (requestPayload: ChatFeedbackRequest) => {
-    const response = await fetch(url, {
+    const response = await fetchWithAuthRefresh(url, {
       method: 'POST',
       credentials: 'include',
       keepalive: true,
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(requestPayload),
-    }).catch(() => null);
+    });
     if (!response) return { ok: false, code: '' };
     const data = (await response.json().catch(() => null)) as { code?: string } | null;
     return { ok: response.ok && data?.code === 'CREATED', code: data?.code ?? '' };
@@ -453,6 +444,9 @@ function sendFeedbackInBackground(
     if (first.ok) {
       markChatFeedbackSubmitted(chatId);
       markReportCreateAccepted();
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('reportCreateSuccess', 'true');
+      }
       return;
     }
 
@@ -464,8 +458,38 @@ function sendFeedbackInBackground(
     if (second.ok) {
       markChatFeedbackSubmitted(chatId);
       markReportCreateAccepted();
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('reportCreateSuccess', 'true');
+      }
     }
   })();
+}
+
+async function fetchWithAuthRefresh(
+  input: RequestInfo | URL,
+  init: RequestInit,
+): Promise<Response | null> {
+  const requestWithToken = (token?: string | null) => {
+    const headers = new Headers(init.headers);
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      headers.delete('Authorization');
+    }
+
+    return fetch(input, {
+      ...init,
+      headers,
+    }).catch(() => null);
+  };
+
+  const first = await requestWithToken(readAccessToken());
+  if (!first || first.status !== 401) return first;
+
+  const refreshed = await refreshAuthTokens().catch(() => false);
+  if (!refreshed) return first;
+
+  return requestWithToken(readAccessToken());
 }
 
 function parseCommaValues(value: string | string[] | undefined): string[] {
