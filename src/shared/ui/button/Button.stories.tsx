@@ -38,6 +38,9 @@ const meta = {
     children: {
       control: 'text',
     },
+    onClick: {
+      action: 'clicked',
+    },
   },
 } satisfies Meta<typeof Button>;
 

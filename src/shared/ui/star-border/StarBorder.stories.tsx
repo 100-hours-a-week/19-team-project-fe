@@ -15,6 +15,11 @@ const meta = {
     starOpacity: 0.7,
     onClick: fn(),
   },
+  argTypes: {
+    onClick: {
+      action: 'clicked',
+    },
+  },
 } satisfies Meta<typeof StarBorder>;
 
 export default meta;
