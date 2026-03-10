@@ -8,7 +8,20 @@ const meta = {
   component: PageTransition,
   parameters: {
     layout: 'padded',
+    docs: {
+      description: {
+        component:
+          '페이지 전환 방향에 따라 진입 애니메이션을 적용하는 래퍼 컴포넌트입니다. nav-direction 세션값(forward/back)을 기준으로 동작합니다.',
+      },
+    },
   },
+  decorators: [
+    (Story) => (
+      <div className="bg-[#f7f7f7] p-4">
+        <Story />
+      </div>
+    ),
+  ],
 } satisfies Meta<typeof PageTransition>;
 
 export default meta;

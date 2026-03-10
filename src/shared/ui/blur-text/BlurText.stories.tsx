@@ -7,6 +7,15 @@ const meta = {
   component: BlurText,
   parameters: {
     layout: 'padded',
+    a11y: {
+      disable: true,
+    },
+    docs: {
+      description: {
+        component:
+          '블러/페이드 인 애니메이션 텍스트 컴포넌트입니다. 초기 프레임에서 의도적으로 낮은 opacity를 사용하므로 a11y 대비 검증은 스토리에서 제외합니다.',
+      },
+    },
   },
   args: {
     text: '현직자와의 커피챗을 더 빠르게 시작해보세요.',

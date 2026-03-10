@@ -8,10 +8,28 @@ const meta = {
   component: Modal,
   parameters: {
     layout: 'fullscreen',
+    docs: {
+      description: {
+        component:
+          '확인/취소가 필요한 작업에 사용하는 다이얼로그입니다. compact 옵션으로 정보 밀도를 높일 수 있습니다.',
+      },
+    },
   },
   args: {
     open: false,
+    title: '정말 삭제할까요?',
+    description: '삭제 후에는 복구할 수 없습니다.',
+    confirmLabel: '삭제',
+    cancelLabel: '취소',
+    compact: false,
     onCancel: fn(),
+  },
+  argTypes: {
+    title: { control: 'text' },
+    description: { control: 'text' },
+    confirmLabel: { control: 'text' },
+    cancelLabel: { control: 'text' },
+    compact: { control: 'boolean' },
   },
 } satisfies Meta<typeof Modal>;
 
@@ -51,6 +69,30 @@ function ModalDemo({ compact = false }: { compact?: boolean }) {
 
 export const Default: Story = {
   render: () => <ModalDemo />,
+};
+
+export const Playground: Story = {
+  render: (args) => {
+    const [open, setOpen] = useState(false);
+
+    return (
+      <div className="min-h-[280px] bg-[#f7f7f7] p-4">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white"
+        >
+          모달 열기
+        </button>
+        <Modal
+          {...args}
+          open={open}
+          onCancel={() => setOpen(false)}
+          onConfirm={() => setOpen(false)}
+        />
+      </div>
+    );
+  },
 };
 
 export const Compact: Story = {
