@@ -13,6 +13,7 @@ import iconTech from '@/shared/icons/Icon_tech.png';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import './OnboardingProfileForm.module.css';
 
 type RoleId = 'seeker' | 'expert';
 
@@ -510,7 +511,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
   const profileFormContent = (
     <>
-      <div className="onboarding-form-stagger__item rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+      <div className="onboarding-form-stagger__item rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
         <div className="text-base font-semibold text-black">닉네임</div>
         <Input.Root className="mt-2">
           <div className="flex items-center gap-2">
@@ -570,7 +571,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         <button
           type="button"
           onClick={() => setActiveSheet('job')}
-          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft"
         >
           <div className="flex items-center gap-3">
             <Image src={iconJob} alt="직무" width={40} height={40} />
@@ -583,7 +584,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           </div>
           <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
             {selectedJob ? (
-              <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+              <span className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary">
                 {selectedJob.name}
               </span>
             ) : null}
@@ -593,7 +594,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         <button
           type="button"
           onClick={() => setActiveSheet('career')}
-          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft"
         >
           <div className="flex items-center gap-3">
             <Image src={iconCareer} alt="경력" width={40} height={40} />
@@ -606,7 +607,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           </div>
           <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
             {selectedCareer ? (
-              <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+              <span className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary">
                 {selectedCareer.level}
               </span>
             ) : null}
@@ -616,7 +617,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
         <button
           type="button"
           onClick={() => setActiveSheet('tech')}
-          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft"
         >
           <div className="flex items-center gap-3">
             <Image src={iconTech} alt="기술스택" width={40} height={40} />
@@ -629,7 +630,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             {selectedTech.map((tech) => (
               <span
                 key={tech.id}
-                className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]"
+                className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary"
               >
                 {tech.name}
               </span>
@@ -641,7 +642,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
 
       <div className="onboarding-form-stagger__item">
         <p className="text-base font-semibold text-text-title">자기 소개</p>
-        <div className="mt-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+        <div className="mt-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-card-soft">
           <textarea
             className="h-28 w-full resize-none text-base text-text-body placeholder:text-gray-400 focus:outline-none"
             placeholder="Tell us everything..."
@@ -653,7 +654,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             {introduction.length}/{introductionLimit}
           </p>
         </div>
-        <div className="mt-4 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+        <div className="mt-4 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-card-soft">
           <button
             type="button"
             onClick={() => {
@@ -666,7 +667,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           >
             <span
               className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                allRequiredAgreed ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
+                allRequiredAgreed ? 'border-brand-primary bg-[#2b4b7e]' : 'border-gray-300'
               }`}
               aria-hidden="true"
             >
@@ -753,7 +754,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
             <p className="text-2xl font-semibold text-text-title">환영합니다!</p>
           </div>
           <div className="mt-2 flex items-center gap-2">
-            <span className="rounded-full border border-[#2b4b7e] px-3 py-1 text-xs font-semibold text-[#2b4b7e]">
+            <span className="rounded-full border border-brand-primary px-3 py-1 text-xs font-semibold text-brand-primary">
               {displayRole}
             </span>
           </div>
@@ -772,12 +773,12 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                     onClick={() => setCurrentStep(stepIndex)}
                     className={`flex flex-1 items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
                       isActive
-                        ? 'border-[#2b4b7e] bg-[#edf4ff] text-[#2b4b7e]'
+                        ? 'border-brand-primary bg-brand-soft text-brand-primary'
                         : 'border-gray-200 bg-white text-text-caption'
                     }`}
                   >
                     <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
+                      className={`flex h-5 w-5 items-center justify-center rounded-full text-2xs ${
                         isActive ? 'bg-[#2b4b7e] text-white' : 'bg-gray-200 text-gray-500'
                       }`}
                     >
@@ -844,7 +845,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                       </button>
                     </div>
                     {sendVerificationMessage ? (
-                      <p className="mt-2 text-xs text-[#2b4b7e]">{sendVerificationMessage}</p>
+                      <p className="mt-2 text-xs text-brand-primary">{sendVerificationMessage}</p>
                     ) : null}
                     {sendVerificationError ? (
                       <p className="mt-2 text-xs text-red-500">{sendVerificationError}</p>
@@ -872,7 +873,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                           <p className="mt-2 text-xs text-text-caption">인증 확인 중...</p>
                         ) : null}
                         {isVerified ? (
-                          <p className="mt-2 text-xs text-[#2b4b7e]">인증 완료</p>
+                          <p className="mt-2 text-xs text-brand-primary">인증 완료</p>
                         ) : null}
                         {verificationError ? (
                           <p className="mt-2 text-xs text-red-500">{verificationError}</p>
@@ -885,15 +886,15 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                                 key={`code-dot-${index}`}
                                 className={`h-3 w-3 rounded-full border ${
                                   isFilled
-                                    ? 'border-[#2b4b7e] bg-[#2b4b7e]'
-                                    : 'border-[#bcd1f5] bg-[#edf4ff]'
+                                    ? 'border-brand-primary bg-[#2b4b7e]'
+                                    : 'border-brand-border bg-brand-soft'
                                 }`}
                               />
                             );
                           })}
                         </div>
                       </div>
-                      <div className="mt-10 grid grid-cols-3 gap-6 px-2.5 text-center text-2xl font-semibold text-[#2b4b7e]">
+                      <div className="mt-10 grid grid-cols-3 gap-6 px-2.5 text-center text-2xl font-semibold text-brand-primary">
                         {[
                           '3',
                           '7',
@@ -940,7 +941,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                                 key="backspace"
                                 type="button"
                                 onClick={() => handleKeypadPress('backspace')}
-                                className="flex h-16 items-center justify-center text-[#2b4b7e]"
+                                className="flex h-16 items-center justify-center text-brand-primary"
                               >
                                 <svg
                                   viewBox="0 0 24 24"
@@ -1012,7 +1013,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
       >
         {activeSheet === 'tech' ? (
           <div className="flex h-full flex-col">
-            <div className="flex items-center gap-2 rounded-full bg-[#edf4ff] px-4 py-3">
+            <div className="flex items-center gap-2 rounded-full bg-brand-soft px-4 py-3">
               <input
                 value={techQuery}
                 onChange={(event) => setTechQuery(event.target.value)}
@@ -1026,7 +1027,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                   key={tech.id}
                   type="button"
                   onClick={() => handleTechToggle(tech)}
-                  className="rounded-full border border-[#bcd1f5] bg-[#edf4ff] px-3 py-1 text-xs text-[#2b4b7e]"
+                  className="rounded-full border border-brand-border bg-brand-soft px-3 py-1 text-xs text-brand-primary"
                 >
                   {tech.name} ×
                 </button>
@@ -1051,7 +1052,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                         </span>
                         <span
                           className={`h-5 w-5 rounded-full border ${
-                            isSelected ? 'border-[#2b4b7e] bg-[#2b4b7e]' : 'border-gray-300'
+                            isSelected ? 'border-brand-primary bg-[#2b4b7e]' : 'border-gray-300'
                           }`}
                         />
                       </button>
@@ -1081,7 +1082,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                     <span
                       className={`h-5 w-5 rounded-md border ${
                         selectedJob?.id === item.id
-                          ? 'border-[#2b4b7e] bg-[#2b4b7e]'
+                          ? 'border-brand-primary bg-[#2b4b7e]'
                           : 'border-gray-300'
                       }`}
                     />
@@ -1111,7 +1112,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
                     <span
                       className={`h-5 w-5 rounded-md border ${
                         selectedCareer?.id === item.id
-                          ? 'border-[#2b4b7e] bg-[#2b4b7e]'
+                          ? 'border-brand-primary bg-[#2b4b7e]'
                           : 'border-gray-300'
                       }`}
                     />
@@ -1134,7 +1135,7 @@ export default function OnboardingProfileForm({ role }: OnboardingProfileFormPro
           <div className="rounded-2xl border border-[#f5d08a] bg-[#fff4d6] px-4 py-3 text-center text-[13px] font-semibold text-[#8a5a00]">
             우선 프로필 입력으로 넘어가 주세요.
           </div>
-          <div className="rounded-2xl border border-[#bcd1f5] bg-[#edf4ff] px-4 py-3 text-center text-[13px] font-semibold text-[#2b4b7e]">
+          <div className="rounded-2xl border border-brand-border bg-brand-soft px-4 py-3 text-center text-[13px] font-semibold text-brand-primary">
             이메일 인증은 추후 [마이페이지] &gt; [현직자 인증]
             <br />
             메뉴에서 진행할 수 있어요.

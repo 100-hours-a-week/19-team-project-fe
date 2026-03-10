@@ -90,7 +90,7 @@ export default function ChatRoomMessages({
           <Fragment key={message.message_id}>
             {showDateDivider ? (
               <div className="flex items-center justify-center py-1">
-                <span className="rounded-full bg-neutral-200/70 px-3 py-1 text-[11px] text-neutral-600">
+                <span className="rounded-full bg-neutral-200/70 px-3 py-1 text-2xs text-neutral-600">
                   {formatChatDate(message.created_at)}
                 </span>
               </div>
@@ -110,7 +110,7 @@ export default function ChatRoomMessages({
                 </div>
                 {showTime && (
                   <span
-                    className={`mt-1 text-[11px] text-neutral-400 ${
+                    className={`mt-1 text-2xs text-neutral-400 ${
                       isMine ? 'text-right self-end' : 'text-left self-start'
                     }`}
                   >

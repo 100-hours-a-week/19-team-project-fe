@@ -140,7 +140,7 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
           </div>
         ) : resume ? (
           <div className="mt-6 flex flex-col gap-4">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card-soft">
               <p className="text-lg font-semibold text-text-title">{resume.title}</p>
               <p className="mt-2 text-xs text-text-caption">
                 {resume.isFresher ? '신입' : '경력'} · {resume.educationLevel || '학력 정보 없음'}
@@ -150,7 +150,7 @@ export default function ResumeDetailPage({ resumeId }: { resumeId: number }) {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card-soft">
               <p className="text-sm font-semibold text-text-title">상세 내용</p>
               {!hasContent ? (
                 <p className="mt-3 text-sm text-text-body">{EMPTY_CONTENT_LABEL}</p>

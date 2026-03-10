@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import styles from './ResumeStack.module.css';
 
 export default function ResumeStack({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -20,15 +21,11 @@ export default function ResumeStack({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   return (
-    <div className="onboarding-stack min-h-[100dvh]">
+    <div className={`${styles.stack} min-h-[100dvh]`}>
       <div
         key={pathname}
-        className={`onboarding-stack__screen ${
-          direction === 'none'
-            ? ''
-            : direction === 'forward'
-              ? 'onboarding-stack__screen--forward'
-              : 'onboarding-stack__screen--back'
+        className={`${styles.screen} ${
+          direction === 'none' ? '' : direction === 'forward' ? styles.forward : styles.back
         }`}
       >
         {children}

@@ -554,7 +554,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                   {name}
                 </h3>
                 <p
-                  className="m-0 mt-1 text-[11px] font-semibold"
+                  className="m-0 mt-1 text-2xs font-semibold"
                   style={{
                     backgroundImage: 'linear-gradient(to bottom, #fff, #8fa0ff)',
                     WebkitTextFillColor: 'transparent',

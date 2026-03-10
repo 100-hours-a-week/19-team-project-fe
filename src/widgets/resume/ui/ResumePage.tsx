@@ -112,7 +112,7 @@ export default function ResumePage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-[15px] font-semibold text-[#1f2f46]">이력서 생성 중</p>
-                          <p className="mt-2 inline-flex rounded-full bg-[#f2f4f7] px-2.5 py-1 text-[11px] font-semibold text-[#5f6f85]">
+                          <p className="mt-2 inline-flex rounded-full bg-[#f2f4f7] px-2.5 py-1 text-2xs font-semibold text-[#5f6f85]">
                             PROCESSING
                           </p>
                         </div>
@@ -150,7 +150,7 @@ export default function ResumePage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-[15px] font-semibold text-[#1f2f46]">{resume.title}</p>
-                          <p className="mt-2 inline-flex rounded-full bg-[#edf4ff] px-2.5 py-1 text-[11px] font-semibold text-[#35558b]">
+                          <p className="mt-2 inline-flex rounded-full bg-brand-soft px-2.5 py-1 text-2xs font-semibold text-[#35558b]">
                             {resume.status?.toUpperCase() === 'PROCESSING'
                               ? 'PROCESSING'
                               : 'RESUME'}

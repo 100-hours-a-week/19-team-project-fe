@@ -58,7 +58,7 @@ const renderRequestTypeTag = (type: ChatRequestType | null | undefined) => {
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none ${theme.wrap}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-2xs font-semibold leading-none ${theme.wrap}`}
     >
       {formatRequestType(type)}
     </span>

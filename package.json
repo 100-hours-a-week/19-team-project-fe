@@ -1,7 +1,10 @@
 {
   "name": "re-fit",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "browserslist": {
     "production": [
       "chrome >= 90",
@@ -17,7 +20,14 @@
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,md,json}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "storybook": "storybook dev -p 6006",
+    "storybook:ci-server": "storybook dev -p 6206 --exact-port",
+    "build-storybook": "storybook build",
+    "storybook:audit": "node scripts/storybook-audit.mjs",
+    "test-storybook": "test-storybook --config-dir .storybook",
+    "test-storybook:ci": "start-server-and-test \"pnpm storybook:ci-server\" http://127.0.0.1:6206 \"pnpm test-storybook --url http://127.0.0.1:6206\"",
+    "storybook:ci": "pnpm storybook:audit && pnpm build-storybook && pnpm test-storybook:ci"
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.975.0",
@@ -53,18 +63,26 @@
     "@types/three": "^0.182.0",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
+    "@storybook/addon-a11y": "^10.2.16",
+    "@storybook/addon-docs": "^10.2.16",
+    "@storybook/nextjs-vite": "^10.2.16",
+    "@storybook/test-runner": "^0.24.2",
     "eslint": "^9",
     "eslint-config-next": "16.1.3",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-boundaries": "^4.2.2",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
+    "eslint-plugin-storybook": "^10.2.16",
     "google-spreadsheet": "^4.1.4",
     "husky": "^9.1.7",
     "prettier": "^3.8.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "storybook": "^10.2.16",
+    "start-server-and-test": "^2.1.3",
     "sst": "^3.18.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^7.3.1"
   }
 }
