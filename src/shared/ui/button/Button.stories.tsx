@@ -7,11 +7,37 @@ const meta = {
   component: Button,
   parameters: {
     layout: 'padded',
+    docs: {
+      description: {
+        component:
+          '기본 액션 버튼 컴포넌트입니다. primary는 핵심 CTA, secondary는 보조 동작, ghost는 파괴적이지 않은 취소/닫기 액션에 사용합니다.',
+      },
+    },
   },
+  decorators: [
+    (Story) => (
+      <div className="max-w-[360px] bg-[#f7f7f7] p-4">
+        <Story />
+      </div>
+    ),
+  ],
   args: {
     children: '확인',
     variant: 'primary',
+    disabled: false,
     onClick: fn(),
+  },
+  argTypes: {
+    variant: {
+      control: 'select',
+      options: ['primary', 'secondary', 'ghost'],
+    },
+    disabled: {
+      control: 'boolean',
+    },
+    children: {
+      control: 'text',
+    },
   },
 } satisfies Meta<typeof Button>;
 

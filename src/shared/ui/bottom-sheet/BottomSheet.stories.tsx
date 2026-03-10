@@ -8,11 +8,27 @@ const meta = {
   component: BottomSheet,
   parameters: {
     layout: 'fullscreen',
+    docs: {
+      description: {
+        component:
+          '모바일 컨텍스트 선택에 사용하는 바텀시트입니다. title/description/actionLabel을 조합해 안내와 즉시 액션을 함께 제공합니다.',
+      },
+    },
   },
   args: {
     open: false,
+    title: '직무 선택',
+    description: '원하는 직무를 선택한 뒤 적용할 수 있습니다.',
+    actionLabel: '적용',
+    actionDisabled: false,
     onClose: fn(),
     children: null,
+  },
+  argTypes: {
+    title: { control: 'text' },
+    description: { control: 'text' },
+    actionLabel: { control: 'text' },
+    actionDisabled: { control: 'boolean' },
   },
 } satisfies Meta<typeof BottomSheet>;
 
@@ -74,6 +90,45 @@ function BottomSheetDemo({
 export const Default: Story = {
   render: () => {
     return <BottomSheetDemo />;
+  },
+};
+
+export const Playground: Story = {
+  render: (args) => {
+    const [open, setOpen] = useState(false);
+
+    return (
+      <div className="min-h-[280px] bg-[#f7f7f7] p-4">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white"
+        >
+          바텀시트 열기
+        </button>
+        <BottomSheet
+          {...args}
+          open={open}
+          onClose={() => setOpen(false)}
+          onAction={args.actionLabel ? fn() : undefined}
+        >
+          <div className="space-y-2">
+            <button
+              type="button"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-left"
+            >
+              프론트엔드 개발자
+            </button>
+            <button
+              type="button"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-left"
+            >
+              백엔드 개발자
+            </button>
+          </div>
+        </BottomSheet>
+      </div>
+    );
   },
 };
 
