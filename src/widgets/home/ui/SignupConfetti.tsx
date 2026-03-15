@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-type LottieComponent = typeof import('lottie-react').default;
+import Lottie from 'lottie-react';
 
 const signupConfettiFlagKey = 'signupSuccess';
 const signupConfettiPath = '/lottie/signup-confetti.json';
@@ -11,17 +10,12 @@ type LottieData = Record<string, unknown>;
 
 export default function SignupConfetti() {
   const [animationData, setAnimationData] = useState<LottieData | null>(null);
-  const [Lottie, setLottie] = useState<LottieComponent | null>(null);
 
   useEffect(() => {
     const flag = sessionStorage.getItem(signupConfettiFlagKey);
     if (!flag) return;
 
     let cancelled = false;
-
-    import('lottie-react').then((mod) => {
-      if (!cancelled) setLottie(() => mod.default);
-    });
 
     fetch(signupConfettiPath)
       .then(async (response) => {
@@ -46,7 +40,7 @@ export default function SignupConfetti() {
     };
   }, []);
 
-  if (!animationData || !Lottie) return null;
+  if (!animationData) return null;
 
   const handleComplete = () => {
     sessionStorage.removeItem(signupConfettiFlagKey);
