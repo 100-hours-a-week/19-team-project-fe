@@ -23,12 +23,11 @@ export default function SplashGate({
   const [SplashScreen, setSplashScreen] = useState<SplashScreenComponent | null>(null);
 
   useEffect(() => {
-    const isDev = process.env.NODE_ENV !== 'production';
     const isLighthouseRun = isLighthouseUserAgent(navigator.userAgent);
     const forceDisableByQuery =
       typeof window !== 'undefined' &&
       new URLSearchParams(window.location.search).get('lhci') === '1';
-    const shouldDisableSplash = isDev || disableSplash || isLighthouseRun || forceDisableByQuery;
+    const shouldDisableSplash = disableSplash || isLighthouseRun || forceDisableByQuery;
 
     const hasSignupSuccess = sessionStorage.getItem('signupSuccess');
     const hasSeenSplash = sessionStorage.getItem('splashSeen');
