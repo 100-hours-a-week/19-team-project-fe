@@ -33,7 +33,9 @@ export default function Home() {
   return (
     <>
       <SplashGate>
-        <HomeDeferredEffects />
+        <Suspense fallback={null}>
+          <HomeDeferredEffects />
+        </Suspense>
         <div className="flex min-h-full flex-col bg-[#D2DEEA]">
           <div className="flex flex-col">
             <Header />
