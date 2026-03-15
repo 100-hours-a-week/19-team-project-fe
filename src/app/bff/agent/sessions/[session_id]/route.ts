@@ -29,10 +29,7 @@ function getBusinessErrorStatus(code: string): number {
   return 400;
 }
 
-export async function GET(
-  req: Request,
-  context: { params: Promise<{ session_id?: string }> },
-) {
+export async function GET(req: Request, context: { params: Promise<{ session_id?: string }> }) {
   try {
     const { session_id: sessionId = '' } = await context.params;
     if (!sessionId) {

@@ -48,7 +48,9 @@ export function normalizeAgentSession(raw: unknown): AgentSession | null {
 
 export function normalizeAgentSessions(raw: unknown): AgentSession[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((item) => normalizeAgentSession(item)).filter((item): item is AgentSession => !!item);
+  return raw
+    .map((item) => normalizeAgentSession(item))
+    .filter((item): item is AgentSession => !!item);
 }
 
 function normalizeAgentMessage(raw: unknown): AgentMessage | null {

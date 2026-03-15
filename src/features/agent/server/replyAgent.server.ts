@@ -3,7 +3,10 @@ import { buildApiUrl } from '@/shared/api';
 
 const AGENT_REPLY_PATH = '/api/v3/agent/reply';
 
-export async function replyAgent(payload: AgentReplyRequest, accessToken: string): Promise<Response> {
+export async function replyAgent(
+  payload: AgentReplyRequest,
+  accessToken: string,
+): Promise<Response> {
   return fetch(buildApiUrl(AGENT_REPLY_PATH), {
     method: 'POST',
     headers: {
