@@ -4,3 +4,4 @@ export { default as ChatList } from './ui/ChatList';
 export { default as ChatRoom } from './ui/ChatRoom';
 export { default as ChatStack } from './ui/ChatStack';
 export { default as ChatFeedbackForm } from './ui/ChatFeedbackForm';
+export { default as ChatReviewForm } from './ui/ChatReviewForm';

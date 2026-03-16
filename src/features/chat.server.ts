@@ -11,4 +11,5 @@ export {
   updateChatLastRead,
   createChatFeedback,
   requestReportCreate,
+  createChatReview,
 } from './chat/server';

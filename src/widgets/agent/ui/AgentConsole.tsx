@@ -669,53 +669,60 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
     [router],
   );
 
-  const handleMessageFeedback = useCallback(async (messageId: number, next: boolean) => {
-    if (feedbackSubmittingMap[messageId]) return;
+  const handleMessageFeedback = useCallback(
+    async (messageId: number, next: boolean) => {
+      if (feedbackSubmittingMap[messageId]) return;
 
-    let previousFeedback: boolean | null = null;
-    setMessages((prev) =>
-      prev.map((message) => {
-        const currentId = parseMessageId(message.id);
-        if (currentId !== messageId) return message;
-        previousFeedback = typeof message.feedback === 'boolean' ? message.feedback : null;
-        const nextFeedback = previousFeedback === next ? null : next;
-        return {
-          ...message,
-          feedback: nextFeedback,
-        };
-      }),
-    );
-    setFeedbackSubmittingMap((prev) => ({ ...prev, [messageId]: true }));
-
-    try {
-      const resolvedFeedback = previousFeedback === next ? null : next;
-      const response = await updateAgentMessageFeedback(messageId, { feedback: resolvedFeedback });
+      let previousFeedback: boolean | null = null;
       setMessages((prev) =>
         prev.map((message) => {
           const currentId = parseMessageId(message.id);
           if (currentId !== messageId) return message;
+          previousFeedback = typeof message.feedback === 'boolean' ? message.feedback : null;
+          const nextFeedback = previousFeedback === next ? null : next;
           return {
             ...message,
-            feedback: response.feedback,
+            feedback: nextFeedback,
           };
         }),
       );
-    } catch (error) {
-      setMessages((prev) =>
-        prev.map((message) => {
-          const currentId = parseMessageId(message.id);
-          if (currentId !== messageId) return message;
-          return {
-            ...message,
-            feedback: previousFeedback,
-          };
-        }),
-      );
-      setErrorMessage(error instanceof Error ? error.message : '메시지 평가 저장에 실패했습니다.');
-    } finally {
-      setFeedbackSubmittingMap((prev) => ({ ...prev, [messageId]: false }));
-    }
-  }, [feedbackSubmittingMap]);
+      setFeedbackSubmittingMap((prev) => ({ ...prev, [messageId]: true }));
+
+      try {
+        const resolvedFeedback = previousFeedback === next ? null : next;
+        const response = await updateAgentMessageFeedback(messageId, {
+          feedback: resolvedFeedback,
+        });
+        setMessages((prev) =>
+          prev.map((message) => {
+            const currentId = parseMessageId(message.id);
+            if (currentId !== messageId) return message;
+            return {
+              ...message,
+              feedback: response.feedback,
+            };
+          }),
+        );
+      } catch (error) {
+        setMessages((prev) =>
+          prev.map((message) => {
+            const currentId = parseMessageId(message.id);
+            if (currentId !== messageId) return message;
+            return {
+              ...message,
+              feedback: previousFeedback,
+            };
+          }),
+        );
+        setErrorMessage(
+          error instanceof Error ? error.message : '메시지 평가 저장에 실패했습니다.',
+        );
+      } finally {
+        setFeedbackSubmittingMap((prev) => ({ ...prev, [messageId]: false }));
+      }
+    },
+    [feedbackSubmittingMap],
+  );
 
   useEffect(() => {
     void bootstrapSessions();
