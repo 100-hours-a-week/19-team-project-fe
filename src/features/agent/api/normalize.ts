@@ -62,6 +62,7 @@ function normalizeAgentMessage(raw: unknown): AgentMessage | null {
     session_id?: unknown;
     role?: unknown;
     content?: unknown;
+    feedback?: unknown;
     metadata?: unknown;
     meta_data?: unknown;
     createdAt?: unknown;
@@ -83,6 +84,10 @@ function normalizeAgentMessage(raw: unknown): AgentMessage | null {
     sessionId,
     role: typeof candidate.role === 'string' ? candidate.role : 'ASSISTANT',
     content: typeof candidate.content === 'string' ? candidate.content : '',
+    feedback:
+      typeof candidate.feedback === 'boolean' || candidate.feedback === null
+        ? candidate.feedback
+        : undefined,
     metadata: candidate.metadata ?? candidate.meta_data,
     createdAt:
       typeof candidate.createdAt === 'string'

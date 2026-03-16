@@ -10,6 +10,7 @@ export type AgentMessage = {
   sessionId: string;
   role: 'USER' | 'ASSISTANT' | string;
   content: string;
+  feedback?: boolean | null;
   metadata?: unknown;
   createdAt: string;
 };
@@ -39,4 +40,13 @@ export type AgentSseEventPayload = unknown;
 export type AgentSseEvent = {
   event: AgentSseEventName;
   data: AgentSseEventPayload;
+};
+
+export type AgentMessageFeedbackRequest = {
+  feedback: boolean | null;
+};
+
+export type AgentMessageFeedbackData = {
+  messageId: number;
+  feedback: boolean | null;
 };

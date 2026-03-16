@@ -6,4 +6,6 @@ export type {
   AgentSseEvent,
   AgentSseEventName,
   AgentSseEventPayload,
+  AgentMessageFeedbackRequest,
+  AgentMessageFeedbackData,
 } from './types';
