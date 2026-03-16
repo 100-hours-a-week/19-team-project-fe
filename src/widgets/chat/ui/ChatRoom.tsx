@@ -37,7 +37,9 @@ export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
     headerTitle,
     chatStatus,
     isRequestReceiver,
+    isRequester,
     isFeedbackSubmitted,
+    isReviewSubmitted,
     hasReportCreated,
     sendOptimisticMessage,
   } = useChatRoom(chatId);
@@ -47,6 +49,14 @@ export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
     isRequestReceiver &&
     !isFeedbackSubmitted &&
     !hasReportCreated;
+  const shouldShowReviewButton =
+    requestType === 'FEEDBACK' && chatStatus === 'CLOSED' && isRequester && !isReviewSubmitted;
+  const closedActionHref = shouldShowFeedbackButton
+    ? `/chat/${chatId}/feedback`
+    : shouldShowReviewButton
+      ? `/chat/${chatId}/review`
+      : null;
+  const closedActionLabel = shouldShowFeedbackButton ? '설문조사 하러 가기' : '리뷰 작성하러 가기';
   const [draft, setDraft] = useState('');
   const { loadMoreMessages } = useChatRoomEffects({
     listRef,
@@ -128,7 +138,8 @@ export default function ChatRoom({ chatId, requestType }: ChatRoomProps) {
         historyLoadingMore={historyLoadingMore}
         historyHasMore={historyHasMore}
         chatStatus={chatStatus}
-        feedbackHref={shouldShowFeedbackButton ? `/chat/${chatId}/feedback` : null}
+        closedActionHref={closedActionHref}
+        closedActionLabel={closedActionHref ? closedActionLabel : undefined}
         onScrollTopReached={loadMoreMessages}
       />
 

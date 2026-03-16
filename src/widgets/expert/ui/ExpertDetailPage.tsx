@@ -7,10 +7,16 @@ import { useRouter } from 'next/navigation';
 import { KakaoLoginButton } from '@/features/auth';
 import { useAuthStatus } from '@/entities/auth';
 import type { ChatRequestType } from '@/entities/chat';
-import { useExpertDetail, useExpertResumes, useChatRequest } from '@/features/expert';
+import {
+  useExpertDetail,
+  useExpertResumes,
+  useChatRequest,
+  useExpertReviews,
+} from '@/features/expert';
 import { Button } from '@/shared/ui/button';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Modal } from '@/shared/ui/modal';
+import { formatKstDate } from '@/shared/lib/dateTime';
 import defaultUserImage from '@/shared/icons/char_icon.png';
 import iconMark from '@/shared/icons/icon-mark.png';
 import ExpertDetailHeader from './ExpertDetailHeader';
@@ -19,10 +25,50 @@ type ExpertDetailPageProps = {
   userId: number;
 };
 
+function renderRatingStars(rating: number) {
+  const safeRating = Number.isFinite(rating) ? Math.max(1, Math.min(5, Math.round(rating))) : 0;
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: 5 }, (_, index) => {
+        const score = index + 1;
+        const filled = score <= safeRating;
+        return (
+          <svg
+            key={`review-star-${score}`}
+            viewBox="0 0 24 24"
+            fill={filled ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className={`h-4 w-4 ${
+              filled ? 'text-[var(--color-primary-main)]' : 'text-neutral-300'
+            }`}
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M11.48 3.5a.53.53 0 0 1 1.04 0l2.07 6.36a.53.53 0 0 0 .5.37h6.69a.53.53 0 0 1 .31.96l-5.42 3.94a.53.53 0 0 0-.19.59l2.07 6.36a.53.53 0 0 1-.82.6l-5.42-3.94a.53.53 0 0 0-.62 0l-5.42 3.94a.53.53 0 0 1-.82-.6l2.07-6.36a.53.53 0 0 0-.19-.59L2.2 11.19a.53.53 0 0 1 .31-.96H9.2a.53.53 0 0 0 .5-.37z"
+            />
+          </svg>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
   const router = useRouter();
   const { status: authStatus } = useAuthStatus();
+  const isAuthed = authStatus === 'authed';
   const { expert, isLoading, errorMessage } = useExpertDetail(userId);
+  const {
+    reviews,
+    hasMore: hasMoreReviews,
+    isLoading: isLoadingReviews,
+    isLoadingMore: isLoadingMoreReviews,
+    errorMessage: reviewErrorMessage,
+    loadMore: loadMoreReviews,
+  } = useExpertReviews(userId, isAuthed);
   const { resumes, resumeError, isLoadingResumes, selectedResumeId, setSelectedResumeId } =
     useExpertResumes(authStatus);
   const [chatInfoSheetOpen, setChatInfoSheetOpen] = useState(false);
@@ -133,6 +179,74 @@ export default function ExpertDetailPage({ userId }: ExpertDetailPageProps) {
               <p className="mt-3 text-sm text-text-body whitespace-pre-line">
                 {expert.introduction || '소개가 아직 없어요.'}
               </p>
+            </div>
+
+            <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-base font-semibold text-text-title">리뷰</p>
+                <span className="text-xs text-text-caption">
+                  평균 {expert.rating_avg.toFixed(1)} · {expert.rating_count}개
+                </span>
+              </div>
+
+              {!isAuthed ? (
+                <p className="mt-3 text-sm text-text-caption">
+                  리뷰 상세 내용은 로그인 후 확인할 수 있어요.
+                </p>
+              ) : isLoadingReviews ? (
+                <p className="mt-3 text-sm text-text-caption">리뷰를 불러오는 중...</p>
+              ) : reviewErrorMessage ? (
+                <p className="mt-3 text-sm text-red-500">{reviewErrorMessage}</p>
+              ) : reviews.length === 0 ? (
+                <p className="mt-3 text-sm text-text-caption">아직 등록된 리뷰가 없습니다.</p>
+              ) : (
+                <div className="mt-4 flex flex-col gap-3">
+                  {reviews.map((review) => (
+                    <article
+                      key={review.chat_review_id}
+                      className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={review.reviewer.profile_image_url || defaultUserImage}
+                            alt={`${review.reviewer.nickname} 프로필`}
+                            width={32}
+                            height={32}
+                            unoptimized={!!review.reviewer.profile_image_url}
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
+                          <div>
+                            <p className="text-sm font-semibold text-neutral-900">
+                              {review.reviewer.nickname}
+                            </p>
+                            <p className="text-2xs text-neutral-500">
+                              {formatKstDate(review.created_at) || review.created_at}
+                            </p>
+                          </div>
+                        </div>
+                        {renderRatingStars(review.rating)}
+                      </div>
+                      <p className="mt-2 whitespace-pre-line text-sm text-neutral-700">
+                        {review.comment}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+
+              {isAuthed && hasMoreReviews ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void loadMoreReviews();
+                  }}
+                  disabled={isLoadingMoreReviews}
+                  className="mt-4 w-full rounded-xl border border-neutral-200 bg-white py-2 text-sm font-semibold text-neutral-700 disabled:opacity-60"
+                >
+                  {isLoadingMoreReviews ? '리뷰 더 불러오는 중...' : '리뷰 더보기'}
+                </button>
+              ) : null}
             </div>
 
             <div className="rounded-3xl bg-white px-4 py-5 shadow-sm">

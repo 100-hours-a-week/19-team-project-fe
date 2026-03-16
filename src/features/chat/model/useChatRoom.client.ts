@@ -16,8 +16,15 @@ export function useChatRoom(chatId: number) {
     error: historyError,
   } = useChatHistory(chatId, currentUserId);
   const wsStatus = useChatSocket(chatId, currentUserId, setMessages);
-  const { headerTitle, chatStatus, isRequestReceiver, isFeedbackSubmitted, hasReportCreated } =
-    useChatRoomDetail(chatId, currentUserId);
+  const {
+    headerTitle,
+    chatStatus,
+    isRequestReceiver,
+    isRequester,
+    isFeedbackSubmitted,
+    isReviewSubmitted,
+    hasReportCreated,
+  } = useChatRoomDetail(chatId, currentUserId);
   const { sendOptimisticMessage } = useChatSend({
     chatId,
     chatStatus,
@@ -39,7 +46,9 @@ export function useChatRoom(chatId: number) {
     headerTitle,
     chatStatus,
     isRequestReceiver,
+    isRequester,
     isFeedbackSubmitted,
+    isReviewSubmitted,
     hasReportCreated,
     sendOptimisticMessage,
   };

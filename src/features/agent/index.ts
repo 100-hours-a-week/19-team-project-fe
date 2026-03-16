@@ -4,4 +4,5 @@ export {
   getAgentSession,
   getAgentSessionMessages,
   streamAgentReply,
+  updateAgentMessageFeedback,
 } from './api';

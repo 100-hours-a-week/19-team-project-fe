@@ -4,4 +4,5 @@ export {
   getAgentSession,
   getAgentSessionMessages,
   replyAgent,
+  updateAgentMessageFeedback,
 } from './agent/server';

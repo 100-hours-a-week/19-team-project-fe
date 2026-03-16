@@ -18,6 +18,21 @@ export interface ChatFeedbackCreatedData {
   chat_id?: number;
 }
 
+export interface ChatReviewRequest {
+  rating: number;
+  comment: string;
+}
+
+export interface ChatReviewCreatedData {
+  chat_review_id: number;
+  chat_id: number;
+  reviewer: ChatParticipant;
+  reviewee: ChatParticipant;
+  rating: number;
+  comment: string;
+  created_at: string;
+}
+
 export interface SendChatMessageRequest {
   chat_id: number;
   content: string;
