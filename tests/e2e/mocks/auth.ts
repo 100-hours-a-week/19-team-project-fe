@@ -42,18 +42,16 @@ export async function mockRestoreAccountSuccess(
     path: AUTH_RESTORE_BFF_PATH,
     method: 'POST',
     status: 200,
-    body: {
-      ...buildApiSuccess(
-        {
-          user_id: 1001,
-          user_type: 'USER',
-          access_token: 'mock_access_token',
-          refresh_token: 'mock_refresh_token',
-          ...overrides,
-        },
-        { message: '복구 완료' },
-      ),
-    } as const,
+    body: buildApiSuccess(
+      {
+        user_id: 1001,
+        user_type: 'USER',
+        access_token: 'mock_access_token',
+        refresh_token: 'mock_refresh_token',
+        ...overrides,
+      },
+      { message: '복구 완료' },
+    ),
   });
 }
 
