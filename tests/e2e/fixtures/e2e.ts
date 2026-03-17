@@ -62,7 +62,7 @@ type ApiMocks = {
 };
 
 export const test = base.extend<{ apiMocks: ApiMocks }>({
-  apiMocks: async ({ page }, useFixture) => {
+  apiMocks: async ({ page }, applyApiMocks) => {
     const apiMocks: ApiMocks = {
       authGuest: async () => {
         await mockAuthGuest(page);
@@ -221,7 +221,7 @@ export const test = base.extend<{ apiMocks: ApiMocks }>({
       },
     };
 
-    await useFixture(apiMocks);
+    await applyApiMocks(apiMocks);
   },
 });
 
