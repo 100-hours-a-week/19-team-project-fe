@@ -14,7 +14,7 @@ import {
   streamAgentReply,
   updateAgentMessageFeedback,
 } from '@/features/agent';
-import charMain from '@/shared/icons/char_main.png';
+import charMain from '@/shared/icons/char_ai.png';
 
 type AgentConsoleProps = {
   compact?: boolean;
