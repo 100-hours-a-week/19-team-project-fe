@@ -88,8 +88,13 @@ export default function ChatRoomMessages({
         const prevDateKey = prevMessage ? getChatDateKey(prevMessage.created_at) : null;
         const showDateDivider = !prevMessage || currentDateKey !== prevDateKey;
 
+        const messageKey =
+          message.message_id ??
+          message.client_message_id ??
+          `${message.chat_id}:${message.room_sequence ?? 'no-seq'}:${message.created_at}:${index}`;
+
         return (
-          <Fragment key={message.message_id}>
+          <Fragment key={messageKey}>
             {showDateDivider ? (
               <div className="flex items-center justify-center py-1">
                 <span className="rounded-full bg-neutral-200/70 px-3 py-1 text-2xs text-neutral-600">

@@ -128,7 +128,7 @@ export interface ChatRequestListData {
 }
 
 export interface ChatMessageItem {
-  message_id: number;
+  message_id: number | null;
   chat_id: number;
   room_sequence?: number;
   sender: ChatParticipant;

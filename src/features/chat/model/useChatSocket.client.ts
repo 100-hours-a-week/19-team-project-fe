@@ -48,12 +48,32 @@ export function useChatSocket(
               );
               if (index !== -1) {
                 const next = [...prev];
-                next[index] = message;
+                const existing = next[index];
+                next[index] = {
+                  ...existing,
+                  ...message,
+                  // Some servers temporarily emit null message_id for echoed messages.
+                  // Keep optimistic id to avoid losing stable rendering key.
+                  message_id: message.message_id ?? existing.message_id,
+                };
                 return sortMessagesByTime(next);
               }
             }
 
-            if (prev.some((item) => item.message_id === message.message_id)) {
+            if (
+              message.message_id !== null &&
+              prev.some((item) => item.message_id === message.message_id)
+            ) {
+              return prev;
+            }
+            const incomingSeq =
+              typeof message.room_sequence === 'string'
+                ? Number(message.room_sequence)
+                : message.room_sequence;
+            if (
+              Number.isFinite(incomingSeq) &&
+              prev.some((item) => item.room_sequence === incomingSeq && item.chat_id === chatId)
+            ) {
               return prev;
             }
             return sortMessagesByTime([...prev, message]);
