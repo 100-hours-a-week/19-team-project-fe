@@ -32,7 +32,13 @@ type InternalState = {
   client: Client | null;
   status: StompStatus;
   connectingPromise: Promise<void> | null;
-  subscriptions: Map<string, StompSubscription>;
+  activeSubscriptions: Map<string, StompSubscription>;
+  subscriptionDefinitions: Map<string, SubscriptionDefinition>;
+};
+
+type SubscriptionDefinition = {
+  destination: string;
+  handler: (payload: unknown, raw: IMessage) => void;
 };
 
 declare global {
@@ -45,10 +51,39 @@ function getState(): InternalState {
       client: null,
       status: 'idle',
       connectingPromise: null,
-      subscriptions: new Map(),
+      activeSubscriptions: new Map(),
+      subscriptionDefinitions: new Map(),
     };
   }
   return globalThis.__stompState;
+}
+
+function attachSubscription(
+  st: InternalState,
+  key: string,
+  definition: SubscriptionDefinition,
+) {
+  if (!st.client || !st.client.connected) return;
+
+  const existing = st.activeSubscriptions.get(key);
+  if (existing) {
+    try {
+      existing.unsubscribe();
+    } catch {}
+    st.activeSubscriptions.delete(key);
+  }
+
+  const subscription = st.client.subscribe(definition.destination, (msg) => {
+    const payload = JSON.parse(msg.body) as unknown;
+    definition.handler(payload, msg);
+  });
+  st.activeSubscriptions.set(key, subscription);
+}
+
+function reattachAllSubscriptions(st: InternalState) {
+  for (const [key, definition] of st.subscriptionDefinitions.entries()) {
+    attachSubscription(st, key, definition);
+  }
 }
 
 export const stompManager = {
@@ -78,12 +113,12 @@ export const stompManager = {
 
     // Ensure a previously failed client is fully stopped before creating a new one.
     if (st.client && !st.client.connected) {
-      for (const sub of st.subscriptions.values()) {
+      for (const sub of st.activeSubscriptions.values()) {
         try {
           sub.unsubscribe();
         } catch {}
       }
-      st.subscriptions.clear();
+      st.activeSubscriptions.clear();
       try {
         await st.client.deactivate();
       } catch {}
@@ -103,6 +138,7 @@ export const stompManager = {
 
         client.onConnect = () => {
           st.status = 'connected';
+          reattachAllSubscriptions(st);
           st.connectingPromise = null;
           resolve();
         };
@@ -153,12 +189,13 @@ export const stompManager = {
 
     st.status = 'disconnecting';
 
-    for (const sub of st.subscriptions.values()) {
+    for (const sub of st.activeSubscriptions.values()) {
       try {
         sub.unsubscribe();
       } catch {}
     }
-    st.subscriptions.clear();
+    st.activeSubscriptions.clear();
+    st.subscriptionDefinitions.clear();
 
     try {
       await st.client.deactivate();
@@ -187,24 +224,26 @@ export const stompManager = {
       throw new Error('STOMP is not connected');
     }
 
-    const existing = st.subscriptions.get(key);
-    if (existing) {
-      existing.unsubscribe();
-      st.subscriptions.delete(key);
-    }
-
-    const subscription = st.client.subscribe(destination, (msg) => {
-      const payload = JSON.parse(msg.body) as T;
-      handler(payload, msg);
+    st.subscriptionDefinitions.set(key, {
+      destination,
+      handler: (payload, raw) => {
+        handler(payload as T, raw);
+      },
     });
 
-    st.subscriptions.set(key, subscription);
+    attachSubscription(st, key, {
+      destination,
+      handler: (payload, raw) => {
+        handler(payload as T, raw);
+      },
+    });
 
     return () => {
-      const sub = st.subscriptions.get(key);
+      st.subscriptionDefinitions.delete(key);
+      const sub = st.activeSubscriptions.get(key);
       if (!sub) return;
       sub.unsubscribe();
-      st.subscriptions.delete(key);
+      st.activeSubscriptions.delete(key);
     };
   },
 
