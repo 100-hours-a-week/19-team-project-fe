@@ -140,6 +140,7 @@ export function useOnboardingSubmit({
       }
 
       if (typeof window !== 'undefined') {
+        sessionStorage.setItem('signupSuccess', 'true');
         sessionStorage.removeItem('kakaoLoginResult');
         sessionStorage.removeItem('kakaoRestoreRequired');
       }

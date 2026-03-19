@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { createChatReview } from '../api/createChatReview';
-import { markChatReviewSubmitted } from '../lib/reportCreate.client';
+import { markChatReviewSubmitted, markReportCreateSuccess } from '../lib/reportCreate.client';
 import { useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
 
@@ -62,6 +62,7 @@ export function useChatReviewForm(chatId: number) {
         },
       });
       markChatReviewSubmitted(chatId);
+      markReportCreateSuccess();
       pushToast('리뷰가 등록되었습니다.', { variant: 'success' });
       router.replace('/chat?tab=closed');
     } catch (error) {
