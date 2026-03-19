@@ -13,6 +13,7 @@ function canRegisterServiceWorker() {
 export default function ServiceWorkerRegistrar() {
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') return;
+    if (process.env.NEXT_PUBLIC_DISABLE_SERVICE_WORKER === 'true') return;
     if (!canRegisterServiceWorker()) return;
 
     navigator.serviceWorker.register(SERVICE_WORKER_PATH).catch((error) => {

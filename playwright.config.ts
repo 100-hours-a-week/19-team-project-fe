@@ -3,14 +3,15 @@ import { defineConfig, devices } from '@playwright/test';
 const PORT = 3100;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const captureAllArtifacts = process.env.PW_CAPTURE_ALL === '1';
+const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list'], ['html']],
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 1 : undefined,
+  reporter: isCI ? [['github'], ['html', { open: 'never' }]] : [['list'], ['html']],
   use: {
     baseURL: BASE_URL,
     trace: captureAllArtifacts ? 'on' : 'on-first-retry',
@@ -24,9 +25,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm dev --webpack --hostname 127.0.0.1 --port ${PORT}`,
+    command: isCI
+      ? `NEXT_PUBLIC_DISABLE_SERVICE_WORKER=true pnpm build && NEXT_PUBLIC_DISABLE_SERVICE_WORKER=true pnpm start --hostname 127.0.0.1 --port ${PORT}`
+      : `pnpm dev --webpack --hostname 127.0.0.1 --port ${PORT}`,
     url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    reuseExistingServer: !isCI,
+    timeout: isCI ? 300 * 1000 : 120 * 1000,
   },
 });
