@@ -24,6 +24,7 @@ export function useChatRoomEffects({
   loadMore,
 }: UseChatRoomEffectsParams) {
   const prevWsStatusRef = useRef<typeof wsStatus | null>(null);
+  const lastWsDisconnectedWarnAtRef = useRef(0);
   const skipAutoScrollRef = useRef(false);
   const appFrameRef = useRef<HTMLElement | null>(null);
 
@@ -50,9 +51,14 @@ export function useChatRoomEffects({
   }, [historyError]);
 
   useEffect(() => {
+    const WS_DISCONNECTED_WARN_COOLDOWN_MS = 15_000;
     const prev = prevWsStatusRef.current;
     if (prev && prev !== 'disconnected' && wsStatus === 'disconnected') {
-      console.warn('실시간 연결이 끊어졌어요. 재연결 중입니다.');
+      const now = Date.now();
+      if (now - lastWsDisconnectedWarnAtRef.current >= WS_DISCONNECTED_WARN_COOLDOWN_MS) {
+        console.warn('실시간 연결이 끊어졌어요. 재연결 중입니다.');
+        lastWsDisconnectedWarnAtRef.current = now;
+      }
     }
     prevWsStatusRef.current = wsStatus;
   }, [wsStatus]);

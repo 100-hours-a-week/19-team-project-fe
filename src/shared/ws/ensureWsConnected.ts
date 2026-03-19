@@ -56,6 +56,12 @@ async function resolveAccessToken(): Promise<string | null> {
   return readAccessToken();
 }
 
+async function getWsConnectHeaders(): Promise<Record<string, string> | undefined> {
+  const token = await resolveAccessToken();
+  if (!token) return undefined;
+  return buildAuthorizationHeader(token);
+}
+
 export async function ensureWsConnected(): Promise<void> {
   if (stompManager.isConnected()) return;
 
@@ -64,24 +70,17 @@ export async function ensureWsConnected(): Promise<void> {
     throw new Error('NEXT_PUBLIC_WS_URL is missing');
   }
 
-  const initialToken = await resolveAccessToken();
-  if (!initialToken) {
-    throw new Error('WS auth token is missing');
-  }
-
   try {
     await stompManager.connect(wsUrl, {
-      getConnectHeaders: async () => {
-        const token = await resolveAccessToken();
-        if (!token) {
-          throw new Error('WS auth token is missing');
-        }
-        return buildAuthorizationHeader(token);
-      },
+      getConnectHeaders: getWsConnectHeaders,
     });
   } catch (connectError) {
     if (stompManager.isConnected()) return;
-    if (!isLikelyAuthConnectFailure(connectError)) {
+    const hasReadableAccessToken = Boolean(readAccessToken());
+    const shouldTryRefresh =
+      isLikelyAuthConnectFailure(connectError) || !hasReadableAccessToken;
+
+    if (!shouldTryRefresh) {
       throw connectError;
     }
 
@@ -92,13 +91,7 @@ export async function ensureWsConnected(): Promise<void> {
 
     if (stompManager.isConnected()) return;
     await stompManager.connect(wsUrl, {
-      getConnectHeaders: async () => {
-        const token = await resolveAccessToken();
-        if (!token) {
-          throw new Error('WS auth token is missing');
-        }
-        return buildAuthorizationHeader(token);
-      },
+      getConnectHeaders: getWsConnectHeaders,
     });
   }
 }

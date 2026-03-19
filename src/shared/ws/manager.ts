@@ -76,6 +76,20 @@ export const stompManager = {
 
     if (st.connectingPromise) return st.connectingPromise;
 
+    // Ensure a previously failed client is fully stopped before creating a new one.
+    if (st.client && !st.client.connected) {
+      for (const sub of st.subscriptions.values()) {
+        try {
+          sub.unsubscribe();
+        } catch {}
+      }
+      st.subscriptions.clear();
+      try {
+        await st.client.deactivate();
+      } catch {}
+      st.client = null;
+    }
+
     st.status = 'connecting';
 
     st.connectingPromise = new Promise<void>((resolve, reject) => {
