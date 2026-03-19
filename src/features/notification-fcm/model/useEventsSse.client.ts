@@ -13,14 +13,14 @@ import {
 import { notificationsQueryKey } from '@/entities/notification';
 import { reportsQueryKey } from '@/entities/reports';
 import { resumesQueryKey } from '@/entities/resumes';
-import { buildApiUrl, readAccessToken } from '@/shared/api';
+import { consumeSseStream } from '@/shared/lib/sse';
 import {
   APP_NOTIFICATION_EVENT,
   type AppNotificationType,
   type AppNotificationEventDetail,
 } from '@/shared/lib/realtimeNotification.client';
 
-const EVENTS_SUBSCRIBE_PATH = '/api/v2/events/subscribe';
+const EVENTS_SUBSCRIBE_PATH = '/bff/events/subscribe';
 const SSE_RECONNECT_MIN_MS = 1000;
 const SSE_RECONNECT_MAX_MS = 10000;
 
@@ -122,51 +122,6 @@ function handleRealtimeEvent(
   }
 }
 
-async function consumeSseStream(
-  stream: ReadableStream<Uint8Array>,
-  onEvent: (payload: unknown) => void,
-  signal: AbortSignal,
-) {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-
-  try {
-    while (!signal.aborted) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      const blocks = buffer.split('\n\n');
-      buffer = blocks.pop() ?? '';
-
-      for (const block of blocks) {
-        const lines = block
-          .split('\n')
-          .map((line) => line.trim())
-          .filter(Boolean);
-        if (lines.length === 0) continue;
-
-        const dataLines = lines
-          .filter((line) => line.startsWith('data:'))
-          .map((line) => line.slice('data:'.length).trim());
-        if (dataLines.length === 0) continue;
-
-        const rawData = dataLines.join('\n');
-        if (!rawData || rawData === '[DONE]') continue;
-
-        try {
-          onEvent(JSON.parse(rawData));
-        } catch {
-          // ignore malformed event payload
-        }
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
-}
-
 export function useEventsSse() {
   const { status } = useAuthStatus();
   const queryClient = useQueryClient();
@@ -191,20 +146,13 @@ export function useEventsSse() {
       let reconnectDelayMs = SSE_RECONNECT_MIN_MS;
 
       while (!cancelled) {
-        const accessToken = readAccessToken();
-        if (!accessToken) {
-          await sleep(SSE_RECONNECT_MIN_MS);
-          continue;
-        }
-
         controller = new AbortController();
 
         try {
-          const response = await fetch(buildApiUrl(EVENTS_SUBSCRIBE_PATH), {
+          const response = await fetch(EVENTS_SUBSCRIBE_PATH, {
             method: 'GET',
             headers: {
               Accept: 'text/event-stream',
-              Authorization: `Bearer ${accessToken}`,
             },
             credentials: 'include',
             cache: 'no-store',
@@ -216,17 +164,22 @@ export function useEventsSse() {
           }
 
           reconnectDelayMs = SSE_RECONNECT_MIN_MS;
-          await consumeSseStream(
-            response.body,
-            (payload) =>
-              handleRealtimeEvent(
-                payload,
-                invalidateNotifications,
-                invalidateResumes,
-                invalidateReports,
-              ),
-            controller.signal,
-          );
+          await consumeSseStream(response.body, {
+            signal: controller.signal,
+            onEvent: ({ data }) => {
+              if (!data || data === '[DONE]') return;
+              try {
+                handleRealtimeEvent(
+                  JSON.parse(data),
+                  invalidateNotifications,
+                  invalidateResumes,
+                  invalidateReports,
+                );
+              } catch {
+                // ignore malformed event payload
+              }
+            },
+          });
         } catch {
           // silent reconnect
         } finally {
