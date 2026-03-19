@@ -6,12 +6,14 @@ import { useRouter } from 'next/navigation';
 import { getChatDetail } from '@/features/chat';
 import {
   CHAT_REALTIME_REFRESH_EVENT,
+  normalizeRequestTypeFromUnknown,
   type ChatDetailData,
+  type ChatRequestType,
   type ChatRealtimeRefreshPayload,
 } from '@/entities/chat';
 import { BusinessError, HttpError, useCommonApiErrorHandler } from '@/shared/api';
 import { useToast } from '@/shared/ui/toast';
-import { hasChatFeedbackSubmitted } from '../lib/reportCreate.client';
+import { hasChatFeedbackSubmitted, hasChatReviewSubmitted } from '../lib/reportCreate.client';
 
 export function useChatRoomDetail(chatId: number, currentUserId: number | null) {
   const router = useRouter();
@@ -19,8 +21,11 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
   const handleCommonApiError = useCommonApiErrorHandler();
   const [headerTitle, setHeaderTitle] = useState('채팅');
   const [chatStatus, setChatStatus] = useState<'ACTIVE' | 'CLOSED'>('ACTIVE');
+  const [requestType, setRequestType] = useState<ChatRequestType | null>(null);
   const [isRequestReceiver, setIsRequestReceiver] = useState(false);
+  const [isRequester, setIsRequester] = useState(false);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const [isReviewSubmitted, setIsReviewSubmitted] = useState(false);
   const [hasReportCreated, setHasReportCreated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,6 +47,7 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
     if (!chatId) return;
     let cancelled = false;
     setIsFeedbackSubmitted(hasChatFeedbackSubmitted(chatId));
+    setIsReviewSubmitted(hasChatReviewSubmitted(chatId));
 
     const loadDetail = async () => {
       try {
@@ -53,10 +59,14 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
           meId !== null && detail.receiver.user_id === meId ? detail.requester : detail.receiver;
         setHeaderTitle(counterpart.nickname ?? '채팅');
         setChatStatus(detail.status);
+        setRequestType(normalizeRequestTypeFromUnknown(detail));
         setIsRequestReceiver(meId !== null && detail.receiver.user_id === meId);
+        setIsRequester(meId !== null && detail.requester.user_id === meId);
         const raw = detail as ChatDetailData & {
           chat_feedback_id?: unknown;
           chatFeedbackId?: unknown;
+          chat_review_id?: unknown;
+          chatReviewId?: unknown;
           report_id?: unknown;
           reportId?: unknown;
           has_report?: unknown;
@@ -73,6 +83,9 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
             hasReport ??
             hasChatFeedbackSubmitted(chatId),
           ),
+        );
+        setIsReviewSubmitted(
+          Boolean(raw.chat_review_id ?? raw.chatReviewId ?? hasChatReviewSubmitted(chatId)),
         );
       } catch (error) {
         if (cancelled) return;
@@ -108,8 +121,12 @@ export function useChatRoomDetail(chatId: number, currentUserId: number | null) 
   return {
     headerTitle,
     chatStatus,
+    requestType,
+    isFeedbackChat: requestType === 'FEEDBACK',
     isRequestReceiver,
+    isRequester,
     isFeedbackSubmitted,
+    isReviewSubmitted,
     hasReportCreated,
     isLoading,
   };

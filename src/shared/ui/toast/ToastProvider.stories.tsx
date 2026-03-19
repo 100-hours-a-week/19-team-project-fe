@@ -23,7 +23,7 @@ function ToastDemo() {
         <button
           type="button"
           onClick={() => pushToast('요청이 실패했습니다.', { variant: 'error', durationMs: 4000 })}
-          className="rounded-full bg-[#f3d7d7] px-4 py-2 text-sm font-semibold text-[#b14a4a]"
+          className="rounded-full bg-[#f6dada] px-4 py-2 text-sm font-semibold text-[#7d2626]"
         >
           Error Toast
         </button>
@@ -32,7 +32,7 @@ function ToastDemo() {
           onClick={() =>
             pushToast('저장이 완료되었습니다.', { variant: 'success', durationMs: 4000 })
           }
-          className="rounded-full bg-[#eaf7ee] px-4 py-2 text-sm font-semibold text-[#1f7a3d]"
+          className="rounded-full bg-[#e2f4e9] px-4 py-2 text-sm font-semibold text-[#175d2f]"
         >
           Success Toast
         </button>

@@ -1,6 +1,6 @@
 {
   "name": "re-fit",
-  "version": "2.4.4",
+  "version": "3.0.1",
   "private": true,
   "engines": {
     "node": ">=20.19.0"
@@ -27,7 +27,15 @@
     "storybook:audit": "node scripts/storybook-audit.mjs",
     "test-storybook": "test-storybook --config-dir .storybook",
     "test-storybook:ci": "start-server-and-test \"pnpm storybook:ci-server\" http://127.0.0.1:6206 \"pnpm test-storybook --url http://127.0.0.1:6206\"",
-    "storybook:ci": "pnpm storybook:audit && pnpm build-storybook && pnpm test-storybook:ci"
+    "storybook:ci": "pnpm storybook:audit && pnpm build-storybook && pnpm test-storybook:ci",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:critical": "playwright test --grep @critical",
+    "test:e2e:error": "playwright test --grep @error",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.975.0",
@@ -35,6 +43,7 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@react-three/rapier": "^2.2.0",
+    "@sentry/nextjs": "^10.42.0",
     "@stomp/stompjs": "^7.2.1",
     "@tanstack/react-query": "^5.90.19",
     "firebase": "^10.13.2",
@@ -55,6 +64,11 @@
     "@commitlint/config-conventional": "^20.3.1",
     "@next/bundle-analyzer": "^16.1.6",
     "@opennextjs/aws": "^3.9.16",
+    "@playwright/test": "^1.58.2",
+    "@storybook/addon-a11y": "^10.2.16",
+    "@storybook/addon-docs": "^10.2.16",
+    "@storybook/nextjs-vite": "^10.2.16",
+    "@storybook/test-runner": "^0.24.2",
     "@tailwindcss/postcss": "^4",
     "@tanstack/react-query-devtools": "^5.91.2",
     "@types/node": "^20",
@@ -81,6 +95,8 @@
     "storybook": "^10.2.16",
     "start-server-and-test": "^2.1.3",
     "sst": "^3.18.1",
+    "start-server-and-test": "^2.1.3",
+    "storybook": "^10.2.16",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite": "^7.3.1"

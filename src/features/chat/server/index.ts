@@ -9,3 +9,4 @@ export { createChat } from './createChat.server';
 export { markChatRead } from './markChatRead.server';
 export { updateChatLastRead } from './updateChatLastRead.server';
 export { createChatFeedback, requestReportCreate } from './createChatFeedback.server';
+export { createChatReview } from './createChatReview.server';

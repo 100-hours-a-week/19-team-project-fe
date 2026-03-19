@@ -4,6 +4,7 @@ import { FcmBootstrap } from '@/features/notification-fcm';
 import { MetricsInitializer } from '@/shared/metrics/MetricsInitializer';
 import { GaPageView } from '@/shared/metrics/GaPageView';
 import { ServiceWorkerRegistrar } from '@/shared/lib/pwa';
+import { AgentFloatingButton } from '@/widgets/agent';
 
 export default function AppClientBootstraps() {
   return (
@@ -12,6 +13,7 @@ export default function AppClientBootstraps() {
       <MetricsInitializer />
       <GaPageView />
       <FcmBootstrap />
+      <AgentFloatingButton />
     </>
   );
 }

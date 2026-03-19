@@ -22,7 +22,8 @@ type ChatRoomMessagesProps = {
   historyLoadingMore: boolean;
   historyHasMore: boolean;
   chatStatus: 'ACTIVE' | 'CLOSED';
-  feedbackHref: string | null;
+  closedActionHref: string | null;
+  closedActionLabel?: string;
   onScrollTopReached: () => void;
 };
 
@@ -36,7 +37,8 @@ export default function ChatRoomMessages({
   historyLoadingMore,
   historyHasMore,
   chatStatus,
-  feedbackHref,
+  closedActionHref,
+  closedActionLabel = '설문조사 하러 가기',
   onScrollTopReached,
 }: ChatRoomMessagesProps) {
   return (
@@ -66,12 +68,12 @@ export default function ChatRoomMessages({
       {chatStatus === 'CLOSED' ? (
         <div className="rounded-2xl bg-white px-4 py-3 text-center text-sm text-neutral-600 shadow-sm">
           <p>종료된 채팅방입니다.</p>
-          {feedbackHref ? (
+          {closedActionHref ? (
             <Link
-              href={feedbackHref}
+              href={closedActionHref}
               className="mt-2 inline-flex rounded-full bg-[var(--color-primary-main)] px-3 py-1.5 text-xs font-semibold text-white"
             >
-              설문조사 하러 가기
+              {closedActionLabel}
             </Link>
           ) : null}
         </div>
@@ -86,8 +88,13 @@ export default function ChatRoomMessages({
         const prevDateKey = prevMessage ? getChatDateKey(prevMessage.created_at) : null;
         const showDateDivider = !prevMessage || currentDateKey !== prevDateKey;
 
+        const messageKey =
+          message.message_id ??
+          message.client_message_id ??
+          `${message.chat_id}:${message.room_sequence ?? 'no-seq'}:${message.created_at}:${index}`;
+
         return (
-          <Fragment key={message.message_id}>
+          <Fragment key={messageKey}>
             {showDateDivider ? (
               <div className="flex items-center justify-center py-1">
                 <span className="rounded-full bg-neutral-200/70 px-3 py-1 text-2xs text-neutral-600">

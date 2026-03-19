@@ -1817,3 +1817,46 @@ React Compiler has skipped optimizing this component because the existing manual
 
  ELIFECYCLE  Command failed with exit code 1.
 ```
+
+
+### 2026-03-17 Raw Log
+
+- Logged at: 2026-03-17 06:20:54Z
+
+```
+WARN  Unsupported engine: wanted: {"node":">=20.19.0"} (current: {"node":"v18.20.8","pnpm":"10.28.0"})
+
+> re-fit@2.4.5 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/tests/e2e/fixtures/e2e.ts
+  224:11  error  React Hook "use" is called in function "apiMocks" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+
+/Users/junseopark/Desktop/19-team-project-fe/tests/e2e/mocks/chat.ts
+  69:7  warning  'CHAT_BFF_PATH' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 2 problems (1 error, 1 warning)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```
+
+
+### 2026-03-17 Raw Log
+
+- Logged at: 2026-03-17 06:23:17Z
+
+```
+WARN  Unsupported engine: wanted: {"node":">=20.19.0"} (current: {"node":"v18.20.8","pnpm":"10.28.0"})
+
+> re-fit@2.4.5 lint /Users/junseopark/Desktop/19-team-project-fe
+> eslint
+
+
+/Users/junseopark/Desktop/19-team-project-fe/tests/e2e/fixtures/e2e.ts
+  224:11  error  React Hook "useFixture" is called in function "apiMocks" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+
+✖ 1 problem (1 error, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+```

@@ -6,22 +6,12 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { createResume, resumesQueryKey, updateResume } from '@/entities/resumes';
 import { useCommonApiErrorHandler } from '@/shared/api';
-import type { CareerItem, ProjectItem, SimpleItem } from './useResumeEditForm.client';
+import { buildResumeContentJson, splitPeriod, useResumeEditStore } from './resumeEditStore.client';
 
 type UseResumeSubmitParams = {
   authStatus: 'checking' | 'authed' | 'guest';
   isEditMode: boolean;
   resumeId: number | null;
-  title: string;
-  isFresher: boolean;
-  education: SimpleItem[];
-  fileUrl: string;
-  careers: CareerItem[];
-  projects: ProjectItem[];
-  payload: {
-    content_json: Record<string, unknown>;
-  };
-  splitPeriod: (period: string) => { start: string; end: string };
   onError?: (message: string) => void;
 };
 
@@ -29,14 +19,6 @@ export function useResumeSubmit({
   authStatus,
   isEditMode,
   resumeId,
-  title,
-  isFresher,
-  education,
-  fileUrl,
-  careers,
-  projects,
-  payload,
-  splitPeriod,
   onError,
 }: UseResumeSubmitParams) {
   const router = useRouter();
@@ -49,12 +31,13 @@ export function useResumeSubmit({
     event.preventDefault();
     if (authStatus !== 'authed') return;
 
-    const trimmedTitle = title.trim();
+    const snapshot = useResumeEditStore.getState();
+    const trimmedTitle = snapshot.title.trim();
     if (!trimmedTitle) {
       setSubmitError('이력서 제목을 입력해 주세요.');
       return;
     }
-    const educationLevel = education[0]?.value?.trim() ?? '';
+    const educationLevel = snapshot.education[0]?.value?.trim() ?? '';
     if (!educationLevel) {
       setSubmitError('학력 정보를 입력해 주세요.');
       return;
@@ -65,30 +48,34 @@ export function useResumeSubmit({
 
     (async () => {
       try {
-        if (isEditMode && resumeId) {
-          const careersPayload = careers
-            .map((career) => {
-              const { start, end } = splitPeriod(career.period);
-              return {
-                company_name: career.company.trim(),
-                job: career.role.trim(),
-                position: career.title.trim(),
-                start_date: start,
-                end_date: end,
-                is_current: Boolean(start) && !end,
-              };
-            })
-            .filter((career) =>
-              [
-                career.company_name,
-                career.job,
-                career.position,
-                career.start_date,
-                career.end_date,
-              ].some(Boolean),
-            );
+        const contentJson = buildResumeContentJson(snapshot);
 
-          const projectsPayload = projects
+        if (isEditMode && resumeId) {
+          const careersPayload = snapshot.isFresher
+            ? []
+            : snapshot.careers
+                .map((career) => {
+                  const { start, end } = splitPeriod(career.period);
+                  return {
+                    company_name: career.company.trim(),
+                    job: career.role.trim(),
+                    position: career.title.trim(),
+                    start_date: start,
+                    end_date: end,
+                    is_current: Boolean(start) && !end,
+                  };
+                })
+                .filter((career) =>
+                  [
+                    career.company_name,
+                    career.job,
+                    career.position,
+                    career.start_date,
+                    career.end_date,
+                  ].some(Boolean),
+                );
+
+          const projectsPayload = snapshot.projects
             .map((project) => {
               const { start, end } = splitPeriod(project.period);
               return {
@@ -106,10 +93,10 @@ export function useResumeSubmit({
 
           const updatePayload = {
             title: trimmedTitle,
-            is_fresher: isFresher,
-            education_level: education[0]?.value ?? '',
+            is_fresher: snapshot.isFresher,
+            education_level: snapshot.education[0]?.value ?? '',
             content_json: {
-              ...(payload.content_json ?? {}),
+              ...contentJson,
               careers: careersPayload,
               projects: projectsPayload,
             },
@@ -118,13 +105,14 @@ export function useResumeSubmit({
         } else {
           const createPayload = {
             title: trimmedTitle,
-            is_fresher: isFresher,
+            is_fresher: snapshot.isFresher,
             education_level: educationLevel,
-            file_url: fileUrl?.trim() ? fileUrl.trim() : null,
-            content_json: payload.content_json,
+            file_url: snapshot.fileUrl?.trim() ? snapshot.fileUrl.trim() : null,
+            content_json: contentJson,
           };
           await createResume(createPayload);
         }
+
         await queryClient.invalidateQueries({ queryKey: resumesQueryKey });
         router.replace('/resume');
       } catch (error) {

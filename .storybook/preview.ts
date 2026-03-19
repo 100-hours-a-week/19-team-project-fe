@@ -4,6 +4,9 @@ import '../src/app/globals.css';
 const preview: Preview = {
   tags: ['autodocs'],
   parameters: {
+    a11y: {
+      test: 'error',
+    },
     controls: {
       matchers: {
         color: /(background|color)$/i,

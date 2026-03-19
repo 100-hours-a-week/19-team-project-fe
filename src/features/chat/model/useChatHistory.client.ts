@@ -91,8 +91,29 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
       const data = await getChatMessages({ chatId, cursor: nextCursor });
       const incoming = data.messages;
       setMessages((prev) => {
-        const existing = new Set(prev.map((item) => item.message_id));
-        const merged = [...prev, ...incoming.filter((item) => !existing.has(item.message_id))];
+        const existingByMessageId = new Set(
+          prev.map((item) => item.message_id).filter((id): id is number => id !== null),
+        );
+        const existingByRoomSeq = new Set(
+          prev
+            .map((item) => item.room_sequence)
+            .filter((seq): seq is number => typeof seq === 'number'),
+        );
+        const merged = [
+          ...prev,
+          ...incoming.filter((item) => {
+            if (item.message_id !== null && existingByMessageId.has(item.message_id)) {
+              return false;
+            }
+            if (
+              typeof item.room_sequence === 'number' &&
+              existingByRoomSeq.has(item.room_sequence)
+            ) {
+              return false;
+            }
+            return true;
+          }),
+        ];
         return sortMessagesByTime(merged);
       });
       setNextCursor(data.nextCursor ?? null);
