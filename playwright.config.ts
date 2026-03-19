@@ -26,7 +26,7 @@ export default defineConfig({
   ],
   webServer: {
     command: isCI
-      ? `pnpm build && pnpm start --hostname 127.0.0.1 --port ${PORT}`
+      ? `NEXT_PUBLIC_DISABLE_SERVICE_WORKER=true pnpm build && NEXT_PUBLIC_DISABLE_SERVICE_WORKER=true pnpm start --hostname 127.0.0.1 --port ${PORT}`
       : `pnpm dev --webpack --hostname 127.0.0.1 --port ${PORT}`,
     url: BASE_URL,
     reuseExistingServer: !isCI,
