@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 
+import { consumeReportCreateSuccess, REPORT_CREATE_SUCCESS_EVENT } from '@/features/chat';
+
 type LottieComponent = typeof import('lottie-react').default;
 type LottieData = Record<string, unknown>;
 
-const reportCreateSuccessKey = 'reportCreateSuccess';
 const reportCreateSuccessPath = '/Success.json';
 
 export default function ReportCreateSuccessAnimation() {
@@ -13,42 +14,42 @@ export default function ReportCreateSuccessAnimation() {
   const [Lottie, setLottie] = useState<LottieComponent | null>(null);
 
   useEffect(() => {
-    const flag = sessionStorage.getItem(reportCreateSuccessKey);
-    if (!flag) return;
-
     let cancelled = false;
 
-    import('lottie-react').then((mod) => {
-      if (!cancelled) setLottie(() => mod.default);
-    });
+    const startAnimation = () => {
+      if (!consumeReportCreateSuccess()) return;
 
-    fetch(reportCreateSuccessPath)
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return (await response.json()) as LottieData;
-      })
-      .then((data) => {
-        if (cancelled) return;
-        if (data) {
-          setAnimationData(data);
-        } else {
-          sessionStorage.removeItem(reportCreateSuccessKey);
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        sessionStorage.removeItem(reportCreateSuccessKey);
+      import('lottie-react').then((mod) => {
+        if (!cancelled) setLottie(() => mod.default);
       });
+
+      fetch(reportCreateSuccessPath)
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return (await response.json()) as LottieData;
+        })
+        .then((data) => {
+          if (cancelled) return;
+          setAnimationData(data);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setAnimationData(null);
+        });
+    };
+
+    startAnimation();
+    window.addEventListener(REPORT_CREATE_SUCCESS_EVENT, startAnimation);
 
     return () => {
       cancelled = true;
+      window.removeEventListener(REPORT_CREATE_SUCCESS_EVENT, startAnimation);
     };
   }, []);
 
   if (!animationData || !Lottie) return null;
 
   const handleComplete = () => {
-    sessionStorage.removeItem(reportCreateSuccessKey);
     setAnimationData(null);
   };
 

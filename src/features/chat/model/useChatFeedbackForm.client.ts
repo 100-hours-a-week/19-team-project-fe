@@ -3,7 +3,11 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { markChatFeedbackSubmitted, markReportCreateAccepted } from '../lib/reportCreate.client';
+import {
+  markChatFeedbackSubmitted,
+  markReportCreateAccepted,
+  markReportCreateSuccess,
+} from '../lib/reportCreate.client';
 import type { ChatFeedbackRequest } from '@/entities/chat';
 import { readAccessToken, refreshAuthTokens } from '@/shared/api';
 
@@ -444,9 +448,7 @@ function sendFeedbackInBackground(
     if (first.ok) {
       markChatFeedbackSubmitted(chatId);
       markReportCreateAccepted();
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('reportCreateSuccess', 'true');
-      }
+      markReportCreateSuccess();
       return;
     }
 
@@ -458,9 +460,7 @@ function sendFeedbackInBackground(
     if (second.ok) {
       markChatFeedbackSubmitted(chatId);
       markReportCreateAccepted();
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('reportCreateSuccess', 'true');
-      }
+      markReportCreateSuccess();
     }
   })();
 }

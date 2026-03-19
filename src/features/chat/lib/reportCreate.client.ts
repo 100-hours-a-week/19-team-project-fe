@@ -2,6 +2,8 @@
 
 export const REPORT_CREATE_ACCEPTED_EVENT = 'report-create-accepted';
 export const REPORT_CREATE_ACCEPTED_STORAGE_KEY = 'reportCreateAccepted';
+export const REPORT_CREATE_SUCCESS_EVENT = 'report-create-success';
+export const REPORT_CREATE_SUCCESS_STORAGE_KEY = 'reportCreateSuccess';
 export const CHAT_FEEDBACK_SUBMITTED_STORAGE_PREFIX = 'chatFeedbackSubmitted:';
 export const CHAT_REVIEW_SUBMITTED_STORAGE_PREFIX = 'chatReviewSubmitted:';
 
@@ -16,6 +18,20 @@ export function consumeReportCreateAccepted(): boolean {
   const flag = sessionStorage.getItem(REPORT_CREATE_ACCEPTED_STORAGE_KEY);
   if (!flag) return false;
   sessionStorage.removeItem(REPORT_CREATE_ACCEPTED_STORAGE_KEY);
+  return true;
+}
+
+export function markReportCreateSuccess() {
+  if (typeof window === 'undefined') return;
+  sessionStorage.setItem(REPORT_CREATE_SUCCESS_STORAGE_KEY, 'true');
+  window.dispatchEvent(new Event(REPORT_CREATE_SUCCESS_EVENT));
+}
+
+export function consumeReportCreateSuccess(): boolean {
+  if (typeof window === 'undefined') return false;
+  const flag = sessionStorage.getItem(REPORT_CREATE_SUCCESS_STORAGE_KEY);
+  if (!flag) return false;
+  sessionStorage.removeItem(REPORT_CREATE_SUCCESS_STORAGE_KEY);
   return true;
 }
 
