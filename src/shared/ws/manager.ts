@@ -58,11 +58,7 @@ function getState(): InternalState {
   return globalThis.__stompState;
 }
 
-function attachSubscription(
-  st: InternalState,
-  key: string,
-  definition: SubscriptionDefinition,
-) {
+function attachSubscription(st: InternalState, key: string, definition: SubscriptionDefinition) {
   if (!st.client || !st.client.connected) return;
 
   const existing = st.activeSubscriptions.get(key);
