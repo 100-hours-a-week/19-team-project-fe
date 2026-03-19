@@ -105,7 +105,10 @@ export function useChatHistory(chatId: number, currentUserId: number | null) {
             if (item.message_id !== null && existingByMessageId.has(item.message_id)) {
               return false;
             }
-            if (typeof item.room_sequence === 'number' && existingByRoomSeq.has(item.room_sequence)) {
+            if (
+              typeof item.room_sequence === 'number' &&
+              existingByRoomSeq.has(item.room_sequence)
+            ) {
               return false;
             }
             return true;
