@@ -77,8 +77,7 @@ export async function ensureWsConnected(): Promise<void> {
   } catch (connectError) {
     if (stompManager.isConnected()) return;
     const hasReadableAccessToken = Boolean(readAccessToken());
-    const shouldTryRefresh =
-      isLikelyAuthConnectFailure(connectError) || !hasReadableAccessToken;
+    const shouldTryRefresh = isLikelyAuthConnectFailure(connectError) || !hasReadableAccessToken;
 
     if (!shouldTryRefresh) {
       throw connectError;
