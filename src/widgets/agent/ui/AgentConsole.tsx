@@ -249,12 +249,20 @@ function normalizeMentorCards(data: unknown): MentorCard[] {
 function parseMentorCardsFromText(content: string): MentorCard[] {
   const lines = content.split('\n').map((line) => line.trim());
   const cards: MentorCard[] = [];
+  const mentorSectionStart = lines.findIndex(
+    (line) => line === '추천 멘토' || line === '추천 현직자' || line === '추천 전문가',
+  );
+  const candidateLines = mentorSectionStart >= 0 ? lines.slice(mentorSectionStart + 1) : [];
+  if (candidateLines.length === 0) return [];
 
-  for (const line of lines) {
+  for (const line of candidateLines) {
     const match = line.match(/^((?:\d+|[0-9]️⃣))\s*(.+)$/);
     if (!match) continue;
 
     const body = match[2] ?? '';
+    // Fallback parser should only treat explicit mentor-card rows as cards.
+    if (!body.includes('|') && !body.includes('매칭')) continue;
+
     const segments = body
       .split('|')
       .map((segment) => segment.trim())
