@@ -54,6 +54,10 @@ function isSessionNotFoundError(error: unknown): boolean {
   return false;
 }
 
+function isStreamInterruptedMessage(text: string): boolean {
+  return /STREAM_INTERRUPTED/i.test(text);
+}
+
 function dedupeMentorCards(cards: MentorCard[]): MentorCard[] {
   const seen = new Set<string>();
   const deduped: MentorCard[] = [];
@@ -524,13 +528,23 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
     ]);
   }, []);
 
+  const resolveValidSession = useCallback(
+    async (preferredSessionId?: string | null): Promise<string | null> => {
+      const list = await getAgentSessions();
+      const matched = preferredSessionId
+        ? list.find((session) => session.sessionId === preferredSessionId)
+        : null;
+      const nextSession = matched ?? list[0] ?? (await createAgentSession());
+      const nextSessionId = nextSession.sessionId ?? null;
+      setActiveSessionId(nextSessionId);
+      return nextSessionId;
+    },
+    [],
+  );
+
   const syncToValidSession = useCallback(async (): Promise<string | null> => {
-    const list = await getAgentSessions();
-    const nextSession = list[0] ?? (await createAgentSession());
-    const nextSessionId = nextSession.sessionId ?? null;
-    setActiveSessionId(nextSessionId);
-    return nextSessionId;
-  }, []);
+    return resolveValidSession(null);
+  }, [resolveValidSession]);
 
   const loadMessages = useCallback(
     async (sessionId: string) => {
@@ -571,22 +585,13 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
     setErrorMessage(null);
 
     try {
-      const list = await getAgentSessions();
-      let nextSessions = list;
-
-      if (nextSessions.length === 0) {
-        const created = await createAgentSession();
-        nextSessions = [created];
-      }
-
-      const fallbackSessionId = nextSessions[0]?.sessionId ?? null;
-      setActiveSessionId(fallbackSessionId);
+      await resolveValidSession(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'AGENT_SESSIONS_FAILED';
       setErrorMessage(message);
       appendSystemMessage('세션을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.');
     }
-  }, [appendSystemMessage, authStatus]);
+  }, [appendSystemMessage, authStatus, resolveValidSession]);
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
@@ -595,9 +600,11 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
     let sessionId = activeSessionId;
     if (!sessionId) {
       try {
-        const created = await createAgentSession();
-        setActiveSessionId(created.sessionId);
-        sessionId = created.sessionId;
+        sessionId = await resolveValidSession(null);
+        if (!sessionId) {
+          appendSystemMessage('세션 생성에 실패했습니다. 다시 시도해 주세요.');
+          return;
+        }
       } catch {
         appendSystemMessage('세션 생성에 실패했습니다. 다시 시도해 주세요.');
         return;
@@ -644,7 +651,6 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
               const eventSessionId = extractSessionIdFromEvent(event);
               if (eventSessionId) {
                 sessionId = eventSessionId;
-                setActiveSessionId(eventSessionId);
               }
               return;
             }
@@ -653,7 +659,9 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
             if (!text && cards.length === 0) return;
 
             if (event.event === 'error') {
-              appendSystemMessage(text || '에이전트 응답 중 오류가 발생했습니다.');
+              if (!isStreamInterruptedMessage(text)) {
+                appendSystemMessage(text || '에이전트 응답 중 오류가 발생했습니다.');
+              }
               return;
             }
 
@@ -678,7 +686,9 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
 
       if (sessionId) {
         try {
-          const sessionMessages = await getAgentSessionMessages(sessionId);
+          const validSessionId = await resolveValidSession(sessionId);
+          if (!validSessionId) return;
+          const sessionMessages = await getAgentSessionMessages(validSessionId);
           setMessages((sessionMessages.messages ?? []).map(toUiMessage));
         } catch (error) {
           if (isSessionNotFoundError(error)) {
@@ -701,7 +711,15 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
       abortRef.current = null;
       setIsStreaming(false);
     }
-  }, [activeSessionId, appendSystemMessage, authStatus, input, isStreaming, syncToValidSession]);
+  }, [
+    activeSessionId,
+    appendSystemMessage,
+    authStatus,
+    input,
+    isStreaming,
+    resolveValidSession,
+    syncToValidSession,
+  ]);
 
   const handleMentorCardClick = useCallback(
     async (card: MentorCard) => {

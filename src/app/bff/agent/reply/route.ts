@@ -28,6 +28,20 @@ function createSseErrorEvent(message: string) {
   return encoder.encode(`event: error\ndata: ${JSON.stringify({ message })}\n\n`);
 }
 
+function isUpstreamSocketClosedError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  const message = error.message.toUpperCase();
+  if (message.includes('TERMINATED') || message.includes('UND_ERR_SOCKET')) {
+    return true;
+  }
+
+  const cause = error.cause;
+  if (!cause || typeof cause !== 'object') return false;
+  const code = (cause as { code?: unknown }).code;
+  return typeof code === 'string' && code.toUpperCase() === 'UND_ERR_SOCKET';
+}
+
 export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
@@ -86,8 +100,11 @@ export async function POST(req: Request) {
             if (value) controller.enqueue(value);
           }
         } catch (error) {
-          console.warn('[Agent Reply Stream Interrupted]', error);
-          controller.enqueue(createSseErrorEvent('STREAM_INTERRUPTED'));
+          const isSocketClosed = isUpstreamSocketClosedError(error);
+          if (!isSocketClosed) {
+            console.warn('[Agent Reply Stream Interrupted]', error);
+            controller.enqueue(createSseErrorEvent('STREAM_INTERRUPTED'));
+          }
         } finally {
           controller.close();
           try {
