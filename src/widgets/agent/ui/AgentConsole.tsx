@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import type { AgentMessage, AgentSseEvent } from '@/entities/agent';
 import { useAuthStatus } from '@/entities/auth';
 import { getExperts } from '@/entities/experts';
+import { BusinessError } from '@/shared/api';
 import {
   getAgentSessions,
   createAgentSession,
@@ -36,6 +37,22 @@ type MentorCard = {
   stack?: string;
   matchRate?: string;
 };
+
+function isSessionNotFoundError(error: unknown): boolean {
+  if (error instanceof BusinessError) {
+    return (
+      error.code === 'AI_CHAT_NOT_FOUND' ||
+      error.code === 'AGENT_SESSION_NOT_FOUND' ||
+      error.code === 'SESSION_NOT_FOUND'
+    );
+  }
+
+  if (error instanceof Error) {
+    return /AI_CHAT_NOT_FOUND|SESSION_NOT_FOUND|404/i.test(`${error.message}`);
+  }
+
+  return false;
+}
 
 function dedupeMentorCards(cards: MentorCard[]): MentorCard[] {
   const seen = new Set<string>();
@@ -507,6 +524,14 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
     ]);
   }, []);
 
+  const syncToValidSession = useCallback(async (): Promise<string | null> => {
+    const list = await getAgentSessions();
+    const nextSession = list[0] ?? (await createAgentSession());
+    const nextSessionId = nextSession.sessionId ?? null;
+    setActiveSessionId(nextSessionId);
+    return nextSessionId;
+  }, []);
+
   const loadMessages = useCallback(
     async (sessionId: string) => {
       setIsLoadingMessages(true);
@@ -516,6 +541,20 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
         const data = await getAgentSessionMessages(sessionId);
         setMessages((data.messages ?? []).map(toUiMessage));
       } catch (error) {
+        if (isSessionNotFoundError(error)) {
+          try {
+            const recoveredSessionId = await syncToValidSession();
+            if (recoveredSessionId) {
+              const recovered = await getAgentSessionMessages(recoveredSessionId);
+              setMessages((recovered.messages ?? []).map(toUiMessage));
+              setErrorMessage(null);
+              return;
+            }
+          } catch {
+            // fall through to generic error handling
+          }
+        }
+
         const message = error instanceof Error ? error.message : 'AGENT_MESSAGES_FAILED';
         setErrorMessage(message);
         appendSystemMessage('메시지를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
@@ -523,7 +562,7 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
         setIsLoadingMessages(false);
       }
     },
-    [appendSystemMessage],
+    [appendSystemMessage, syncToValidSession],
   );
 
   const bootstrapSessions = useCallback(async () => {
@@ -638,8 +677,20 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
       );
 
       if (sessionId) {
-        const sessionMessages = await getAgentSessionMessages(sessionId);
-        setMessages((sessionMessages.messages ?? []).map(toUiMessage));
+        try {
+          const sessionMessages = await getAgentSessionMessages(sessionId);
+          setMessages((sessionMessages.messages ?? []).map(toUiMessage));
+        } catch (error) {
+          if (isSessionNotFoundError(error)) {
+            const recoveredSessionId = await syncToValidSession();
+            if (recoveredSessionId) {
+              const recovered = await getAgentSessionMessages(recoveredSessionId);
+              setMessages((recovered.messages ?? []).map(toUiMessage));
+            }
+          } else {
+            throw error;
+          }
+        }
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'AGENT_REPLY_FAILED';
@@ -650,7 +701,7 @@ export default function AgentConsole({ compact = false }: AgentConsoleProps) {
       abortRef.current = null;
       setIsStreaming(false);
     }
-  }, [activeSessionId, appendSystemMessage, authStatus, input, isStreaming]);
+  }, [activeSessionId, appendSystemMessage, authStatus, input, isStreaming, syncToValidSession]);
 
   const handleMentorCardClick = useCallback(
     async (card: MentorCard) => {
