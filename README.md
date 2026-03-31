@@ -95,6 +95,16 @@ RE:FIT은 구직자와 이직 준비자가
 
 ---
 
+
+## 🚧 Troubleshooting
+
+- [캐싱 ROI로 TanStack Query와 BFF를 결정한 과정](https://github.com/100-hours-a-week/19-team-project-fe/wiki/%EC%BA%90%EC%8B%B1-ROI%EB%A1%9C-TanStack-Query%EC%99%80-BFF%EB%A5%BC-%EA%B2%B0%EC%A0%95%ED%95%9C-%EA%B3%BC%EC%A0%95)
+- [홈 초기 로딩 경로 재설계를 통한 번들 경량화 회고](https://github.com/100-hours-a-week/19-team-project-fe/wiki/%ED%99%88-%EC%B4%88%EA%B8%B0-%EB%A1%9C%EB%94%A9-%EA%B2%BD%EB%A1%9C-%EC%9E%AC%EC%84%A4%EA%B3%84%EB%A5%BC-%ED%86%B5%ED%95%9C-%EB%B2%88%EB%93%A4-%EA%B2%BD%EB%9F%89%ED%99%94-%ED%9A%8C%EA%B3%A0)
+- [프로필 이미지 최적화 개선 (Next Image 업로드 전처리)](https://github.com/100-hours-a-week/19-team-project-fe/wiki/%ED%94%84%EB%A1%9C%ED%95%84-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%B5%9C%EC%A0%81%ED%99%94-%EA%B0%9C%EC%84%A0-(Next-Image---%EC%97%85%EB%A1%9C%EB%93%9C-%EC%A0%84%EC%B2%98%EB%A6%AC))
+- [SSR 504 방지를 위한 BFF Timeout & Fallback 구조 도입](https://github.com/100-hours-a-week/19-team-project-fe/wiki/SSR-504-%EB%B0%A9%EC%A7%80%EB%A5%BC-%EC%9C%84%ED%95%9C-BFF-Timeout-&-Fallback-%EA%B5%AC%EC%A1%B0-%EB%8F%84%EC%9E%85)
+- [SSR 차단 제거와 폰트 경량화를 통한 LCP 최적화](https://github.com/100-hours-a-week/19-team-project-fe/wiki/SSR-%EC%B0%A8%EB%8B%A8-%EC%A0%9C%EA%B1%B0%EC%99%80-%ED%8F%B0%ED%8A%B8-%EA%B2%BD%EB%9F%89%ED%99%94%EB%A5%BC-%ED%86%B5%ED%95%9C-LCP-%EC%B5%9C%EC%A0%81%ED%99%94)
+
+---
 ## 🧠 Frontend Focus (핵심 구현 포인트)
 
 ### 1. 실시간 데이터 처리 구조
@@ -199,15 +209,6 @@ RE:FIT은 구직자와 이직 준비자가
   
 
 ---
-
-## 🚧 Troubleshooting
-
-개발 중 발생한 문제와 해결 과정은 아래 문서에서 확인할 수 있습니다.
-
-👉 [트러블슈팅 문서 모음](./docs/troubleshooting)
-
----
-
 
 
 ## 🔧 Getting Started
