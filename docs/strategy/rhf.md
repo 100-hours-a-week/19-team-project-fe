@@ -115,6 +115,89 @@ const isSubmitDisabled =
 
 ---
 
+## 적용 후 코드 (RHF 반영)
+
+아래는 이번 적용에서 실제로 변경된 핵심 코드 발췌다.
+
+### A. 폼 상태를 `useForm` + `useWatch`로 통합 (`useOnboardingFormState`)
+
+```ts
+const { control, setValue, getValues } = useForm<OnboardingFormValues>({
+  defaultValues: {
+    selectedJob: null,
+    selectedCareer: null,
+    selectedTech: [],
+    nickname: '',
+    introduction: '',
+    termsAgreed: false,
+    privacyAgreed: false,
+    pledgeAgreed: false,
+  },
+});
+
+const selectedJob = useWatch({ control, name: 'selectedJob' });
+const selectedCareer = useWatch({ control, name: 'selectedCareer' });
+const selectedTech = useWatch({ control, name: 'selectedTech' }) ?? [];
+const nickname = useWatch({ control, name: 'nickname' }) ?? '';
+const introduction = useWatch({ control, name: 'introduction' }) ?? '';
+const termsAgreed = useWatch({ control, name: 'termsAgreed' }) ?? false;
+const privacyAgreed = useWatch({ control, name: 'privacyAgreed' }) ?? false;
+const pledgeAgreed = useWatch({ control, name: 'pledgeAgreed' }) ?? false;
+```
+
+### B. 필드 갱신을 `setValue` 기반으로 통일 (`useOnboardingFormState`)
+
+```ts
+const setSelectedJob = (value: Job | null) => {
+  setValue('selectedJob', value, { shouldDirty: true, shouldValidate: true });
+};
+
+const setNickname = (value: string) => {
+  setValue('nickname', value, { shouldDirty: true, shouldValidate: true });
+};
+
+const setTermsAgreed = (value: boolean) => {
+  setValue('termsAgreed', value, { shouldDirty: true, shouldValidate: true });
+};
+```
+
+### C. 제출 전 검증 진입점을 `useOnboardingProfileForm`으로 정리
+
+```ts
+const handleSubmit = async () => {
+  const trimmedNickname = form.nickname.trim();
+  if (!form.selectedJob || !form.selectedCareer) {
+    submit.setSubmitError('직무와 경력을 선택해 주세요.');
+    return;
+  }
+  if (!isExpert && form.selectedTech.length === 0) {
+    submit.setSubmitError('기술 스택을 선택해 주세요.');
+    return;
+  }
+  if (!trimmedNickname) {
+    submit.setSubmitError('닉네임을 입력해 주세요.');
+    return;
+  }
+  if (trimmedNickname.length > nicknameLimit) {
+    submit.setSubmitError('닉네임이 너무 길어요.');
+    return;
+  }
+  if (!allRequiredAgreed) {
+    submit.setSubmitError('필수 약관에 동의해 주세요.');
+    return;
+  }
+  await submit.handleSubmit(nicknameLimit);
+};
+```
+
+### D. submit 훅에 에러 setter 노출 (`useOnboardingSubmit`)
+
+```ts
+return { isSubmitting, submitError, setSubmitError, handleSubmit };
+```
+
+---
+
 ## 5) RHF 도입 방향
 
 ### 5-1. 적용 범위
@@ -155,4 +238,3 @@ const isSubmitDisabled =
 - 신규 필드 추가 시 변경 지점 축소
 - 에러 처리 일관성 확보
 - 설문조사 폼 전환 시 재사용 가능한 폼 패턴 확보
-
