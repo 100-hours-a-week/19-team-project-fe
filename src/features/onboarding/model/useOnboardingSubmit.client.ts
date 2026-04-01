@@ -162,5 +162,5 @@ export function useOnboardingSubmit({
     }
   };
 
-  return { isSubmitting, submitError, handleSubmit };
+  return { isSubmitting, submitError, setSubmitError, handleSubmit };
 }
