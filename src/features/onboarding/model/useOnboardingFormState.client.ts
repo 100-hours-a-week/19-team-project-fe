@@ -21,11 +21,7 @@ type OnboardingFormValues = {
 export function useOnboardingFormState(isExpert: boolean) {
   const [currentStep, setCurrentStep] = useState<0 | 1>(() => (isExpert ? 0 : 1));
   const [activeSheet, setActiveSheet] = useState<SheetId>(null);
-  const {
-    control,
-    setValue,
-    getValues,
-  } = useForm<OnboardingFormValues>({
+  const { control, setValue, getValues } = useForm<OnboardingFormValues>({
     defaultValues: {
       selectedJob: null,
       selectedCareer: null,
