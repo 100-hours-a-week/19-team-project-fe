@@ -92,6 +92,11 @@ const nextConfig = {
         hostname: 'refit-storage-prod.s3.ap-northeast-2.amazonaws.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'refit-storage-dev.s3.ap-northeast-2.amazonaws.com',
+        pathname: '/**',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
   },

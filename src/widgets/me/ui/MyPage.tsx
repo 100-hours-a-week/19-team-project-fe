@@ -31,6 +31,10 @@ export default function MyPage() {
     handleDeleteAccount,
   } = useMyPage();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const profileImageSrc = user?.profile_image_url ?? defaultUserImage;
+  const isRemoteProfileImage =
+    typeof profileImageSrc === 'string' &&
+    (profileImageSrc.startsWith('https://') || profileImageSrc.startsWith('http://'));
 
   const handleAuthSheetClose = () => {
     router.replace('/');
@@ -109,13 +113,14 @@ export default function MyPage() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <Image
-                    src={user.profile_image_url ?? defaultUserImage}
+                    src={profileImageSrc}
                     alt="프로필"
                     width={112}
                     height={112}
                     priority
                     fetchPriority="high"
                     loading="eager"
+                    unoptimized={isRemoteProfileImage}
                     sizes="96px"
                     className="h-24 w-24 rounded-full object-cover"
                   />
