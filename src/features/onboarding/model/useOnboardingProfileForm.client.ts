@@ -61,6 +61,31 @@ export function useOnboardingProfileForm(isExpert: boolean) {
     !form.nickname.trim() ||
     !allRequiredAgreed;
 
+  const handleSubmit = async () => {
+    const trimmedNickname = form.nickname.trim();
+    if (!form.selectedJob || !form.selectedCareer) {
+      submit.setSubmitError('직무와 경력을 선택해 주세요.');
+      return;
+    }
+    if (!isExpert && form.selectedTech.length === 0) {
+      submit.setSubmitError('기술 스택을 선택해 주세요.');
+      return;
+    }
+    if (!trimmedNickname) {
+      submit.setSubmitError('닉네임을 입력해 주세요.');
+      return;
+    }
+    if (trimmedNickname.length > nicknameLimit) {
+      submit.setSubmitError('닉네임이 너무 길어요.');
+      return;
+    }
+    if (!allRequiredAgreed) {
+      submit.setSubmitError('필수 약관에 동의해 주세요.');
+      return;
+    }
+    await submit.handleSubmit(nicknameLimit);
+  };
+
   return {
     currentStep: form.currentStep,
     setCurrentStep: form.setCurrentStep,
@@ -117,7 +142,7 @@ export function useOnboardingProfileForm(isExpert: boolean) {
     nicknameCheckMessage: nicknameCheck.nicknameCheckMessage,
     isNicknameChecking: nicknameCheck.isNicknameChecking,
     checkedNickname: nicknameCheck.checkedNickname,
-    handleSubmit: () => submit.handleSubmit(nicknameLimit),
+    handleSubmit,
     handleNicknameCheck: () => nicknameCheck.handleNicknameCheck(form.nickname),
     handleSendVerification: emailVerification.handleSendVerification,
     handleKeypadPress: emailVerification.handleKeypadPress,
