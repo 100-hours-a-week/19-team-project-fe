@@ -103,6 +103,7 @@ RE:FIT은 구직자와 이직 준비자가
 - [프로필 이미지 최적화 개선 (Next Image 업로드 전처리)](https://github.com/100-hours-a-week/19-team-project-fe/wiki/%ED%94%84%EB%A1%9C%ED%95%84-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%B5%9C%EC%A0%81%ED%99%94-%EA%B0%9C%EC%84%A0-(Next-Image---%EC%97%85%EB%A1%9C%EB%93%9C-%EC%A0%84%EC%B2%98%EB%A6%AC))
 - [SSR 504 방지를 위한 BFF Timeout & Fallback 구조 도입](https://github.com/100-hours-a-week/19-team-project-fe/wiki/SSR-504-%EB%B0%A9%EC%A7%80%EB%A5%BC-%EC%9C%84%ED%95%9C-BFF-Timeout-&-Fallback-%EA%B5%AC%EC%A1%B0-%EB%8F%84%EC%9E%85)
 - [SSR 차단 제거와 폰트 경량화를 통한 LCP 최적화](https://github.com/100-hours-a-week/19-team-project-fe/wiki/SSR-%EC%B0%A8%EB%8B%A8-%EC%A0%9C%EA%B1%B0%EC%99%80-%ED%8F%B0%ED%8A%B8-%EA%B2%BD%EB%9F%89%ED%99%94%EB%A5%BC-%ED%86%B5%ED%95%9C-LCP-%EC%B5%9C%EC%A0%81%ED%99%94)
+- [RHF 도입기: 온보딩 프로필 폼 상태/검증 구조 전환](https://github.com/100-hours-a-week/19-team-project-fe/wiki/RHF-%EB%8F%84%EC%9E%85%EA%B8%B0:-%EC%98%A8%EB%B3%B4%EB%94%A9-%ED%94%84%EB%A1%9C%ED%95%84-%ED%8F%BC-%EA%B5%AC%EC%A1%B0-%EC%A0%84%ED%99%98-%EC%A4%80%EB%B9%84)
 
 ---
 ## 🧠 Frontend Focus (핵심 구현 포인트)
